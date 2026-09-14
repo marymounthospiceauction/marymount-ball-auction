@@ -384,7 +384,7 @@ Marymount Ball Committee</div>
     const ITEMS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQNDV6Mxcwx7ooiUrTkRUHHVUFCnu47d7qaeEijrK0b-5QvafzDwhEax7genVr_ZK512ZDhgbTjJYx/pub?gid=913040441&single=true&output=csv";
 
     const LEADING_BIDS_URL = "https://marymountauction2026.ie/";
-    const MOBILE_ERROR_MESSAGE = "Mobile number must start with 08 and be 10 digits long, or start with 0044 and be 13 digits long.";
+    const MOBILE_ERROR_MESSAGE = "Enter an Irish mobile as 0871234567, or a UK mobile as 00447911123456.";
     const DEFAULT_SUCCESS_MESSAGE = `Thank you for your bid.
 
 If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
@@ -605,17 +605,12 @@ Marymount Ball Committee`;
     function isValidMobileNumber(value) {
       const mobile = normalizeMobileNumber(value);
 
-      if (!/^\d+$/.test(mobile)) {
-        return false;
-      }
+      if (!/^\d+$/.test(mobile)) return false;
 
-      if (mobile.startsWith("08")) {
-        return mobile.length === 10;
-      }
-
-      if (mobile.startsWith("0044")) {
-        return mobile.length === 13;
-      }
+      if (mobile.indexOf("08") === 0)   return mobile.length === 10;
+      if (mobile.indexOf("0044") === 0) return mobile.length === 14;
+      if (mobile.indexOf("353") === 0)  return mobile.length === 12;
+      if (mobile.indexOf("44") === 0)   return mobile.length === 12;
 
       return false;
     }
