@@ -723,16 +723,13 @@ Marymount Ball Committee`;
       const csvPromise = fetchItemsFromCsv()
         .then(items => {
           if (itemEl.options.length <= 1 || !itemEl.value) {
-            console.time && console.timeEnd && console.log("items painted from CSV");
             buildItemDropdown(items);
             csvPainted = true;
           }
         })
         .catch(err => console.warn("CSV item list failed, waiting on server:", err.message));
 
-      console.time("getFormData");
       const result = await apiRequest({ action: "getFormData", token });
-      console.timeEnd("getFormData");
 
       if (!result.ok) {
         if (isClosedMessage(result.message)) {
@@ -847,7 +844,6 @@ Marymount Ball Committee`;
         const cleanBidAmount = getCleanBidAmount();
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
 
-        console.time("submitBid");
         const result = await apiRequest({
           action: "submitBid",
           token: tokenEl.value,
@@ -860,7 +856,6 @@ Marymount Ball Committee`;
           tableValue: tableValueEl.value,
           consent: consentCheckboxEl.checked ? "Yes" : "No"
         });
-        console.timeEnd("submitBid");
 
         if (!result.ok) {
           if (isClosedMessage(result.message)) {
