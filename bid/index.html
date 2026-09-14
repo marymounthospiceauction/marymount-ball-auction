@@ -596,10 +596,11 @@ Marymount Ball Committee`;
     }
 
     function normalizeMobileNumber(value) {
-      return String(value || "")
-        .trim()
-        .replace(/\s+/g, "")
-        .replace(/-/g, "");
+      let v = String(value || "").trim().replace(/[\s\-()]/g, "");
+      if (v.indexOf("+353") === 0)       v = "0" + v.slice(4);
+      else if (v.indexOf("00353") === 0) v = "0" + v.slice(5);
+      else if (v.indexOf("+44") === 0)   v = "0044" + v.slice(3);
+      return v;
     }
 
     function isValidMobileNumber(value) {
