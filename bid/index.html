@@ -422,7 +422,7 @@
 
         <div class="section">
           <label class="label" for="mobileNumber">Mobile Number<span class="required-star">*</span></label>
-          <input id="mobileNumber" type="text" inputmode="numeric" placeholder="08xxxxxxxxx or +353..." title="Irish: 08 (10 digits) or +353 (12 digits). UK: 0044 (13 digits) or +44 (12 digits)">
+          <input id="mobileNumber" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxx or +353..." title="Irish: 08 (10 digits) or +353 (12 digits). UK: 0044 (13 digits) or +44 (12 digits)">
           <div style="font-size: 11px; color: #5f5a4f; margin-top: 4px;">Irish: 08xxxxxxxx or 00353/+353xxxxxxxxx | UK: 0044xxxxxxxxxx or +44xxxxxxxxxx</div>
           <div id="mobileError" class="field-error"></div>
         </div>
@@ -647,6 +647,7 @@ Marymount Ball Committee`;
         } else {
           document.getElementById("itemSelectMode").style.display = "block";
           document.getElementById("itemCardMode").style.display = "none";
+          delete itemEl.dataset.currentLeadingBid;
         }
       };
 
@@ -808,9 +809,7 @@ Marymount Ball Committee`;
       const token = getTokenFromUrl();
       tokenEl.value = token;
 
-      console.time("getFormData");
       const result = await apiRequest({ action: "getFormData", token });
-      console.timeEnd("getFormData");
       
       if (!result.ok) {
         if (isClosedMessage(result.message)) {
@@ -825,6 +824,11 @@ Marymount Ball Committee`;
       const prefill = data.prefill || {};
 
       buildItemDropdown(items, prefill.item || "", prefill.itemNumber || "");
+
+      // option.selected above does not fire onchange, so the card and the
+      // minimum bid would both be missing for anyone arriving on an
+      // outbid link. Fire it by hand once the list is built.
+      if (itemEl.selectedIndex > 0) itemEl.onchange();
 
       yourNameEl.value = prefill.yourName || "";
       mobileNumberEl.value = prefill.mobileNumber || "";
@@ -917,7 +921,6 @@ Marymount Ball Committee`;
         const cleanBidAmount = getCleanBidAmount();
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
 
-      console.time("submitBid");
         const result = await apiRequest({
           action: "submitBid",
           token: tokenEl.value,
@@ -930,7 +933,6 @@ Marymount Ball Committee`;
           tableValue: tableValueEl.value,
           consent: consentCheckboxEl.checked ? "Yes" : "No"
         });
-        console.timeEnd("submitBid");
 
         if (!result.ok) {
           if (isClosedMessage(result.message)) {
@@ -947,8 +949,11 @@ Marymount Ball Committee`;
           return;
         }
 
-        if (String(error.message || "") === MOBILE_ERROR_MESSAGE) {
-          showError(mobileErrorEl, MOBILE_ERROR_MESSAGE);
+        // Match on the subject, not the exact wording. The server has
+        // its own phrasing and the two drift apart every time either is
+        // edited, which silently sends mobile errors to the bid field.
+        if (/mobile/i.test(String(error.message || ""))) {
+          showError(mobileErrorEl, error.message);
           mobileNumberEl.focus();
           return;
         }
@@ -1042,7 +1047,8 @@ Marymount Ball Committee`;
       
       if (bidClean && currentLeading && bidClean <= currentLeading) {
         showError(bidErrorEl, "Your bid must be higher than €" + currentLeading.toLocaleString("en-IE") + ".");
-      } else {
+      } else if (bidErrorEl.textContent !== "Decimal points not allowed.") {
+        // Leave the decimal warning alone; formatBidInput just set it.
         hideError(bidErrorEl);
       }
     });
@@ -1053,6 +1059,10 @@ Marymount Ball Committee`;
       document.getElementById("itemCardMode").style.display = "none";
       itemEl.value = "";
       itemNumberEl.value = "";
+      // Without this the old item's minimum keeps rejecting valid bids
+      // on the newly chosen item.
+      delete itemEl.dataset.currentLeadingBid;
+      hideError(bidErrorEl);
       // Small delay needed on mobile for display change to render before click fires
       setTimeout(function() { itemEl.click(); }, 50);
     });
