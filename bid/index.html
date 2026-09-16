@@ -275,7 +275,7 @@
   <div class="page">
 
     <div class="hero">
-        <img src="/assets/Marymount%20Header2.png" alt="Marymount Ball Auction">
+      <img src="/Marymount%20Header2.png" alt="Marymount Ball Auction">
     </div>
 
     <div class="card">
@@ -384,7 +384,7 @@ Marymount Ball Committee</div>
     const ITEMS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQNDV6Mxcwx7ooiUrTkRUHHVUFCnu47d7qaeEijrK0b-5QvafzDwhEax7genVr_ZK512ZDhgbTjJYx/pub?gid=913040441&single=true&output=csv";
 
     const LEADING_BIDS_URL = "https://marymountauction2026.ie/";
-    const MOBILE_ERROR_MESSAGE = "Enter an Irish mobile as 0871234567, or a UK mobile as 00447911123456.";
+    const MOBILE_ERROR_MESSAGE = "Mobile number must start with 08 and be 10 digits long, or start with 0044 and be 13 digits long.";
     const DEFAULT_SUCCESS_MESSAGE = `Thank you for your bid.
 
 If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
@@ -596,22 +596,26 @@ Marymount Ball Committee`;
     }
 
     function normalizeMobileNumber(value) {
-      let v = String(value || "").trim().replace(/[\s\-()]/g, "");
-      if (v.indexOf("+353") === 0)       v = "0" + v.slice(4);
-      else if (v.indexOf("00353") === 0) v = "0" + v.slice(5);
-      else if (v.indexOf("+44") === 0)   v = "0044" + v.slice(3);
-      return v;
+      return String(value || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/-/g, "");
     }
 
     function isValidMobileNumber(value) {
       const mobile = normalizeMobileNumber(value);
 
-      if (!/^\d+$/.test(mobile)) return false;
+      if (!/^\d+$/.test(mobile)) {
+        return false;
+      }
 
-      if (mobile.indexOf("08") === 0)   return mobile.length === 10;
-      if (mobile.indexOf("0044") === 0) return mobile.length === 14;
-      if (mobile.indexOf("353") === 0)  return mobile.length === 12;
-      if (mobile.indexOf("44") === 0)   return mobile.length === 12;
+      if (mobile.startsWith("08")) {
+        return mobile.length === 10;
+      }
+
+      if (mobile.startsWith("0044")) {
+        return mobile.length === 13;
+      }
 
       return false;
     }
@@ -719,13 +723,16 @@ Marymount Ball Committee`;
       const csvPromise = fetchItemsFromCsv()
         .then(items => {
           if (itemEl.options.length <= 1 || !itemEl.value) {
+            console.time && console.timeEnd && console.log("items painted from CSV");
             buildItemDropdown(items);
             csvPainted = true;
           }
         })
         .catch(err => console.warn("CSV item list failed, waiting on server:", err.message));
 
+      console.time("getFormData");
       const result = await apiRequest({ action: "getFormData", token });
+      console.timeEnd("getFormData");
 
       if (!result.ok) {
         if (isClosedMessage(result.message)) {
@@ -840,6 +847,7 @@ Marymount Ball Committee`;
         const cleanBidAmount = getCleanBidAmount();
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
 
+        console.time("submitBid");
         const result = await apiRequest({
           action: "submitBid",
           token: tokenEl.value,
@@ -852,6 +860,7 @@ Marymount Ball Committee`;
           tableValue: tableValueEl.value,
           consent: consentCheckboxEl.checked ? "Yes" : "No"
         });
+        console.timeEnd("submitBid");
 
         if (!result.ok) {
           if (isClosedMessage(result.message)) {
