@@ -2,1420 +2,952 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5" />
-  <title>Marymount Auction Master Admin</title>
-  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marymount Ball Auction – Place Your Bid</title>
   <style>
     :root {
-      --bg:      #1e2d4a;
-      --surface: #253860;
-      --s2:      #2d4270;
-      --s3:      #1a2540;
-      --s4:      #16203a;
-      --border:  #3a5080;
-      --b2:      #2d4270;
-      --gold:    #c9973f;
-      --gold-lt: #e6ce91;
-      --white:   #f0f4ff;
-      --dim:     #a0b8d8;
-      --muted:   #7a9abf;
-      --red:     #ef4444;
-      --red-bg:  #3a1a1a;
-      --red-bdr: #7f3333;
-      --amber:   #f59e0b;
-      --amb-bg:  #3a2c12;
-      --amb-bdr: #7c5a15;
-      --green:   #4ade80;
-      --grn-bg:  #0f2a1a;
-      --grn-bdr: #166534;
-      --blue:    #38bdf8;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: Calibri, Arial, sans-serif; background: var(--bg); color: var(--white); overflow: hidden; }
-
-    ::-webkit-scrollbar { width: 9px; height: 9px; }
-    ::-webkit-scrollbar-track { background: var(--s3); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-
-    /* LOGIN */
-    #loginScreen { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; background: var(--bg); }
-    .lc { background: var(--surface); border: 1px solid var(--gold); border-radius: 16px; padding: 28px 24px; width: 90%; max-width: 320px; box-shadow: 0 0 40px rgba(201,151,63,0.15), 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
-    .lc-logo  { font-size: 1.8rem; margin-bottom: 5px; }
-    .lc-title { font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-lt); margin-bottom: 2px; }
-    .lc-sub   { font-size: 0.72rem; color: var(--muted); margin-bottom: 18px; }
-    .lc-lbl   { display: block; text-align: left; font-size: 0.67rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; color: var(--muted); }
-    .lc-inp   { width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--s2); color: var(--white); outline: none; }
-    .lc-inp:focus { border-color: var(--gold); }
-    .lc-btn   { width: 100%; margin-top: 14px; padding: 11px; border: none; border-radius: 999px; cursor: pointer; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.07em; background: linear-gradient(135deg, var(--gold), var(--gold-lt)); color: #111; }
-    .lc-err   { margin-top: 6px; font-size: 0.75rem; color: var(--red); min-height: 14px; text-align: left; }
-
-    /* APP */
-    #app { display: none; height: 100vh; flex-direction: column; overflow: hidden; }
-
-    /* HEADER */
-    .pageheader { background: var(--s3); border-bottom: 2px solid var(--border); padding: 7px 16px; text-align: center; flex-shrink: 0; }
-    .pageheader-title { font-size: 1.2rem; font-weight: 800; color: var(--gold-lt); letter-spacing: 0.06em; text-transform: uppercase; font-family: Georgia, serif; }
-    .pageheader-sub   { font-size: 0.58rem; color: var(--muted); margin-top: 1px; letter-spacing: 0.1em; text-transform: uppercase; }
-
-    /* TOP BAR */
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 38px; gap: 16px; flex-shrink: 0; }
-    .topbar-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .topbar-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-lt); white-space: nowrap; }
-    .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 5px; animation: blink 1.4s infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .topbar-clock { font-size: 1.2rem; font-weight: 800; color: var(--white); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
-    .topbar-date  { font-size: 0.6rem; color: var(--muted); }
-    #syncLabel    { font-size: 0.58rem; color: var(--muted); white-space: nowrap; }
-    #syncLabel.bad { color: var(--red); font-weight: 800; }
-    .topbar-links { display: flex; align-items: center; gap: 2px; margin-left: auto; flex-shrink: 0; }
-    .tbl { padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 0.63rem; font-weight: 700; color: var(--muted); white-space: nowrap; transition: background 0.15s, color 0.15s; }
-    .tbl:hover { background: rgba(255,255,255,0.08); color: var(--gold-lt); }
-    .tbl.ext::after { content: "↗"; font-size: 0.55rem; margin-left: 2px; opacity: 0.6; }
-    .tbl-sep { width: 1px; height: 12px; background: var(--border); margin: 0 1px; flex-shrink: 0; }
-
-    /* STATS STRIP */
-    .stats-strip { background: var(--surface); border-bottom: 2px solid var(--border); display: grid; grid-template-columns: 1.5fr repeat(7, 1fr); flex-shrink: 0; }
-    .stat-cell { padding: 7px 7px 6px; text-align: center; border-right: 1px solid var(--b2); position: relative; }
-    .stat-cell:last-child { border-right: none; }
-    .stat-cell.total { background: var(--grn-bg); border: 1px solid var(--grn-bdr); }
-    .stat-cell.clickable { cursor: pointer; transition: background 0.15s; }
-    .stat-cell.clickable:hover { background: var(--s2); }
-    .stat-cell.total.clickable:hover { background: #12331f; }
-    .stat-cell.clickable::after {
-      content: "⌕"; position: absolute; top: 3px; right: 5px;
-      font-size: 0.62rem; color: var(--muted); opacity: 0.55;
-    }
-    .stat-cell.clickable:hover::after { opacity: 1; color: var(--gold-lt); }
-    .stat-num { font-size: clamp(1.25rem, 2.1vw, 2rem); font-weight: 800; color: var(--white); line-height: 1.05; font-variant-numeric: tabular-nums; transition: color 0.4s; }
-    .stat-cell.total .stat-num { color: var(--green); font-size: clamp(1.45rem, 2.5vw, 2.4rem); }
-    .stat-num.bumped { color: var(--green); }
-    .stat-lbl { font-size: 0.53rem; text-transform: uppercase; letter-spacing: 0.05em; color: #c0d0e8; margin-top: 2px; line-height: 1.25; }
-    .stat-cell.total .stat-lbl { color: #86efac; }
-    .stat-note { font-size: 0.55rem; color: var(--muted); margin-top: 2px; }
-
-    /* HEALTH CELL */
-    .stat-cell.health .stat-num { font-size: 1.5rem; line-height: 1.1; }
-    .health-ok    { color: var(--green) !important; }
-    .health-warn  { color: var(--amber) !important; }
-    .health-fail  { color: var(--red)   !important; }
-    .stat-cell.health.is-warn { background: var(--amb-bg); }
-    .stat-cell.health.is-fail { background: var(--red-bg); animation: pulseFail 2s infinite; }
-    @keyframes pulseFail { 0%,100%{background:var(--red-bg)} 50%{background:#521f1f} }
-    .health-word { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.2; }
-
-    /* VELOCITY BAR */
-    .velocity-bar {
-      display: none; align-items: center; justify-content: center; gap: 10px;
-      background: var(--amb-bg); border-bottom: 1px solid var(--amb-bdr);
-      padding: 5px 14px; font-size: 0.72rem; color: var(--amber); font-weight: 700;
-      flex-shrink: 0; cursor: pointer;
-    }
-    .velocity-bar.show { display: flex; animation: velPulse 2.4s infinite; }
-    @keyframes velPulse { 0%,100%{background:var(--amb-bg)} 50%{background:#4a3814} }
-    .velocity-bar .vel-snooze {
-      background: rgba(245,158,11,0.18); border: 1px solid var(--amb-bdr); color: var(--amber);
-      border-radius: 999px; padding: 2px 10px; font-size: 0.64rem; font-weight: 800; cursor: pointer;
-    }
-    .velocity-bar .vel-snooze:hover { background: rgba(245,158,11,0.32); }
-
-    /* BODY */
-    .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1.25fr 0.6fr; }
-    .panel { display: flex; flex-direction: column; border-right: 2px solid var(--border); min-height: 0; }
-    .panel:last-child { border-right: none; }
-    .panel-hdr { padding: 7px 12px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--s2); gap: 8px; }
-    .panel-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-lt); white-space: nowrap; }
-    .panel-sub   { font-size: 0.57rem; color: var(--muted); white-space: nowrap; }
-    .panel-body  { flex: 1; overflow-y: auto; min-height: 0; }
-
-    /* FILTER BAR */
-    .filter-bar { display: flex; gap: 6px; padding: 6px 12px; background: var(--s2); border-bottom: 0.5px solid var(--b2); flex-shrink: 0; flex-wrap: wrap; }
-    .filter-input { flex: 1 1 90px; background: var(--s3); border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 0.65rem; color: var(--white); outline: none; min-width: 0; }
-    .filter-input::placeholder { color: var(--muted); }
-    .filter-input:focus { border-color: var(--gold); }
-    .filter-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.63rem; color: var(--muted); white-space: nowrap; cursor: pointer; user-select: none; }
-    .filter-toggle input { accent-color: var(--gold); cursor: pointer; }
-    .filter-toggle.on { color: var(--gold-lt); font-weight: 700; }
-
-    /* ALL BIDS TICKER */
-    .ticker-row { display: grid; grid-template-columns: 46px 56px minmax(0, 1fr) 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
-    .ticker-row:last-child { border-bottom: none; }
-    .ticker-row.flash { animation: flash 1.4s ease; }
-    @keyframes flash { 0%,100%{background:transparent} 20%{background:rgba(74,222,128,0.15)} }
-    .ticker-row.recent { background: rgba(201,151,63,0.13); box-shadow: inset 3px 0 0 var(--gold); }
-    .ticker-row.recent .t-desc { color: var(--white); }
-    .ticker-row.winning .t-amount::after { content: " ★"; color: var(--gold-lt); font-size: 0.72rem; }
-    .ticker-row.ignored { opacity: 0.45; }
-    .ticker-row.ignored .t-amount { text-decoration: line-through; }
-    .t-time     { color: var(--gold-lt); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .t-item     { color: var(--gold-lt); font-weight: 800; font-size: 0.72rem; }
-    .t-desc     { color: var(--dim); font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    .t-name     { color: var(--muted); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .t-amount   { color: var(--green); font-weight: 800; font-size: 0.88rem; white-space: nowrap; text-align: right; }
-    .t-increase { color: #6ee7a8; font-size: 0.7rem; font-weight: 700; white-space: nowrap; text-align: right; }
-    .t-wa       { text-align: right; white-space: nowrap; font-size: 0.76rem; letter-spacing: -1px; }
-    .wa-none    { color: var(--muted); opacity: 0.5; letter-spacing: 0; }
-    .wa-sent    { color: var(--muted); }
-    .wa-read    { color: var(--blue); }
-    .wa-fail    { color: var(--red); letter-spacing: 0; }
-
-    /* ITEMS — COLLAPSIBLE, ONE ROW PER ITEM NUMBER */
-    .lb-item-group { border-bottom: 1px solid var(--b2); }
-    .lb-item-group:last-child { border-bottom: none; }
-    .lb-item-group.spotlight { animation: spot 2.6s ease; }
-    @keyframes spot {
-      0%, 100% { background: transparent; }
-      15%      { background: rgba(201,151,63,0.35); }
-      55%      { background: rgba(201,151,63,0.18); }
+      --bg: #decca1;
+      --card: #f8f2e4;
+      --accent: #c39243;
+      --accent-dark: #a87933;
+      --text: #111111;
+      --muted: #5f5a4f;
+      --border: #d8c6a0;
+      --error: #b42318;
+      --success: #166534;
+      --white: #ffffff;
+      --shadow: 0 8px 24px rgba(0,0,0,0.12);
+      --radius: 18px;
     }
 
-    .lb-item-header {
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 6px 10px 16px;
+    }
+
+    .hero {
+      margin-bottom: 8px;
+    }
+
+    .hero img {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 14px 12px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      color: #1b1b1b;
+      letter-spacing: 0.2px;
+    }
+
+    .required-star {
+      color: var(--error);
+      margin-left: 3px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 16px;
+      background: #fffdf8;
+      color: var(--text);
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    select {
+      background-image:
+        linear-gradient(45deg, transparent 50%, #444 50%),
+        linear-gradient(135deg, #444 50%, transparent 50%);
+      background-position:
+        calc(100% - 22px) calc(50% - 3px),
+        calc(100% - 16px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 44px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #item {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    #item option {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(195, 146, 67, 0.18);
+    }
+
+    .field-error {
+      margin-top: 5px;
+      color: var(--error);
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .two-col {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) auto auto auto auto 14px;
-      align-items: center;
-      min-height: 36px;
-      padding: 0 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .two-col .section {
+      margin-bottom: 0;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(255,255,255,0.45);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      margin: 2px 0 0;
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent-dark);
+      flex: 0 0 auto;
+    }
+
+    .checkbox-text {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #1f1f1f;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 18px;
+      font-weight: 800;
       cursor: pointer;
-      user-select: none;
-      background: var(--s2);
-      border-bottom: 0.5px solid var(--b2);
-      gap: 7px;
-    }
-    .lb-item-header:hover { background: var(--s3); }
-    .lb-item-group.is-live  .lb-item-header { background: rgba(201,151,63,0.16); box-shadow: inset 3px 0 0 var(--gold); }
-    .lb-item-group.is-sold  .lb-item-header { background: rgba(74,222,128,0.08); }
-    .lb-h-num   { font-size: 0.74rem; font-weight: 800; color: var(--gold-lt); }
-    .lb-h-desc  { font-size: 0.86rem; color: var(--white); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    .lb-h-amt   { font-size: 0.92rem; font-weight: 800; color: var(--green); white-space: nowrap; }
-    .lb-h-chev  { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; text-align: center; }
-    .lb-item-group.open .lb-h-chev { transform: rotate(90deg); }
-    .lb-count   { font-size: 0.64rem; color: var(--muted); margin-left: 6px; font-weight: 700; }
-
-    .chip { font-size: 0.57rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
-    .chip-winners { background: rgba(201,151,63,0.16); color: var(--gold-lt); border: 0.5px solid var(--gold); }
-    .chip-live    { background: rgba(245,158,11,0.18); color: var(--amber);  border: 0.5px solid var(--amb-bdr); animation: blink 1.6s infinite; }
-    .chip-sold    { background: var(--grn-bg); color: var(--green); border: 0.5px solid var(--grn-bdr); }
-    .chip-none    { background: rgba(255,255,255,0.05); color: var(--muted); border: 0.5px solid var(--border); }
-    .chip-below   { background: rgba(239,68,68,0.16);  color: #fca5a5;     border: 0.5px solid var(--red-bdr); }
-    .chip-target  { background: rgba(245,158,11,0.16); color: var(--amber); border: 0.5px solid var(--amb-bdr); }
-    .chip-above   { background: var(--grn-bg);         color: var(--green); border: 0.5px solid var(--grn-bdr); }
-    .lb-target    { font-size: 0.57rem; color: var(--muted); padding: 4px 10px 4px 12px; border-bottom: 0.5px solid rgba(58,80,128,0.35); letter-spacing: 0.03em; }
-    .lb-target b  { color: var(--gold-lt); font-weight: 700; }
-
-    .lb-item-bids { display: none; background: var(--s4); }
-    .lb-item-group.open .lb-item-bids { display: block; }
-
-    .lb-bid-row { display: grid; grid-template-columns: 26px 50px minmax(0, 1fr) auto 60px; align-items: center; min-height: 27px; padding: 0 10px 0 12px; border-bottom: 0.5px solid rgba(58,80,128,0.35); font-size: 0.74rem; gap: 6px; }
-    .lb-bid-row:last-child { border-bottom: none; }
-    .lb-bid-row.win { background: rgba(201,151,63,0.12); box-shadow: inset 3px 0 0 var(--gold); }
-    .lb-bid-row.win .lb-b-name { color: var(--white); font-weight: 700; }
-    .lb-bid-row.win .lb-b-amt  { color: var(--gold-lt); }
-    .lb-bid-row.ignored { opacity: 0.4; }
-    .lb-bid-row.ignored .lb-b-amt { text-decoration: line-through; }
-    .lb-b-rank  { font-size: 0.6rem; font-weight: 800; color: var(--muted); text-align: center; }
-    .lb-bid-row.win .lb-b-rank { color: var(--gold); }
-    .lb-b-time  { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .lb-b-name  { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .lb-b-amt   { color: var(--green); font-weight: 800; text-align: right; white-space: nowrap; }
-    .lb-b-inc   { color: #6ee7a8; font-size: 0.6rem; text-align: right; white-space: nowrap; }
-    .lb-cut     { font-size: 0.56rem; color: var(--gold); padding: 3px 10px 3px 12px; border-bottom: 0.5px dashed rgba(201,151,63,0.45); text-transform: uppercase; letter-spacing: 0.05em; background: rgba(201,151,63,0.05); }
-
-    /* CONTROLS COLUMN */
-    .ctrl-col { display: flex; flex-direction: column; background: var(--s3); }
-    .ctrl-card { border-bottom: 1px solid var(--border); padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
-    .ctrl-card.danger { background: var(--red-bg); border-bottom-color: var(--red-bdr); margin-top: auto; }
-    .ctrl-card:last-child { border-bottom: none; }
-    .ctrl-title { font-size: 0.7rem; font-weight: 800; color: var(--gold-lt); display: flex; align-items: center; gap: 6px; }
-    .ctrl-card.danger .ctrl-title { color: #fca5a5; }
-
-    .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; width: fit-content; }
-    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-    .pill-open   { background: var(--grn-bg); color: var(--green);  border: 0.5px solid var(--grn-bdr); }
-    .pill-closed { background: var(--red-bg); color: var(--red);    border: 0.5px solid var(--red-bdr); }
-    .pill-on     { background: rgba(245,158,11,0.15); color: var(--amber); border: 0.5px solid var(--amb-bdr); }
-    .pill-off    { background: rgba(255,255,255,0.05); color: var(--muted); border: 0.5px solid var(--border); }
-
-    .btn-row { display: flex; gap: 5px; }
-    .btn { padding: 6px 8px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; transition: opacity 0.15s, transform 0.1s; flex: 1; text-align: center; }
-    .btn:disabled { opacity: 0.2; cursor: not-allowed; }
-    .btn:not(:disabled):active { transform: scale(0.97); }
-    .btn-green    { background: #14532d; color: #86efac; border: 0.5px solid #166534; }
-    .btn-red-soft { background: #7f1d1d; color: #fca5a5; border: 0.5px solid #991b1b; }
-    .btn-gold     { background: var(--gold); color: #111; font-weight: 800; }
-    .btn-ghost    { background: rgba(255,255,255,0.06); color: var(--muted); border: 0.5px solid var(--border); }
-    .btn-red      { background: #dc2626; color: #fff; width: 100%; padding: 8px; font-size: 0.7rem; }
-    .danger-warn  { font-size: 0.56rem; color: #fca5a5; line-height: 1.35; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 5px; padding: 5px 7px; }
-
-    .closed-banner { display: none; background: var(--red); color: #fff; text-align: center; padding: 5px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
-    .empty { padding: 20px 14px; font-size: 0.7rem; color: var(--muted); text-align: center; }
-
-    /* MODALS */
-    .modal-back { position: fixed; inset: 0; background: rgba(8,14,26,0.78); z-index: 900; display: none; align-items: center; justify-content: center; padding: 22px; }
-    .modal-back.show { display: flex; }
-    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 24px 70px rgba(0,0,0,0.65); width: 100%; max-width: 860px; max-height: 84vh; display: flex; flex-direction: column; overflow: hidden; }
-    .modal.narrow { max-width: 460px; }
-    .modal-hdr { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--border); background: var(--s2); flex-shrink: 0; gap: 10px; }
-    .modal-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-lt); }
-    .modal-sub { font-size: 0.6rem; color: var(--muted); margin-top: 1px; }
-    .modal-x { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 0 3px; }
-    .modal-x:hover { color: var(--white); }
-    .modal-body { padding: 14px 16px; overflow-y: auto; min-height: 0; }
-
-    /* INBOX */
-    .inbox-row { border-bottom: 0.5px solid var(--b2); padding: 8px 2px 9px; }
-    .inbox-row:last-child { border-bottom: none; }
-    .inbox-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
-    .inbox-time { font-size: 0.7rem; font-weight: 800; color: var(--gold-lt); font-variant-numeric: tabular-nums; }
-    .inbox-name { font-size: 0.74rem; color: var(--white); font-weight: 700; }
-    .inbox-from { font-size: 0.66rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-    .inbox-msg  { font-size: 0.82rem; color: var(--dim); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-    .inbox-reply { font-size: 0.57rem; font-weight: 800; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; }
-    .reply-yes { background: var(--grn-bg); color: var(--green); border: 0.5px solid var(--grn-bdr); }
-    .reply-no  { background: var(--red-bg); color: #fca5a5; border: 0.5px solid var(--red-bdr); }
-
-    /* HEALTH LIST */
-    .hc-row { display: flex; align-items: flex-start; gap: 9px; padding: 8px 2px; border-bottom: 0.5px solid var(--b2); }
-    .hc-row:last-child { border-bottom: none; }
-    .hc-icon { font-size: 0.85rem; line-height: 1.3; width: 16px; text-align: center; flex-shrink: 0; }
-    .hc-label { font-size: 0.78rem; font-weight: 700; color: var(--white); }
-    .hc-detail { font-size: 0.68rem; color: var(--muted); margin-top: 1px; line-height: 1.4; }
-    .hc-note { font-size: 0.68rem; color: var(--muted); line-height: 1.5; background: var(--s3); border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; margin-bottom: 12px; }
-
-    /* CHART */
-    #bidChartWrap { position: relative; width: 100%; height: 320px; }
-    #bidChart { width: 100%; height: 100%; display: block; }
-    .chart-legend { display: flex; gap: 18px; justify-content: center; margin-top: 12px; font-size: 0.68rem; color: var(--dim); flex-wrap: wrap; }
-    .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
-    .lg-swatch { width: 13px; height: 9px; border-radius: 2px; display: inline-block; }
-    .chart-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 9px; margin-top: 14px; }
-    .cs-cell { background: var(--s3); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; text-align: center; }
-    .cs-num { font-size: 1.05rem; font-weight: 800; color: var(--gold-lt); font-variant-numeric: tabular-nums; }
-    .cs-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
-
-    /* TOASTS */
-    .toast-wrap { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 950; display: flex; flex-direction: column; gap: 5px; align-items: center; pointer-events: none; }
-    .toast { padding: 9px 20px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.25s; white-space: nowrap; max-width: 92vw; text-align: center; }
-    .toast.success { background: #22c55e; color: #052e16; }
-    .toast.error   { background: #ef4444; color: #fff; }
-    .toast.info    { background: #3b82f6; color: #fff; }
-    .toast.warn    { background: #f59e0b; color: #111; }
-    .toast.show    { opacity: 1; }
-
-    @media (max-width: 1240px) {
-      .stats-strip { grid-template-columns: repeat(4, 1fr); }
-      .stat-cell { border-bottom: 1px solid var(--b2); }
+      background: #000;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+      -webkit-tap-highlight-color: transparent;
+      margin-top: 4px;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
     }
 
-    @media (max-width: 900px) {
-      html, body { overflow: auto; }
-      #app { height: auto; overflow: visible; }
-      .body { grid-template-columns: 1fr; }
-      .panel { border-right: none; border-bottom: 2px solid var(--border); max-height: 380px; }
-      .ctrl-col { flex-direction: row; flex-wrap: wrap; }
-      .ctrl-card { flex: 1 1 280px; }
-      .ctrl-card.danger { margin-top: 0; }
-      .topbar-links { display: none; }
-      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
     }
 
-    @media (max-width: 560px) {
-      .ticker-row { grid-template-columns: 44px 52px minmax(0,1fr) 72px 30px; padding: 0 8px; }
-      .t-desc { display: none; }
-      .t-increase { display: none; }
+    .success-screen,
+    .closed-screen {
+      display: none;
+      text-align: center;
+    }
+
+    .success-title,
+    .closed-title {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+
+    .success-message {
+      font-size: 16px;
+      color: var(--success);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
+
+    .closed-message {
+      font-size: 16px;
+      color: var(--text);
+      line-height: 1.5;
+      margin-bottom: 18px;
+      white-space: pre-line;
+    }
+
+    .secondary-btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--accent);
+      color: #111;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .secondary-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .loading-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      display: none;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #5c5547;
+      margin-top: 14px;
+    }
+
+    .closed-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .title, .success-title, .closed-title { font-size: 18px; }
+      .btn, .secondary-btn { font-size: 17px; }
     }
   </style>
 </head>
 <body>
+  <div class="page">
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div class="lc">
-    <div class="lc-logo">🔐</div>
-    <div class="lc-title">Master Admin</div>
-    <div class="lc-sub">Marymount Ball Auction 2026</div>
-    <form id="loginForm">
-      <label class="lc-lbl">Password</label>
-      <input type="password" id="pwInput" class="lc-inp" autocomplete="current-password" required />
-      <button type="submit" class="lc-btn">Unlock</button>
-      <div id="loginError" class="lc-err"></div>
-    </form>
-  </div>
-</div>
-
-<div class="toast-wrap" id="toastWrap"></div>
-
-<div id="app">
-
-  <div class="pageheader">
-    <div class="pageheader-title">The Marymount Ball Auction</div>
-    <div class="pageheader-sub">2026 &nbsp;·&nbsp; Master Control Panel</div>
-  </div>
-
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-title"><span class="live-dot"></span>Master Admin</div>
-      <div class="topbar-clock" id="clockTime">00:00:00</div>
-      <div class="topbar-date"  id="clockDate"></div>
-    </div>
-    <div id="syncLabel">Loading...</div>
-    <div class="topbar-links">
-      <a class="tbl" href="/committee_view.html" target="_blank">Committee view</a>
-      <div class="tbl-sep"></div>
-      <a class="tbl" href="/committee_admin.html" target="_blank">Committee admin</a>
-      <div class="tbl-sep"></div>
-      <a class="tbl ext" href="https://marymountauction2026.ie/bid" target="_blank">Bidding form</a>
-      <div class="tbl-sep"></div>
-      <a class="tbl ext" href="https://marymountauction2026.ie/" target="_blank">Leading bids</a>
-      <div class="tbl-sep"></div>
-      <a class="tbl" href="/tv_leadingbids.html" target="_blank">TV display</a>
-      <div class="tbl-sep"></div>
-      <a class="tbl" href="/foyer_leaderboard.html" target="_blank">Foyer board</a>
-    </div>
-  </div>
-
-  <div class="closed-banner" id="closedBanner">🔒 Auction closed — form and screens updated</div>
-
-  <!-- STATS STRIP -->
-  <div class="stats-strip">
-    <div class="stat-cell total clickable" onclick="openChart()" title="Bids over the night">
-      <div class="stat-num" id="auctionTotal">—</div>
-      <div class="stat-lbl">Auction total raised</div>
-    </div>
-    <div class="stat-cell clickable" onclick="openChart()" title="Bids over the night">
-      <div class="stat-num" id="totalBids">—</div>
-      <div class="stat-lbl">Total bids placed</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-num" id="uniqueBidders">—</div>
-      <div class="stat-lbl">Unique bidders</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-num" id="waBidsSent">—</div>
-      <div class="stat-lbl">WA confirmations</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-num" id="waOutbidsSent">—</div>
-      <div class="stat-lbl">WA outbid alerts</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-num" id="waWinnersSent">—</div>
-      <div class="stat-lbl">WA winner notices</div>
-    </div>
-    <div class="stat-cell clickable" onclick="openInbox()" title="Messages guests have sent us">
-      <div class="stat-num" id="inboxCount">—</div>
-      <div class="stat-lbl">Replies received</div>
-      <div class="stat-note" id="inboxNote">&nbsp;</div>
-    </div>
-    <div class="stat-cell health clickable" id="healthCell" onclick="openHealth()" title="What the system is checking">
-      <div class="stat-num health-word" id="healthWord">Checking</div>
-      <div class="stat-lbl">System health</div>
-      <div class="stat-note" id="healthNote">&nbsp;</div>
-    </div>
-  </div>
-
-  <!-- BID VELOCITY -->
-  <div class="velocity-bar" id="velocityBar" onclick="openHealth()">
-    <span id="velocityText">No bids recently</span>
-    <button class="vel-snooze" id="velSnooze" onclick="event.stopPropagation(); snoozeVelocity();">Snooze 30 min</button>
-  </div>
-
-  <div class="body">
-
-    <!-- LEFT: ALL BIDS -->
-    <div class="panel">
-      <div class="panel-hdr">
-        <div class="panel-title">📥 All bids</div>
-        <div class="panel-sub" id="bidsUpdated">—</div>
-      </div>
-      <div class="filter-bar">
-        <input class="filter-input" id="fItem"   placeholder="Item (e.g. ITEM 01)" oninput="applyBidFilter()" />
-        <input class="filter-input" id="fDesc"   placeholder="Description" oninput="applyBidFilter()" />
-        <input class="filter-input" id="fBidder" placeholder="Bidder name" oninput="applyBidFilter()" />
-        <label class="filter-toggle" id="fRecentLbl" title="Only bids placed in the last 15 minutes">
-          <input type="checkbox" id="fRecent" onchange="applyBidFilter()" /> Last 15m
-        </label>
-        <label class="filter-toggle" id="fWinningLbl" title="Only bids that are currently winning their item">
-          <input type="checkbox" id="fWinning" onchange="applyBidFilter()" /> Winning only
-        </label>
-      </div>
-      <div class="panel-body" id="ticker">
-        <div class="empty">Loading...</div>
-      </div>
+    <div class="hero">
+        <img src="/assets/Marymount%20Header2.png" alt="Marymount Ball Auction">
     </div>
 
-    <!-- MIDDLE: ITEMS -->
-    <div class="panel">
-      <div class="panel-hdr">
-        <div class="panel-title">🏆 Items &amp; winners</div>
-        <div class="panel-sub" id="leadingUpdated">—</div>
-      </div>
-      <div class="filter-bar">
-        <input class="filter-input" id="fLbSearch" placeholder="Search item or description" oninput="renderItems()" />
-        <label class="filter-toggle" title="Expand every item">
-          <input type="checkbox" id="fLbExpand" onchange="renderItems()" /> Expand all
-        </label>
-      </div>
-      <div class="panel-body" id="leadingBids">
-        <div class="empty">Loading...</div>
-      </div>
-    </div>
+    <div class="card">
+      <div id="formScreen">
+        <h1 class="title">Place Your Bid</h1>
 
-    <!-- RIGHT: CONTROLS -->
-    <div class="panel ctrl-col">
-      <div class="ctrl-card">
-        <div class="ctrl-title">📝 Bidding form</div>
-        <div class="pill pill-off" id="formPill"><span class="pill-dot"></span><span id="formPillLabel">Loading...</span></div>
-        <div class="btn-row">
-          <button class="btn btn-green"    id="btnOpenForm"  onclick="doFormAction('open')"  disabled>Open</button>
-          <button class="btn btn-red-soft" id="btnCloseForm" onclick="doFormAction('close')" disabled>Close</button>
+        <input type="hidden" id="itemNumber">
+        <input type="hidden" id="token">
+
+        <div class="section">
+          <label class="label" for="item">Item<span class="required-star">*</span></label>
+          <select id="item">
+            <option value="">Updating items with latest bids...</option>
+          </select>
+          <div id="itemError" class="field-error"></div>
         </div>
-      </div>
 
-      <div class="ctrl-card">
-        <div class="ctrl-title">🚨 Closing soon</div>
-        <div class="pill pill-off" id="bannerPill"><span class="pill-dot"></span><span id="bannerPillLabel">Loading...</span></div>
-        <div class="btn-row">
-          <button class="btn btn-gold"  id="btnBannerOn"  onclick="doBannerAction('on')"  disabled>Activate</button>
-          <button class="btn btn-ghost" id="btnBannerOff" onclick="doBannerAction('off')" disabled>Deactivate</button>
+        <div class="section">
+          <label class="label" for="bidAmount">Bid Amount (€)<span class="required-star">*</span></label>
+          <input
+            id="bidAmount"
+            type="tel"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="Enter your bid amount"
+          >
+          <div id="bidError" class="field-error"></div>
         </div>
-      </div>
 
-      <div class="ctrl-card danger">
-        <div class="ctrl-title">🔒 Close auction</div>
-        <div class="pill pill-off" id="auctionPill"><span class="pill-dot"></span><span id="auctionPillLabel">Loading...</span></div>
-        <div class="danger-warn">⚠️ Cannot be undone. Only when the chairman calls it.</div>
-        <button class="btn btn-red" id="btnCloseAuction" onclick="doCloseAuction()" disabled>Close the auction</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- INBOX MODAL -->
-<div class="modal-back" id="inboxModal" onclick="if(event.target===this) closeModal('inboxModal')">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div>
-        <div class="modal-title">💬 Replies from guests</div>
-        <div class="modal-sub" id="inboxModalSub">&nbsp;</div>
-      </div>
-      <button class="modal-x" onclick="closeModal('inboxModal')">&times;</button>
-    </div>
-    <div class="modal-body" id="inboxBody"><div class="empty">Loading...</div></div>
-  </div>
-</div>
-
-<!-- HEALTH MODAL -->
-<div class="modal-back" id="healthModal" onclick="if(event.target===this) closeModal('healthModal')">
-  <div class="modal narrow">
-    <div class="modal-hdr">
-      <div>
-        <div class="modal-title">🩺 System health</div>
-        <div class="modal-sub" id="healthModalSub">&nbsp;</div>
-      </div>
-      <button class="modal-x" onclick="closeModal('healthModal')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="hc-note">
-        These are the checks running behind the scenes. Green means the
-        auction is sending and recording normally. Anything amber or red
-        is explained below, with what to do about it.
-      </div>
-      <div id="healthBody"></div>
-    </div>
-  </div>
-</div>
-
-<!-- CHART MODAL -->
-<div class="modal-back" id="chartModal" onclick="if(event.target===this) closeModal('chartModal')">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div>
-        <div class="modal-title">📈 Bids over the night</div>
-        <div class="modal-sub" id="chartSub">&nbsp;</div>
-      </div>
-      <button class="modal-x" onclick="closeModal('chartModal')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div id="bidChartWrap"><canvas id="bidChart"></canvas></div>
-      <div class="chart-legend">
-        <span><i class="lg-swatch" style="background:#c9973f"></i> Bids in each 10 minutes</span>
-        <span><i class="lg-swatch" style="background:#4ade80"></i> Running total</span>
-      </div>
-      <div class="chart-stats" id="chartStats"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-  /* ══════════════════════════════════════════════════════════
-     CONFIG
-     ══════════════════════════════════════════════════════════ */
-  const PASSWORD     = "master2026";          // CHANGE BEFORE EVENT NIGHT
-  const ADMIN_SECRET = "mh_control_#2026#";   // must match ADMIN_SECRET in Script Properties
-  const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
-
-  const DASH_MS      = 12000;                 // bids, items, controls
-  const SIDE_MS      = 60000;                 // inbox + poller status, slower on purpose
-  const RECENT_MS    = 15 * 60 * 1000;        // "recent bid" highlight window
-  const QUIET_MS     = 15 * 60 * 1000;        // silence before the velocity alert fires
-  const POLLER_STALE_MS = 3 * 60 * 1000;      // poller runs every minute; 3 allows one miss
-  const SNOOZE_MS    = 30 * 60 * 1000;        // velocity snooze, for dinner and speeches
-  const BUCKET_MS    = 10 * 60 * 1000;        // chart bucket width
-
-  /* ══════════════════════════════════════════════════════════
-     STATE
-     ══════════════════════════════════════════════════════════ */
-  let state = { formOpen: null, bannerActive: null, auctionClosed: null };
-  let busy  = { form: false, banner: false, auction: false };
-
-  const prev = {};
-  let consecutiveFails = 0;
-
-  let allBids    = [];
-  let allItems   = [];
-  let waStats    = null;
-  let pollerInfo = null;
-  let inboxData  = { messages: [], count: 0 };
-
-  let winningIds = new Set();   // bidIds currently winning their item
-  let liveItems  = new Set();   // item numbers currently live, for spotlight
-  let seenFirstItems = false;   // suppress spotlight on the first paint
-  let lastBidTs  = null;
-  let velocitySnoozedUntil = 0;
-
-  /* ══════════════════════════════════════════════════════════
-     LOGIN
-     ══════════════════════════════════════════════════════════ */
-  document.getElementById("loginForm").addEventListener("submit", e => {
-    e.preventDefault();
-    if (document.getElementById("pwInput").value === PASSWORD) {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("app").style.display = "flex";
-      init();
-    } else {
-      document.getElementById("loginError").textContent = "Incorrect password.";
-    }
-  });
-
-  /* ══════════════════════════════════════════════════════════
-     UTILITIES
-     ══════════════════════════════════════════════════════════ */
-  function toast(msg, type = "success") {
-    const el = document.createElement("div");
-    el.className = `toast ${type}`; el.textContent = msg;
-    document.getElementById("toastWrap").appendChild(el);
-    requestAnimationFrame(() => el.classList.add("show"));
-    setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 300); }, 3500);
-  }
-
-  function escHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  }
-  const escAttr = escHtml;
-
-  const euro = n => "€" + Number(n || 0).toLocaleString("en-IE");
-
-  function timeOf(iso) {
-    if (!iso) return "—";
-    try { return new Date(iso).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" }); }
-    catch (e) { return "—"; }
-  }
-
-  function agoText(ms) {
-    if (!isFinite(ms) || ms < 0) return "just now";
-    const mins = Math.floor(ms / 60000);
-    if (mins < 1)  return "under a minute ago";
-    if (mins === 1) return "1 minute ago";
-    if (mins < 60) return mins + " minutes ago";
-    const hrs = Math.floor(mins / 60);
-    return hrs === 1 ? "1 hour ago" : hrs + " hours ago";
-  }
-
-  async function api(payload) {
-    const res  = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    const text = await res.text();
-    let json; try { json = JSON.parse(text); } catch { throw new Error("Server error."); }
-    if (!json.ok) throw new Error(json.message || "Unknown error.");
-    return json;
-  }
-
-  // Row indexes are used as a fallback timestamp server-side, so anything
-  // that is not a plausible epoch is treated as having no time at all.
-  function realEpoch(v) {
-    const n = Number(v);
-    return (isFinite(n) && n > 1000000000000) ? n : NaN;
-  }
-
-  function isRecent(b) {
-    const e = realEpoch(b.ts);
-    if (isNaN(e)) return false;
-    const age = Date.now() - e;
-    return age >= -60000 && age <= RECENT_MS;  // tolerate a little clock skew
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     DATA
-     ══════════════════════════════════════════════════════════ */
-  async function loadDashboard() {
-    try {
-      const r = await api({ action: "getDashboard" });
-      const d = r.data || {};
-
-      if (d.control && d.control.ok) {
-        state.formOpen      = !!d.control.formOpen;
-        state.bannerActive  = !!d.control.bannerActive;
-        state.auctionClosed = !!d.control.auctionClosed;
-        renderStatus();
-        document.getElementById("closedBanner").style.display = state.auctionClosed ? "block" : "none";
-      }
-
-      if (d.whatsapp && d.whatsapp.ok !== false) {
-        waStats = d.whatsapp;
-        renderWa(d.whatsapp);
-      }
-
-      if (d.allBids && d.allBids.ok !== false) {
-        bump("totalBids",     d.allBids.totalCount    || 0);
-        bump("uniqueBidders", d.allBids.uniqueBidders || 0);
-        allBids = d.allBids.bids || [];
-
-        const newestTs = allBids.length ? allBids[0].ts : null;
-        const isNew    = newestTs && lastBidTs && newestTs !== lastBidTs;
-        lastBidTs = newestTs;
-        applyBidFilter(isNew);
-      }
-
-      if (d.items && d.items.ok !== false) {
-        allItems = d.items.items || [];
-        document.getElementById("auctionTotal").textContent = euro(d.items.total || 0);
-
-        winningIds = new Set();
-        allItems.forEach(it => (it.winnerBidIds || []).forEach(id => winningIds.add(id)));
-
-        detectSpotlight();
-        renderItems();
-        applyBidFilter(false);   // the winning-only filter depends on winningIds
-      }
-
-      document.getElementById("syncLabel").textContent = "Synced " + new Date().toLocaleTimeString("en-IE");
-      document.getElementById("syncLabel").classList.remove("bad");
-      consecutiveFails = 0;
-
-    } catch (err) {
-      consecutiveFails++;
-      const el = document.getElementById("syncLabel");
-      el.textContent = "Sync failed (" + consecutiveFails + ")";
-      el.classList.add("bad");
-    }
-
-    renderHealth();
-    renderVelocity();
-  }
-
-  async function loadSide() {
-    try {
-      const r = await api({ action: "getInbox", limit: 30 });
-      inboxData = r.data || { messages: [], count: 0 };
-      bump("inboxCount", inboxData.count || 0);
-      const note = document.getElementById("inboxNote");
-      note.innerHTML = inboxData.count ? "Tap to read" : "&nbsp;";
-      if (document.getElementById("inboxModal").classList.contains("show")) renderInbox();
-    } catch (err) {
-      document.getElementById("inboxCount").textContent = "?";
-    }
-
-    try {
-      const r = await api({ action: "getPollerStatus" });
-      pollerInfo = r.data || null;
-    } catch (err) {
-      pollerInfo = null;
-    }
-
-    renderHealth();
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     CONTROLS
-     ══════════════════════════════════════════════════════════ */
-  function renderStatus() {
-    const { formOpen, bannerActive, auctionClosed } = state;
-    const closed = auctionClosed === true;
-    setPill("formPill",    "formPillLabel",    formOpen,      "Form is open",      "Form is closed",     "pill-open",   "pill-closed");
-    setPill("bannerPill",  "bannerPillLabel",  bannerActive,  "Banner is active",  "Banner is off",      "pill-on",     "pill-off");
-    setPill("auctionPill", "auctionPillLabel", auctionClosed, "Auction is closed", "Auction is running", "pill-closed", "pill-open");
-    setBtn("btnOpenForm",     formOpen === false && !closed && !busy.form);
-    setBtn("btnCloseForm",    formOpen === true  && !closed && !busy.form);
-    setBtn("btnBannerOn",     bannerActive === false && !closed && !busy.banner);
-    setBtn("btnBannerOff",    bannerActive === true  && !closed && !busy.banner);
-    setBtn("btnCloseAuction", !closed && !busy.auction);
-  }
-
-  function setPill(pid, lid, val, tT, fT, tC, fC) {
-    if (val === null) return;
-    document.getElementById(lid).textContent = val ? tT : fT;
-    document.getElementById(pid).className = "pill " + (val ? tC : fC);
-  }
-  function setBtn(id, en) { const el = document.getElementById(id); if (el) el.disabled = !en; }
-
-  function renderWa(d) {
-    bump("waBidsSent",     d.bidsSent    || 0);
-    bump("waOutbidsSent",  d.outbidsSent || 0);
-    bump("waWinnersSent",  d.winnersSent || 0);
-  }
-
-  function bump(id, newVal) {
-    const el = document.getElementById(id); if (!el) return;
-    const p = prev[id]; el.textContent = newVal;
-    if (p !== undefined && newVal > p) {
-      el.classList.remove("bumped"); void el.offsetWidth; el.classList.add("bumped");
-      setTimeout(() => el.classList.remove("bumped"), 1500);
-    }
-    prev[id] = newVal;
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     HEALTH
-     Every check returns { level, label, detail }.
-     level: "ok" | "warn" | "fail".
-     Any fail makes the whole panel red; otherwise any warn makes it
-     amber. The detail text says what to actually do about it, because
-     on the night nobody wants to work out what a red dot means.
-     ══════════════════════════════════════════════════════════ */
-  function healthChecks() {
-    const checks = [];
-    const now = Date.now();
-
-    // 1. Is this page talking to the server at all
-    if (consecutiveFails === 0) {
-      checks.push({ level: "ok", label: "Dashboard connection", detail: "This panel is reaching the server normally." });
-    } else if (consecutiveFails < 3) {
-      checks.push({ level: "warn", label: "Dashboard connection", detail: consecutiveFails + " failed refresh(es). Usually a brief wifi drop. It retries every 12 seconds." });
-    } else {
-      checks.push({ level: "fail", label: "Dashboard connection", detail: "The panel has failed " + consecutiveFails + " refreshes in a row. Check the venue wifi, then reload this page. Bidding itself may still be fine." });
-    }
-
-    // 2. WhatsApp master toggle (SETTINGS!N5)
-    if (!waStats) {
-      checks.push({ level: "warn", label: "WhatsApp sending", detail: "No data from the server yet." });
-    } else if (waStats.waToggle === "ON") {
-      checks.push({ level: "ok", label: "WhatsApp sending", detail: "The sending toggle is ON. Confirmations and outbid alerts are going out." });
-    } else {
-      checks.push({ level: "fail", label: "WhatsApp sending", detail: "The sending toggle is OFF, so no guest is being notified of anything. It switches itself off automatically when the Meta access token expires. Set SETTINGS!N5 back to ON once the token is renewed." });
-    }
-
-    // 3. The winner-message poller in the other script project
-    if (!pollerInfo) {
-      checks.push({ level: "warn", label: "Winner message poller", detail: "Could not read POLLER_LOG. Winner notices sent from the committee panel are unaffected." });
-    } else if (!pollerInfo.present) {
-      checks.push({ level: "warn", label: "Winner message poller", detail: "No POLLER_LOG tab yet. It is created the first time the poller runs after the logging update." });
-    } else {
-      const at  = pollerInfo.at ? Date.parse(pollerInfo.at) : NaN;
-      const age = isNaN(at) ? NaN : (now - at);
-
-      if (pollerInfo.status === "FAIL") {
-        checks.push({ level: "fail", label: "Winner message poller", detail: "The last run failed: " + (pollerInfo.detail || "no detail") + ". Winner notices triggered from the sheet will not send until this is fixed. The committee panel path still works." });
-      } else if (!isNaN(age) && age > POLLER_STALE_MS) {
-        checks.push({ level: "warn", label: "Winner message poller", detail: "Last ran " + agoText(age) + ". It should run every minute. Check the time-driven trigger in the Auction WhatsApp Sending project." });
-      } else if (pollerInfo.status === "OFF") {
-        checks.push({ level: "warn", label: "Winner message poller", detail: "Running, but skipping because the WhatsApp toggle is OFF." });
-      } else {
-        checks.push({ level: "ok", label: "Winner message poller", detail: "Last ran " + (isNaN(age) ? "recently" : agoText(age)) + " and completed cleanly." });
-      }
-    }
-
-    // 4. Messages Meta confirmed it could not deliver
-    const failed = waStats ? Number(waStats.failedCount || 0) : 0;
-    if (!waStats) {
-      checks.push({ level: "warn", label: "Message delivery", detail: "No data from the server yet." });
-    } else if (failed === 0) {
-      checks.push({ level: "ok", label: "Message delivery", detail: "No messages have come back as failed." });
-    } else {
-      checks.push({ level: "warn", label: "Message delivery", detail: failed + " message(s) failed to deliver. Almost always a wrong or non-WhatsApp mobile number. Filter ALL_BIDS on DELIVERY_STATUS = failed to see who." });
-    }
-
-    // 5. Control tab, which drives the form and every screen overlay
-    if (state.formOpen === null) {
-      checks.push({ level: "warn", label: "Screen controls", detail: "The CONTROL tab has not reported in. The form status and the big-screen overlays may not be under this panel's control." });
-    } else {
-      checks.push({ level: "ok", label: "Screen controls", detail: "Form status and screen overlays are responding." });
-    }
-
-    return checks;
-  }
-
-  function renderHealth() {
-    const checks = healthChecks();
-    const fails  = checks.filter(c => c.level === "fail").length;
-    const warns  = checks.filter(c => c.level === "warn").length;
-
-    const cell = document.getElementById("healthCell");
-    const word = document.getElementById("healthWord");
-    const note = document.getElementById("healthNote");
-
-    cell.classList.remove("is-warn", "is-fail");
-    word.classList.remove("health-ok", "health-warn", "health-fail");
-
-    if (fails > 0) {
-      cell.classList.add("is-fail");
-      word.classList.add("health-fail");
-      word.textContent = "Action needed";
-      note.textContent = fails + " problem" + (fails > 1 ? "s" : "") + " · tap";
-    } else if (warns > 0) {
-      cell.classList.add("is-warn");
-      word.classList.add("health-warn");
-      word.textContent = "Needs a look";
-      note.textContent = warns + " warning" + (warns > 1 ? "s" : "") + " · tap";
-    } else {
-      word.classList.add("health-ok");
-      word.textContent = "All good";
-      note.textContent = "Tap for detail";
-    }
-
-    const icons = { ok: "🟢", warn: "🟡", fail: "🔴" };
-    document.getElementById("healthBody").innerHTML = checks.map(c => `
-      <div class="hc-row">
-        <div class="hc-icon">${icons[c.level]}</div>
-        <div>
-          <div class="hc-label">${escHtml(c.label)}</div>
-          <div class="hc-detail">${escHtml(c.detail)}</div>
+        <div class="section">
+          <label class="label" for="yourName">Your Name<span class="required-star">*</span></label>
+          <input id="yourName" type="text" placeholder="Enter your name">
+          <div id="nameError" class="field-error"></div>
         </div>
-      </div>`).join("");
 
-    document.getElementById("healthModalSub").textContent =
-      fails > 0 ? (fails + " needing action") : (warns > 0 ? (warns + " to keep an eye on") : "Everything is running normally");
-  }
+        <div class="section">
+          <label class="label" for="mobileNumber">Mobile Number<span class="required-star">*</span></label>
+<input id="mobileNumber" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter your mobile number">
+          <div id="mobileError" class="field-error"></div>
+        </div>
 
-  /* ══════════════════════════════════════════════════════════
-     BID VELOCITY
-     A quiet spell is normal during dinner and the speeches, so this is
-     snoozeable rather than something that nags. It only runs while the
-     form is open: once the auction is closed, silence is the point.
-     ══════════════════════════════════════════════════════════ */
-  function renderVelocity() {
-    const bar = document.getElementById("velocityBar");
+        <div class="two-col">
+          <div class="section">
+            <label class="label" for="emailAddress">Email <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--muted);">(optional)</span></label>
+            <input id="emailAddress" type="email" placeholder="your@email.com">
+          </div>
+          <div class="section">
+            <label class="label" for="tableValue">Table <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--muted);">(optional)</span></label>
+            <input id="tableValue" type="text" placeholder="e.g. 12">
+          </div>
+        </div>
 
-    if (state.auctionClosed || state.formOpen !== true) { bar.classList.remove("show"); return; }
-    if (Date.now() < velocitySnoozedUntil)              { bar.classList.remove("show"); return; }
+        <div class="section">
+          <div class="checkbox-wrap">
+            <input type="checkbox" id="consentCheckbox">
+            <div class="checkbox-text">
+              I agree to receive WhatsApp notifications regarding my bid.
+            </div>
+          </div>
+          <div id="consentError" class="field-error"></div>
+        </div>
 
-    const newest = allBids.length ? realEpoch(allBids[0].ts) : NaN;
-    if (isNaN(newest)) { bar.classList.remove("show"); return; }
+        <button id="submitBtn" class="btn" type="button">Submit Bid</button>
+        <div class="footer-note">Marymount Ball Auction</div>
+      </div>
 
-    const quiet = Date.now() - newest;
-    if (quiet < QUIET_MS) { bar.classList.remove("show"); return; }
+      <div id="successScreen" class="success-screen">
+        <h1 class="success-title">Bid Received</h1>
+        <div id="successMessage" class="success-message">Thank you for your bid.
 
-    document.getElementById("velocityText").textContent =
-      "⚠️ No new bids for " + agoText(quiet).replace(" ago", "") +
-      " — the room may have gone quiet, or something may have stopped working. Tap for the checks.";
-    bar.classList.add("show");
-  }
+If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
 
-  function snoozeVelocity() {
-    velocitySnoozedUntil = Date.now() + SNOOZE_MS;
-    document.getElementById("velocityBar").classList.remove("show");
-    toast("Quiet-room alert snoozed for 30 minutes.", "info");
-  }
+We shall also inform you if you get outbid.
 
-  /* ══════════════════════════════════════════════════════════
-     ALL BIDS TICKER
-     ══════════════════════════════════════════════════════════ */
+Regards,
+Marymount Ball Committee</div>
+        <button id="anotherBidBtn" class="secondary-btn" type="button">Place another bid</button>
+        <div id="loadingNote" class="loading-note">Updating bids…</div>
+        <div class="footer-note">Marymount Ball Auction</div>
+      </div>
 
-  // WhatsApp delivery cell for one bid.
-  function waCell(b) {
-    const err = String(b.waError || "").trim();
-    if (err) return `<span class="wa-fail" title="${escAttr(err)}">✕</span>`;
+      <div id="closedScreen" class="closed-screen">
+        <h1 class="closed-title">Bidding Closed</h1>
+        <div id="closedMessage" class="closed-message">The 2026 Marymount Ball auction is now closed.
 
-    const status = String(b.waStatus || "").toLowerCase();
-    if (status === "read")      return `<span class="wa-read" title="Read by the bidder">✓✓</span>`;
-    if (status === "delivered") return `<span class="wa-sent" title="Delivered to the handset">✓✓</span>`;
-    if (status === "failed")    return `<span class="wa-fail" title="Failed to deliver">✕</span>`;
-    if (status === "sent")      return `<span class="wa-sent" title="Sent to Meta">✓</span>`;
+Thank you for all your support.
 
-    if (b.waSent === true)  return `<span class="wa-sent" title="Sent, no delivery receipt yet">✓</span>`;
-    return `<span class="wa-none" title="No confirmation sent for this bid">–</span>`;
-  }
+Regards,
+Marymount Ball Committee</div>
+        <div class="closed-actions">
+          <a id="viewLeadingBidsBtn" class="secondary-btn" href="https://marymountauction2026.ie/" target="_self">View Leading Bids</a>
+        </div>
+        <div class="footer-note">Marymount Ball Auction</div>
+      </div>
+    </div>
+  </div>
 
-  function applyBidFilter(flashNewest) {
-    const itemQ   = (document.getElementById("fItem").value   || "").trim().toUpperCase();
-    const descQ   = (document.getElementById("fDesc").value   || "").trim().toUpperCase();
-    const bidderQ = (document.getElementById("fBidder").value || "").trim().toUpperCase();
-    const recentOnly  = document.getElementById("fRecent").checked;
-    const winningOnly = document.getElementById("fWinning").checked;
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
 
-    document.getElementById("fRecentLbl").classList.toggle("on", recentOnly);
-    document.getElementById("fWinningLbl").classList.toggle("on", winningOnly);
+    // Published FORM_ITEMS tab on the display sheet (no guest data on it).
+    // Mirrors SETTINGS columns A and B verbatim, blanks filtered out, so the
+    // item text here is byte-identical to what the server matches against.
+    // This is only the fast first paint. The Apps Script call below still runs
+    // and overwrites it, and every bid is validated server-side regardless.
+    const ITEMS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQNDV6Mxcwx7ooiUrTkRUHHVUFCnu47d7qaeEijrK0b-5QvafzDwhEax7genVr_ZK512ZDhgbTjJYx/pub?gid=913040441&single=true&output=csv";
 
-    let list = allBids;
-    if (itemQ)       list = list.filter(b => (b.item || "").toUpperCase().includes(itemQ));
-    if (descQ)       list = list.filter(b => (b.desc || "").toUpperCase().includes(descQ));
-    if (bidderQ)     list = list.filter(b => (b.name || "").toUpperCase().includes(bidderQ));
-    if (recentOnly)  list = list.filter(isRecent);
-    if (winningOnly) list = list.filter(b => b.bidId && winningIds.has(b.bidId));
+    const LEADING_BIDS_URL = "https://marymountauction2026.ie/";
+    const MOBILE_ERROR_MESSAGE = "Enter an Irish mobile as 0871234567, or a UK mobile as 00447911123456.";
+    const DEFAULT_SUCCESS_MESSAGE = `Thank you for your bid.
 
-    const ticker = document.getElementById("ticker");
-    const sub    = document.getElementById("bidsUpdated");
+If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
 
-    if (!list.length) {
-      let msg = "No matching bids.";
-      if (winningOnly && bidderQ) msg = "That bidder is not currently winning anything.";
-      else if (winningOnly)       msg = "No winning bids yet.";
-      else if (recentOnly)        msg = "No bids in the last 15 minutes.";
-      ticker.innerHTML = `<div class="empty">${msg}</div>`;
-      sub.textContent = "0 of " + allBids.length;
-      return;
+We shall also inform you if you get outbid.
+
+Regards,
+Marymount Ball Committee`;
+    const DEFAULT_CLOSED_MESSAGE = `The 2026 Marymount Ball auction is now closed.
+
+Thank you for all your support.
+
+Regards,
+Marymount Ball Committee`;
+
+    const itemEl = document.getElementById("item");
+    const itemNumberEl = document.getElementById("itemNumber");
+    const bidAmountEl = document.getElementById("bidAmount");
+    const yourNameEl = document.getElementById("yourName");
+    const mobileNumberEl = document.getElementById("mobileNumber");
+    const emailAddressEl = document.getElementById("emailAddress");
+    const tableValueEl = document.getElementById("tableValue");
+    const consentCheckboxEl = document.getElementById("consentCheckbox");
+    const submitBtnEl = document.getElementById("submitBtn");
+    const anotherBidBtnEl = document.getElementById("anotherBidBtn");
+    const loadingNoteEl = document.getElementById("loadingNote");
+    const formScreenEl = document.getElementById("formScreen");
+    const successScreenEl = document.getElementById("successScreen");
+    const closedScreenEl = document.getElementById("closedScreen");
+    const successMessageEl = document.getElementById("successMessage");
+    const closedMessageEl = document.getElementById("closedMessage");
+    const tokenEl = document.getElementById("token");
+    const viewLeadingBidsBtnEl = document.getElementById("viewLeadingBidsBtn");
+
+    const itemErrorEl = document.getElementById("itemError");
+    const bidErrorEl = document.getElementById("bidError");
+    const nameErrorEl = document.getElementById("nameError");
+    const mobileErrorEl = document.getElementById("mobileError");
+    const consentErrorEl = document.getElementById("consentError");
+
+    viewLeadingBidsBtnEl.href = LEADING_BIDS_URL;
+
+    function getTokenFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("token") || "";
     }
 
-    ticker.innerHTML = list.map((b, i) => `
-      <div class="ticker-row ${i === 0 && flashNewest ? "flash" : ""} ${isRecent(b) ? "recent" : ""} ${b.bidId && winningIds.has(b.bidId) ? "winning" : ""} ${b.legit === false ? "ignored" : ""}">
-        <div class="t-time">${escHtml(b.time) || "—"}</div>
-        <div class="t-item">${escHtml(b.item) || "—"}</div>
-        <div class="t-desc">${escHtml(b.desc)}</div>
-        <div class="t-name">${escHtml(b.name) || "—"}</div>
-        <div class="t-amount">${euro(b.amount)}</div>
-        <div class="t-increase">${b.increment > 0 ? "+" + euro(b.increment) : ""}</div>
-        <div class="t-wa">${waCell(b)}</div>
-      </div>`).join("");
-
-    sub.textContent = (list.length === allBids.length)
-      ? (allBids.length + " bids")
-      : (list.length + " of " + allBids.length);
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     ITEMS AND WINNERS
-     One group per item number. An item that appears twice in SETTINGS
-     is two identical lots, so its top two bids both win. The server
-     works out who those are; this just draws them.
-     ══════════════════════════════════════════════════════════ */
-  function bidsForItem(itemNumber) {
-    return allBids
-      .filter(b => b.itemNum === itemNumber)
-      .slice()
-      .sort((a, b) => (Number(b.amount) - Number(a.amount)) || (a.ts - b.ts));
-  }
-
-  function renderItems() {
-    const el = document.getElementById("leadingBids");
-    const q  = (document.getElementById("fLbSearch").value || "").trim().toUpperCase();
-    const expandAll = document.getElementById("fLbExpand").checked;
-
-    // Keep whatever the user had open across refreshes.
-    const openKeys = new Set(
-      [...document.querySelectorAll(".lb-item-group.open")].map(g => g.dataset.key)
-    );
-
-    let list = allItems;
-    if (q) {
-      list = list.filter(it =>
-        (it.item || "").toUpperCase().includes(q) ||
-        (it.description || "").toUpperCase().includes(q));
+    function isClosedMessage(message) {
+      return String(message || "").toLowerCase().includes("closed");
     }
 
-    if (!list.length) {
-      el.innerHTML = `<div class="empty">${allItems.length ? "No items match that search." : "No items yet."}</div>`;
-      return;
+    function hideError(el) {
+      el.textContent = "";
+      el.style.display = "none";
     }
 
-    el.innerHTML = list.map(it => {
-      const key    = it.itemNumber;
-      const isOpen = expandAll || openKeys.has(key);
-      const bids   = bidsForItem(it.itemNumber);
-      const winIds = new Set(it.winnerBidIds || []);
+    function showError(el, message) {
+      el.textContent = message;
+      el.style.display = "block";
+    }
 
-      let rank = 0;
-      const rows = bids.map(b => {
-        const isWin = b.bidId && winIds.has(b.bidId);
-        rank++;
-        return `
-          <div class="lb-bid-row ${isWin ? "win" : ""} ${b.legit === false ? "ignored" : ""}">
-            <div class="lb-b-rank">${isWin ? "★" : rank}</div>
-            <div class="lb-b-time">${escHtml(b.time) || "—"}</div>
-            <div class="lb-b-name">${escHtml(b.name) || "—"}</div>
-            <div class="lb-b-amt">${euro(b.amount)}</div>
-            <div class="lb-b-inc">${b.increment > 0 ? "+" + euro(b.increment) : ""}</div>
-          </div>`;
+    function clearAllErrors() {
+      hideError(itemErrorEl);
+      hideError(bidErrorEl);
+      hideError(nameErrorEl);
+      hideError(mobileErrorEl);
+      hideError(consentErrorEl);
+    }
+
+    function showBidError(message) {
+      showError(bidErrorEl, message || "Something went wrong.");
+      bidAmountEl.focus();
+      bidAmountEl.select();
+    }
+
+    function showSuccessScreen(message) {
+      successMessageEl.textContent = message || DEFAULT_SUCCESS_MESSAGE;
+      formScreenEl.style.display = "none";
+      closedScreenEl.style.display = "none";
+      successScreenEl.style.display = "block";
+    }
+
+    function showClosedScreen(message) {
+      closedMessageEl.textContent = message || DEFAULT_CLOSED_MESSAGE;
+      formScreenEl.style.display = "none";
+      successScreenEl.style.display = "none";
+      closedScreenEl.style.display = "block";
+    }
+
+    function showFormScreen() {
+      closedScreenEl.style.display = "none";
+      successScreenEl.style.display = "none";
+      formScreenEl.style.display = "block";
+    }
+
+    function normalizeItemNumberValue(value) {
+      const digits = String(value || "").replace(/[^\d]/g, "");
+      if (!digits) return "";
+      return String(Number(digits));
+    }
+
+    /**
+     * Minimal CSV parser. The item labels contain commas inside the amount
+     * ("Lead Bid €15,000"), so Google quotes those fields. Splitting on
+     * commas would cut every label in half.
+     */
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+
+        if (inQuotes) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else inQuotes = false;
+          } else {
+            field += c;
+          }
+          continue;
+        }
+
+        if (c === '"') { inQuotes = true; continue; }
+        if (c === ",") { row.push(field); field = ""; continue; }
+        if (c === "\r") continue;
+        if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; continue; }
+        field += c;
+      }
+
+      if (field !== "" || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    /** Reads the published FORM_ITEMS CSV into the same shape Apps Script returns. */
+    async function fetchItemsFromCsv() {
+      const res = await fetch(ITEMS_CSV_URL + "&cb=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("Item list unavailable.");
+
+      const rows = parseCsv(await res.text());
+      const items = [];
+
+      for (let i = 1; i < rows.length; i++) {   // row 0 is the header
+        const itemText   = String(rows[i][0] || "").trim();
+        const itemNumber = String(rows[i][1] || "").trim();
+        if (!itemText || !itemNumber) continue;
+        items.push({ item: itemText, itemNumber: itemNumber });
+      }
+
+      if (!items.length) throw new Error("Item list was empty.");
+      return items;
+    }
+
+    function buildItemDropdown(items, selectedItem = "", selectedItemNumber = "") {
+      itemEl.innerHTML = "";
+
+      const emptyOption = document.createElement("option");
+      emptyOption.value = "";
+      emptyOption.textContent = "Select an item";
+      itemEl.appendChild(emptyOption);
+
+      const normalizedSelectedNumber = normalizeItemNumberValue(selectedItemNumber);
+
+      items.forEach(row => {
+        const option = document.createElement("option");
+        option.value = row.item;
+        option.textContent = row.item;
+        option.dataset.itemNumber = row.itemNumber || "";
+
+        if (
+          (normalizedSelectedNumber && normalizeItemNumberValue(row.itemNumber) === normalizedSelectedNumber) ||
+          (!normalizedSelectedNumber && selectedItem && row.item === selectedItem)
+        ) {
+          option.selected = true;
+        }
+
+        itemEl.appendChild(option);
       });
 
-      // A dashed line where the winning bids stop, so it is obvious at a
-      // glance who is in and who is one place outside.
-      if (it.winnerCount > 0 && bids.length > it.winnerCount) {
-        rows.splice(it.winnerCount, 0,
-          `<div class="lb-cut">↑ Winning ${it.winnerCount === 1 ? "bid" : "bids"} &nbsp;·&nbsp; below this line is not winning</div>`);
+      itemEl.onchange = function () {
+        const selected = itemEl.options[itemEl.selectedIndex];
+        itemNumberEl.value = selected ? (selected.dataset.itemNumber || "") : "";
+        hideError(itemErrorEl);
+      };
+
+      const selected = itemEl.options[itemEl.selectedIndex];
+      itemNumberEl.value = selected ? (selected.dataset.itemNumber || "") : "";
+    }
+
+    function digitsOnly(value) {
+      return String(value || "").replace(/[^\d]/g, "");
+    }
+
+    function formatWithCommas(value) {
+      if (!value) return "";
+      return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function formatBidDisplay(value) {
+      const cleaned = digitsOnly(value);
+      if (!cleaned) return "";
+      return "€" + formatWithCommas(cleaned);
+    }
+
+    function getCleanBidAmount() {
+      return digitsOnly(bidAmountEl.value);
+    }
+
+    function normalizeMobileNumber(value) {
+      let v = String(value || "").trim().replace(/[\s\-()]/g, "");
+      if (v.indexOf("+353") === 0)       v = "0" + v.slice(4);
+      else if (v.indexOf("00353") === 0) v = "0" + v.slice(5);
+      else if (v.indexOf("+44") === 0)   v = "0044" + v.slice(3);
+      return v;
+    }
+
+    function isValidMobileNumber(value) {
+      const mobile = normalizeMobileNumber(value);
+
+      if (!/^\d+$/.test(mobile)) return false;
+
+      if (mobile.indexOf("08") === 0)   return mobile.length === 10;
+      if (mobile.indexOf("0044") === 0) return mobile.length === 14;
+      if (mobile.indexOf("353") === 0)  return mobile.length === 12;
+      if (mobile.indexOf("44") === 0)   return mobile.length === 12;
+
+      return false;
+    }
+
+    function formatBidInput() {
+      const currentValue = bidAmountEl.value;
+
+      if (currentValue.includes(".")) {
+        showError(bidErrorEl, "Decimal points not allowed.");
+      } else if (bidErrorEl.textContent === "Decimal points not allowed.") {
+        hideError(bidErrorEl);
       }
 
-      const winnersChip = it.winnerCount > 1
-        ? `<div class="chip chip-winners">Top ${it.winnerCount} win</div>`
-        : `<div class="chip chip-none">1 winner</div>`;
-
-      const stateChip = it.isSold
-        ? `<div class="chip chip-sold">Sold</div>`
-        : (it.isLive ? `<div class="chip chip-live">Live</div>` : `<div class="chip chip-none">&nbsp;</div>`);
-
-      // Target status, from LOW and HIGH on the LEADING BIDS tab.
-      const tChip = {
-        ABOVE:       `<div class="chip chip-above">Above</div>`,
-        "ON TARGET": `<div class="chip chip-target">On target</div>`,
-        BELOW:       `<div class="chip chip-below">Below</div>`
-      }[it.status] || `<div class="chip chip-none">&nbsp;</div>`;
-
-      const tNote = (it.lowTarget || it.highTarget)
-        ? `<div class="lb-target">Target per lot: <b>${euro(it.lowTarget)}</b> to <b>${euro(it.highTarget)}</b>${
-             it.winnerCount > 1 ? ` &nbsp;·&nbsp; judged on the lowest of the ${it.winnerCount} winning bids` : ""
-           }</div>`
-        : "";
-
-      return `
-        <div class="lb-item-group ${isOpen ? "open" : ""} ${it.isLive ? "is-live" : ""} ${it.isSold ? "is-sold" : ""}"
-             data-key="${escAttr(key)}" id="itemGroup-${escAttr(key)}">
-          <div class="lb-item-header" onclick="toggleGroup(this.parentElement)">
-            <div class="lb-h-num">${escHtml(it.item)}</div>
-            <div class="lb-h-desc">${escHtml(it.description)}<span class="lb-count">(${it.bidCount})</span></div>
-            ${winnersChip}
-            ${tChip}
-            ${stateChip}
-            <div class="lb-h-amt">${euro(it.winningTotal)}</div>
-            <div class="lb-h-chev">▶</div>
-          </div>
-          <div class="lb-item-bids">
-            ${tNote}
-            ${rows.join("") || '<div class="empty" style="padding:9px 14px;font-size:0.68rem;">No bids yet</div>'}
-          </div>
-        </div>`;
-    }).join("");
-
-    document.getElementById("leadingUpdated").textContent =
-      list.length + (list.length === allItems.length ? " items" : " of " + allItems.length);
-  }
-
-  function toggleGroup(el) { el.classList.toggle("open"); }
-
-  /**
-   * An item going live is the one moment the panel should grab your
-   * attention on its own. Brendan marks it on the committee panel; this
-   * notices within one refresh, opens the group, scrolls to it and
-   * flashes it once.
-   */
-  function detectSpotlight() {
-    const nowLive = new Set(allItems.filter(it => it.isLive).map(it => it.itemNumber));
-
-    // On the first paint, anything already live went live before this
-    // page was open. Seeding quietly avoids a burst of toasts for items
-    // that were called half an hour ago.
-    if (!seenFirstItems) {
-      seenFirstItems = true;
-      liveItems = nowLive;
-      return;
+      bidAmountEl.value = formatBidDisplay(currentValue);
     }
 
-    nowLive.forEach(num => {
-      if (liveItems.has(num)) return;   // already live at the last refresh
+    function handleBidPaste(e) {
+      const pasted = (e.clipboardData || window.clipboardData).getData("text");
 
-      const it = allItems.find(i => i.itemNumber === num);
-      setTimeout(() => {
-        const g = document.getElementById("itemGroup-" + num);
-        if (!g) return;
-        g.classList.add("open", "spotlight");
-        g.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => g.classList.remove("spotlight"), 2800);
-      }, 60);
+      if (pasted.includes(".")) {
+        showError(bidErrorEl, "Decimal points not allowed.");
+      } else if (bidErrorEl.textContent === "Decimal points not allowed.") {
+        hideError(bidErrorEl);
+      }
 
-      toast("🔨 " + (it ? it.item + " — " + it.description : "An item") + " is now LIVE", "warn");
-    });
-
-    liveItems = nowLive;
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     MODALS
-     ══════════════════════════════════════════════════════════ */
-  function openModal(id)  { document.getElementById(id).classList.add("show"); }
-  function closeModal(id) { document.getElementById(id).classList.remove("show"); }
-
-  document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
-    ["inboxModal", "healthModal", "chartModal"].forEach(closeModal);
-  });
-
-  function openHealth() { renderHealth(); openModal("healthModal"); }
-
-  function openInbox() {
-    renderInbox();
-    openModal("inboxModal");
-    loadSide();   // refresh on open rather than making them wait for the timer
-  }
-
-  function renderInbox() {
-    const body = document.getElementById("inboxBody");
-    const msgs = inboxData.messages || [];
-
-    document.getElementById("inboxModalSub").textContent =
-      inboxData.count ? (inboxData.count + " received in total · newest first") : "Nothing received yet";
-
-    if (!msgs.length) {
-      body.innerHTML = `<div class="empty">No guest has replied to a WhatsApp yet.<br><br>
-        Anyone who does gets an automatic reply pointing them to the
-        website and to the auction staff in the foyer.</div>`;
-      return;
+      e.preventDefault();
+      bidAmountEl.value = formatBidDisplay(pasted);
     }
 
-    body.innerHTML = msgs.map(m => `
-      <div class="inbox-row">
-        <div class="inbox-meta">
-          <span class="inbox-time">${escHtml(m.time) || "—"}</span>
-          ${m.name ? `<span class="inbox-name">${escHtml(m.name)}</span>` : ""}
-          <span class="inbox-from">${escHtml(m.from)}</span>
-          <span class="inbox-reply ${m.autoReply ? "reply-yes" : "reply-no"}">
-            ${m.autoReply ? "Auto-reply sent" : "No auto-reply"}
-          </span>
-        </div>
-        <div class="inbox-msg">${escHtml(m.message)}</div>
-      </div>`).join("");
-  }
+    function handleBidKeydown(e) {
+      const blockedKeys = [".", ",", "e", "E", "-", "+"];
 
-  /* ══════════════════════════════════════════════════════════
-     BID CHART
-     Hand-drawn on a canvas rather than pulled from a chart library,
-     because the venue wifi is the one thing nobody can test in advance
-     and this page must not depend on an external script loading.
-     ══════════════════════════════════════════════════════════ */
-  // The canvas has no width until the modal is laid out, so wait a frame
-  // before measuring it. Drawing immediately produces a zero-width chart.
-  function openChart() {
-    openModal("chartModal");
-    requestAnimationFrame(() => requestAnimationFrame(drawChart));
-  }
+      if (e.key === ".") {
+        e.preventDefault();
+        showError(bidErrorEl, "Decimal points not allowed.");
+        return;
+      }
 
-  function bucketBids() {
-    const stamps = allBids.map(b => realEpoch(b.ts)).filter(n => !isNaN(n)).sort((a, b) => a - b);
-    if (!stamps.length) return null;
-
-    const first = Math.floor(stamps[0] / BUCKET_MS) * BUCKET_MS;
-    const last  = Math.floor(stamps[stamps.length - 1] / BUCKET_MS) * BUCKET_MS;
-
-    const buckets = [];
-    for (let t = first; t <= last; t += BUCKET_MS) buckets.push({ t: t, count: 0 });
-
-    stamps.forEach(s => {
-      const i = Math.floor((s - first) / BUCKET_MS);
-      if (buckets[i]) buckets[i].count++;
-    });
-
-    let run = 0;
-    buckets.forEach(b => { run += b.count; b.cum = run; });
-
-    return { buckets: buckets, first: stamps[0], last: stamps[stamps.length - 1], total: stamps.length };
-  }
-
-  function drawChart() {
-    const wrap   = document.getElementById("bidChartWrap");
-    const canvas = document.getElementById("bidChart");
-    const data   = bucketBids();
-
-    const ctx = canvas.getContext("2d");
-    const dpr = window.devicePixelRatio || 1;
-    const W   = wrap.clientWidth;
-    const H   = wrap.clientHeight;
-
-    canvas.width  = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-
-    const sub   = document.getElementById("chartSub");
-    const stats = document.getElementById("chartStats");
-
-    if (!data) {
-      sub.textContent = "No bids with a usable timestamp yet";
-      stats.innerHTML = "";
-      ctx.fillStyle = "#7a9abf";
-      ctx.font = "13px Calibri, Arial, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("No bids yet.", W / 2, H / 2);
-      return;
+      if (blockedKeys.includes(e.key)) {
+        e.preventDefault();
+        return;
+      }
     }
 
-    const b = data.buckets;
-    const padL = 42, padR = 46, padT = 16, padB = 36;
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
-
-    const maxCount = Math.max(1, ...b.map(x => x.count));
-    const maxCum   = Math.max(1, b[b.length - 1].cum);
-
-    const xOf = i => padL + (b.length === 1 ? plotW / 2 : (i / (b.length - 1)) * plotW);
-    const yCount = v => padT + plotH - (v / maxCount) * plotH;
-    const yCum   = v => padT + plotH - (v / maxCum)   * plotH;
-
-    // Grid
-    ctx.strokeStyle = "rgba(58,80,128,0.45)";
-    ctx.lineWidth = 1;
-    ctx.font = "10px Calibri, Arial, sans-serif";
-
-    const gridLines = 4;
-    for (let g = 0; g <= gridLines; g++) {
-      const y = padT + (g / gridLines) * plotH;
-      ctx.beginPath();
-      ctx.moveTo(padL, y);
-      ctx.lineTo(padL + plotW, y);
-      ctx.stroke();
-
-      ctx.fillStyle = "#c9973f";
-      ctx.textAlign = "right";
-      ctx.fillText(Math.round(maxCount * (1 - g / gridLines)), padL - 7, y + 3);
-
-      ctx.fillStyle = "#4ade80";
-      ctx.textAlign = "left";
-      ctx.fillText(Math.round(maxCum * (1 - g / gridLines)), padL + plotW + 7, y + 3);
+    function handleMobileInput() {
+      hideError(mobileErrorEl);
     }
 
-    // Bars: bids arriving in each 10 minute window
-    const slot    = b.length === 1 ? plotW : plotW / (b.length - 1);
-    const barW    = Math.max(3, Math.min(26, slot * 0.62));
-    ctx.fillStyle = "#c9973f";
-    b.forEach((x, i) => {
-      if (!x.count) return;
-      const h = padT + plotH - yCount(x.count);
-      ctx.fillRect(xOf(i) - barW / 2, yCount(x.count), barW, h);
-    });
+    function validateMobileField() {
+      const mobileValue = mobileNumberEl.value.trim();
 
-    // Line: running total
-    ctx.strokeStyle = "#4ade80";
-    ctx.lineWidth = 2;
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    b.forEach((x, i) => {
-      const px = xOf(i), py = yCum(x.cum);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    });
-    ctx.stroke();
+      if (!mobileValue) {
+        showError(mobileErrorEl, "Please enter your mobile number.");
+        return false;
+      }
 
-    ctx.fillStyle = "#4ade80";
-    b.forEach((x, i) => {
-      ctx.beginPath();
-      ctx.arc(xOf(i), yCum(x.cum), 2.6, 0, Math.PI * 2);
-      ctx.fill();
-    });
+      if (!isValidMobileNumber(mobileValue)) {
+        showError(mobileErrorEl, MOBILE_ERROR_MESSAGE);
+        return false;
+      }
 
-    // X axis: a label roughly every half hour, and always the last one
-    ctx.fillStyle = "#7a9abf";
-    ctx.textAlign = "center";
-    ctx.font = "10px Calibri, Arial, sans-serif";
-    const step = Math.max(1, Math.ceil(b.length / 9));
-    b.forEach((x, i) => {
-      if (i % step !== 0 && i !== b.length - 1) return;
-      const d = new Date(x.t);
-      ctx.fillText(
-        d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" }),
-        xOf(i), padT + plotH + 16
-      );
-    });
-
-    ctx.strokeStyle = "rgba(58,80,128,0.9)";
-    ctx.beginPath();
-    ctx.moveTo(padL, padT + plotH);
-    ctx.lineTo(padL + plotW, padT + plotH);
-    ctx.stroke();
-
-    // Summary
-    const spanMs  = data.last - data.first;
-    const busiest = b.reduce((m, x) => (x.count > m.count ? x : m), b[0]);
-    const perHour = spanMs > 0 ? (data.total / (spanMs / 3600000)) : data.total;
-
-    sub.textContent = "First bid " + timeOf(new Date(data.first).toISOString()) +
-                      " · latest " + timeOf(new Date(data.last).toISOString()) +
-                      " · 10 minute buckets";
-
-    stats.innerHTML = `
-      <div class="cs-cell"><div class="cs-num">${data.total}</div><div class="cs-lbl">Bids with a time</div></div>
-      <div class="cs-cell"><div class="cs-num">${busiest.count}</div><div class="cs-lbl">Busiest 10 min</div></div>
-      <div class="cs-cell"><div class="cs-num">${timeOf(new Date(busiest.t).toISOString())}</div><div class="cs-lbl">Busiest window</div></div>
-      <div class="cs-cell"><div class="cs-num">${perHour.toFixed(0)}</div><div class="cs-lbl">Bids per hour</div></div>`;
-  }
-
-  window.addEventListener("resize", () => {
-    if (document.getElementById("chartModal").classList.contains("show")) drawChart();
-  });
-
-  /* ══════════════════════════════════════════════════════════
-     ACTIONS
-     ══════════════════════════════════════════════════════════ */
-  async function doFormAction(dir) {
-    const open = dir === "open";
-    if (!confirm(open ? "Open the bidding form?" : "Close the bidding form?")) return;
-    busy.form = true; renderStatus();
-    try {
-      await api({ action: "setFormStatus", secret: ADMIN_SECRET, open });
-      state.formOpen = open;
-      toast(open ? "Form is now open." : "Form closed.", open ? "success" : "warn");
-    } catch (err) { toast("Failed: " + err.message, "error"); }
-    finally { busy.form = false; renderStatus(); }
-  }
-
-  async function doBannerAction(dir) {
-    const on = dir === "on";
-    if (!confirm(on ? "Activate the closing soon banner?" : "Deactivate the closing soon banner?")) return;
-    busy.banner = true; renderStatus();
-    try {
-      await api({ action: "setClosingSoonBanner", secret: ADMIN_SECRET, active: on });
-      state.bannerActive = on;
-      toast(on ? "Banner is live." : "Banner deactivated.", on ? "warn" : "info");
-    } catch (err) { toast("Failed: " + err.message, "error"); }
-    finally { busy.banner = false; renderStatus(); }
-  }
-
-  async function doCloseAuction() {
-    if (!confirm("CLOSE THE AUCTION?\n\n- Bidding form closes\n- Banner stops\n- All screens show auction closed\n\nOnly proceed when the chairman has called it.")) return;
-    if (!confirm("Are you absolutely sure? This cannot be undone from this panel.")) return;
-    busy.auction = true; renderStatus();
-    try {
-      await api({ action: "closeAuction", secret: ADMIN_SECRET });
-      state.auctionClosed = true; state.formOpen = false; state.bannerActive = false;
-      renderStatus();
-      document.getElementById("closedBanner").style.display = "block";
-      toast("Auction closed. All screens updated.", "error");
-    } catch (err) { toast("Failed: " + err.message, "error"); }
-    finally { busy.auction = false; renderStatus(); }
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     CLOCK AND BOOT
-     ══════════════════════════════════════════════════════════ */
-  function tick() {
-    const n = new Date();
-    document.getElementById("clockTime").textContent =
-      n.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-    document.getElementById("clockDate").textContent =
-      n.toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" });
-  }
-
-  // Bids age out of the 15 minute window between refreshes, so the
-  // highlighting and the quiet-room alert get their own slower timer
-  // rather than only updating when new data arrives.
-  function refreshRecency() {
-    if (allBids.length) {
-      applyBidFilter(false);
-      if (allItems.length) renderItems();
+      hideError(mobileErrorEl);
+      return true;
     }
-    renderVelocity();
-    renderHealth();
-  }
 
-  function init() {
-    tick(); setInterval(tick, 1000);
+    async function apiRequest(payload) {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
 
-    loadDashboard();
-    loadSide();
+      const text = await res.text();
+      let json;
 
-    setInterval(loadDashboard, DASH_MS);
-    setInterval(loadSide, SIDE_MS);
-    setInterval(refreshRecency, 30000);
-  }
-</script>
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        throw new Error("Invalid response from server.");
+      }
+
+      return json;
+    }
+
+    /**
+     * Two loads run at once.
+     *
+     * The CSV paints the dropdown in a few hundred milliseconds so the guest
+     * can start filling the form immediately. The Apps Script call takes two
+     * to nine seconds and carries the things the CSV cannot: whether bidding
+     * is closed, and the outbid token prefill. When it lands it replaces the
+     * dropdown, keeping whatever the guest has already selected.
+     *
+     * Nothing here can let a bad bid through. submitWebBid_ re-reads SETTINGS
+     * and rejects anything at or below the real leading bid.
+     */
+    async function loadItemsAndPrefill() {
+      const token = getTokenFromUrl();
+      tokenEl.value = token;
+
+      let csvPainted = false;
+
+      // Fast path. Never blocks the slow path, and never shows an error:
+      // if it fails, the Apps Script response below fills the dropdown.
+      const csvPromise = fetchItemsFromCsv()
+        .then(items => {
+          if (itemEl.options.length <= 1 || !itemEl.value) {
+            buildItemDropdown(items);
+            csvPainted = true;
+          }
+        })
+        .catch(err => console.warn("CSV item list failed, waiting on server:", err.message));
+
+      const result = await apiRequest({ action: "getFormData", token });
+
+      if (!result.ok) {
+        if (isClosedMessage(result.message)) {
+          showClosedScreen(DEFAULT_CLOSED_MESSAGE);
+          return;
+        }
+        // The server failed but the CSV may already have painted a usable
+        // dropdown. Only surface the error if the guest has nothing to use.
+        if (csvPainted) {
+          console.warn("getFormData failed, running on the CSV item list:", result.message);
+          return;
+        }
+        throw new Error(result.message || "Could not load form data.");
+      }
+
+      const data = result.data || {};
+      const items = data.items || [];
+      const prefill = data.prefill || {};
+
+      // Keep whatever the guest already picked off the CSV list.
+      const currentItem       = itemEl.value || prefill.item || "";
+      const currentItemNumber = itemNumberEl.value || prefill.itemNumber || "";
+
+      buildItemDropdown(items, currentItem, currentItemNumber);
+
+      // Do not overwrite anything the guest has started typing.
+      if (!yourNameEl.value)     yourNameEl.value     = prefill.yourName || "";
+      if (!mobileNumberEl.value) mobileNumberEl.value = prefill.mobileNumber || "";
+      if (!emailAddressEl.value) emailAddressEl.value = prefill.emailAddress || "";
+      if (!tableValueEl.value)   tableValueEl.value   = prefill.tableValue || "";
+
+      consentCheckboxEl.checked = true;
+
+      itemEl.disabled = false;
+      yourNameEl.readOnly = false;
+      mobileNumberEl.readOnly = false;
+      emailAddressEl.readOnly = false;
+      tableValueEl.readOnly = false;
+
+      if (prefill.mode === "token" && !bidAmountEl.value) {
+        bidAmountEl.focus();
+      }
+
+      await csvPromise;
+    }
+
+    function validateForm() {
+      clearAllErrors();
+      let isValid = true;
+
+      if (!itemEl.value) {
+        showError(itemErrorEl, "Please select an item.");
+        if (isValid) itemEl.focus();
+        isValid = false;
+      }
+
+      const bidDisplay = bidAmountEl.value.trim();
+      const bidClean = getCleanBidAmount();
+
+      if (!bidDisplay) {
+        showError(bidErrorEl, "Please enter your bid amount.");
+        if (isValid) bidAmountEl.focus();
+        isValid = false;
+      } else if (!bidClean) {
+        showError(bidErrorEl, "Please enter a whole number only.");
+        if (isValid) {
+          bidAmountEl.focus();
+          bidAmountEl.select();
+        }
+        isValid = false;
+      } else if (Number(bidClean) <= 0) {
+        showError(bidErrorEl, "Please enter a valid bid amount.");
+        if (isValid) {
+          bidAmountEl.focus();
+          bidAmountEl.select();
+        }
+        isValid = false;
+      }
+
+      if (!yourNameEl.value.trim()) {
+        showError(nameErrorEl, "Please enter your name.");
+        if (isValid) yourNameEl.focus();
+        isValid = false;
+      }
+
+      if (!mobileNumberEl.value.trim()) {
+        showError(mobileErrorEl, "Please enter your mobile number.");
+        if (isValid) mobileNumberEl.focus();
+        isValid = false;
+      } else if (!isValidMobileNumber(mobileNumberEl.value)) {
+        showError(mobileErrorEl, MOBILE_ERROR_MESSAGE);
+        if (isValid) mobileNumberEl.focus();
+        isValid = false;
+      }
+
+      if (!consentCheckboxEl.checked) {
+        showError(consentErrorEl, "You must agree to WhatsApp notifications to place a bid.");
+        if (isValid) consentCheckboxEl.focus();
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    async function submitBid() {
+      if (!validateForm()) return;
+
+      submitBtnEl.disabled = true;
+      submitBtnEl.textContent = "Submitting...";
+
+      try {
+        const cleanBidAmount = getCleanBidAmount();
+        const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
+
+        const result = await apiRequest({
+          action: "submitBid",
+          token: tokenEl.value,
+          item: itemEl.value,
+          itemNumber: itemNumberEl.value,
+          bidAmount: cleanBidAmount,
+          yourName: yourNameEl.value,
+          mobileNumber: cleanMobileNumber,
+          emailAddress: emailAddressEl.value,
+          tableValue: tableValueEl.value,
+          consent: consentCheckboxEl.checked ? "Yes" : "No"
+        });
+
+        if (!result.ok) {
+          if (isClosedMessage(result.message)) {
+            showClosedScreen(DEFAULT_CLOSED_MESSAGE);
+            return;
+          }
+          throw new Error(result.message || "Your bid could not be submitted.");
+        }
+
+        showSuccessScreen(DEFAULT_SUCCESS_MESSAGE);
+      } catch (error) {
+        // A rejected bid usually means someone else got in first, so refresh
+        // the list in the background: the guest sees the new leading bid in
+        // the dropdown without reloading the page.
+        fetchItemsFromCsv()
+          .then(items => buildItemDropdown(items, itemEl.value, itemNumberEl.value))
+          .catch(() => {});
+
+        if (isClosedMessage(error.message)) {
+          showClosedScreen(DEFAULT_CLOSED_MESSAGE);
+          return;
+        }
+
+        if (String(error.message || "") === MOBILE_ERROR_MESSAGE) {
+          showError(mobileErrorEl, MOBILE_ERROR_MESSAGE);
+          mobileNumberEl.focus();
+          return;
+        }
+
+        showBidError(error.message || "Your bid could not be submitted.");
+      } finally {
+        submitBtnEl.disabled = false;
+        submitBtnEl.textContent = "Submit Bid";
+      }
+    }
+
+    async function placeAnotherBid() {
+      anotherBidBtnEl.disabled = true;
+      loadingNoteEl.style.display = "block";
+
+      try {
+        tokenEl.value = "";
+        window.history.replaceState({}, "", window.location.pathname);
+
+        bidAmountEl.value = "";
+        yourNameEl.value = "";
+        mobileNumberEl.value = "";
+        emailAddressEl.value = "";
+        tableValueEl.value = "";
+        itemEl.innerHTML = '<option value="">Updating items with latest bids...</option>';
+        itemNumberEl.value = "";
+
+        await loadItemsAndPrefill();
+
+        if (closedScreenEl.style.display === "block") {
+          return;
+        }
+
+        consentCheckboxEl.checked = true;
+        clearAllErrors();
+        showFormScreen();
+        itemEl.focus();
+      } catch (error) {
+        if (isClosedMessage(error.message)) {
+          showClosedScreen(DEFAULT_CLOSED_MESSAGE);
+          return;
+        }
+        showBidError(error.message || "Could not refresh the form.");
+      } finally {
+        anotherBidBtnEl.disabled = false;
+        loadingNoteEl.style.display = "none";
+      }
+    }
+
+    submitBtnEl.addEventListener("click", submitBid);
+    anotherBidBtnEl.addEventListener("click", placeAnotherBid);
+
+    yourNameEl.addEventListener("input", () => hideError(nameErrorEl));
+    mobileNumberEl.addEventListener("input", handleMobileInput);
+    mobileNumberEl.addEventListener("blur", validateMobileField);
+    consentCheckboxEl.addEventListener("change", () => hideError(consentErrorEl));
+
+    bidAmountEl.addEventListener("keydown", handleBidKeydown);
+    bidAmountEl.addEventListener("input", formatBidInput);
+    bidAmountEl.addEventListener("paste", handleBidPaste);
+
+    loadItemsAndPrefill().catch(err => {
+      if (isClosedMessage(err.message)) {
+        showClosedScreen(DEFAULT_CLOSED_MESSAGE);
+        return;
+      }
+      if (!itemEl.value && itemEl.options.length <= 1) {
+        itemEl.innerHTML = '<option value="">Could not load items</option>';
+        showBidError(err.message || "Could not load the form.");
+      }
+    });
+  </script>
 </body>
 </html>
