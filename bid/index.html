@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marymount Ball Auction – Place Your Bid</title>
+  <title>Marymount Ball Auction Place Your Bid</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <meta name="theme-color" content="#c39243">
   <style>
     :root {
       --bg: #decca1;
@@ -172,6 +174,92 @@
       color: #1f1f1f;
     }
 
+    .consent-message {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: #fff3cd;
+      border-left: 4px solid #e67e22;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #333;
+      border-radius: 4px;
+    }
+
+    .item-card {
+      background: #f5ebd0;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+    }
+
+    .item-card-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #5f5a4f;
+      margin-bottom: 2px;
+      letter-spacing: 0.2px;
+    }
+
+    .item-card-item-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c39243;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .item-card-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 6px;
+    }
+
+    .item-card-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .item-card-column {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-card-column-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #5f5a4f;
+      min-width: 120px;
+    }
+
+    .item-card-column-value {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .item-card-bid {
+      color: #c39243;
+    }
+
+    .change-item-btn {
+      width: 100%;
+      padding: 6px;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
     .btn {
       width: 100%;
       border: none;
@@ -210,7 +298,7 @@
 
     .success-message {
       font-size: 16px;
-      color: var(--success);
+      color: var(--text);
       line-height: 1.5;
       margin-bottom: 20px;
       white-space: pre-line;
@@ -275,7 +363,7 @@
   <div class="page">
 
     <div class="hero">
-      <img src="/Marymount%20Header2.png" alt="Marymount Ball Auction">
+      <img src="/assets/Marymount%20Header.png" alt="Marymount Ball Auction">
     </div>
 
     <div class="card">
@@ -286,10 +374,31 @@
         <input type="hidden" id="token">
 
         <div class="section">
-          <label class="label" for="item">Item<span class="required-star">*</span></label>
-          <select id="item">
-            <option value="">Updating items with latest bids...</option>
-          </select>
+          <label class="label">Item<span class="required-star">*</span></label>
+          
+          <!-- Dropdown (hidden, but still there for data) -->
+          <div id="itemSelectMode" style="display: none;">
+            <select id="item">
+              <option value="">Updating items with latest bids...</option>
+            </select>
+          </div>
+          
+          <!-- Card mode (what the user sees) -->
+          <div id="itemCardMode" style="display: none;">
+            <div class="item-card">
+              <div class="item-card-label">Selected Item</div>
+              <div id="itemCardLabel" class="item-card-item-label"></div>
+              <div id="itemCardName" class="item-card-name"></div>
+              <div class="item-card-grid">
+                <div class="item-card-column">
+                  <div class="item-card-column-label">Current Leading Bid</div>
+                  <div id="itemCardBid" class="item-card-column-value item-card-bid"></div>
+                </div>
+              </div>
+              <button type="button" id="changeItemBtn" class="change-item-btn">Change Item</button>
+            </div>
+          </div>
+          
           <div id="itemError" class="field-error"></div>
         </div>
 
@@ -313,7 +422,8 @@
 
         <div class="section">
           <label class="label" for="mobileNumber">Mobile Number<span class="required-star">*</span></label>
-          <input id="mobileNumber" type="text" inputmode="numeric" placeholder="Enter your mobile number">
+          <input id="mobileNumber" type="text" inputmode="numeric" placeholder="08xxxxxxxxx or +353..." title="Irish: 08 (10 digits) or +353 (12 digits). UK: 0044 (13 digits) or +44 (12 digits)">
+          <div style="font-size: 11px; color: #5f5a4f; margin-top: 4px;">Irish: 08xxxxxxxx or 00353/+353xxxxxxxxx | UK: 0044xxxxxxxxxx or +44xxxxxxxxxx</div>
           <div id="mobileError" class="field-error"></div>
         </div>
 
@@ -330,12 +440,14 @@
 
         <div class="section">
           <div class="checkbox-wrap">
-            <input type="checkbox" id="consentCheckbox">
+            <input type="checkbox" id="consentCheckbox" checked>
             <div class="checkbox-text">
               I agree to receive WhatsApp notifications regarding my bid.
             </div>
           </div>
-          <div id="consentError" class="field-error"></div>
+          <div id="consentMessage" class="consent-message" style="display: none;">
+            ⚠️ Without WhatsApp notifications, you won't receive alerts if you're outbid or if you win. You can still bid, but you'll need to check manually.
+          </div>
         </div>
 
         <button id="submitBtn" class="btn" type="button">Submit Bid</button>
@@ -375,16 +487,8 @@ Marymount Ball Committee</div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
-
-    // Published FORM_ITEMS tab on the display sheet (no guest data on it).
-    // Mirrors SETTINGS columns A and B verbatim, blanks filtered out, so the
-    // item text here is byte-identical to what the server matches against.
-    // This is only the fast first paint. The Apps Script call below still runs
-    // and overwrites it, and every bid is validated server-side regardless.
-    const ITEMS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQNDV6Mxcwx7ooiUrTkRUHHVUFCnu47d7qaeEijrK0b-5QvafzDwhEax7genVr_ZK512ZDhgbTjJYx/pub?gid=913040441&single=true&output=csv";
-
     const LEADING_BIDS_URL = "https://marymountauction2026.ie/";
-    const MOBILE_ERROR_MESSAGE = "Mobile number must start with 08 and be 10 digits long, or start with 0044 and be 13 digits long.";
+    const MOBILE_ERROR_MESSAGE = "Irish: 08xxxxxxxx (10 digits), 00353xxxxxxxxx or +353xxxxxxxxx (12-14 digits). UK: 0044xxxxxxxxxx (14 digits) or +44xxxxxxxxxx (12 digits).";
     const DEFAULT_SUCCESS_MESSAGE = `Thank you for your bid.
 
 If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
@@ -423,7 +527,6 @@ Marymount Ball Committee`;
     const bidErrorEl = document.getElementById("bidError");
     const nameErrorEl = document.getElementById("nameError");
     const mobileErrorEl = document.getElementById("mobileError");
-    const consentErrorEl = document.getElementById("consentError");
 
     viewLeadingBidsBtnEl.href = LEADING_BIDS_URL;
 
@@ -451,7 +554,6 @@ Marymount Ball Committee`;
       hideError(bidErrorEl);
       hideError(nameErrorEl);
       hideError(mobileErrorEl);
-      hideError(consentErrorEl);
     }
 
     function showBidError(message) {
@@ -486,60 +588,6 @@ Marymount Ball Committee`;
       return String(Number(digits));
     }
 
-    /**
-     * Minimal CSV parser. The item labels contain commas inside the amount
-     * ("Lead Bid €15,000"), so Google quotes those fields. Splitting on
-     * commas would cut every label in half.
-     */
-    function parseCsv(text) {
-      const rows = [];
-      let row = [];
-      let field = "";
-      let inQuotes = false;
-
-      for (let i = 0; i < text.length; i++) {
-        const c = text[i];
-
-        if (inQuotes) {
-          if (c === '"') {
-            if (text[i + 1] === '"') { field += '"'; i++; }
-            else inQuotes = false;
-          } else {
-            field += c;
-          }
-          continue;
-        }
-
-        if (c === '"') { inQuotes = true; continue; }
-        if (c === ",") { row.push(field); field = ""; continue; }
-        if (c === "\r") continue;
-        if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; continue; }
-        field += c;
-      }
-
-      if (field !== "" || row.length) { row.push(field); rows.push(row); }
-      return rows;
-    }
-
-    /** Reads the published FORM_ITEMS CSV into the same shape Apps Script returns. */
-    async function fetchItemsFromCsv() {
-      const res = await fetch(ITEMS_CSV_URL + "&cb=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) throw new Error("Item list unavailable.");
-
-      const rows = parseCsv(await res.text());
-      const items = [];
-
-      for (let i = 1; i < rows.length; i++) {   // row 0 is the header
-        const itemText   = String(rows[i][0] || "").trim();
-        const itemNumber = String(rows[i][1] || "").trim();
-        if (!itemText || !itemNumber) continue;
-        items.push({ item: itemText, itemNumber: itemNumber });
-      }
-
-      if (!items.length) throw new Error("Item list was empty.");
-      return items;
-    }
-
     function buildItemDropdown(items, selectedItem = "", selectedItemNumber = "") {
       itemEl.innerHTML = "";
 
@@ -555,6 +603,9 @@ Marymount Ball Committee`;
         option.value = row.item;
         option.textContent = row.item;
         option.dataset.itemNumber = row.itemNumber || "";
+        
+        const leadingBid = extractLeadBidFromItemText(row.item);
+        option.dataset.currentLeadingBid = leadingBid;
 
         if (
           (normalizedSelectedNumber && normalizeItemNumberValue(row.itemNumber) === normalizedSelectedNumber) ||
@@ -568,8 +619,35 @@ Marymount Ball Committee`;
 
       itemEl.onchange = function () {
         const selected = itemEl.options[itemEl.selectedIndex];
+        const fullItemText = selected ? selected.value : "";
+        
+        itemEl.value = fullItemText;
         itemNumberEl.value = selected ? (selected.dataset.itemNumber || "") : "";
         hideError(itemErrorEl);
+        
+        if (selected && selected.dataset.currentLeadingBid) {
+          const leadingBid = Number(selected.dataset.currentLeadingBid);
+          
+          // Extract ITEM XX (e.g. "ITEM 01")
+          const itemLabelMatch = fullItemText.match(/^(ITEM\s*\d+)/i);
+          const itemLabel = itemLabelMatch ? itemLabelMatch[1].toUpperCase() : "ITEM";
+          
+          // Remove "ITEM XX - Lead Bid €XXXX - " and get just the description
+          // Format is: "ITEM 01 - Lead Bid €13,800 - WIMBLEDON LADIES FINAL"
+          const descMatch = fullItemText.match(/^ITEM\s*\d+\s*-\s*Lead Bid\s*€[\d,]+\s*-\s*(.+)$/i);
+          const description = descMatch ? descMatch[1].trim() : fullItemText;
+          
+          document.getElementById("itemSelectMode").style.display = "none";
+          document.getElementById("itemCardMode").style.display = "block";
+          document.getElementById("itemCardLabel").textContent = itemLabel;
+          document.getElementById("itemCardName").textContent = description;
+          document.getElementById("itemCardBid").textContent = formatEuro(leadingBid);
+          
+          itemEl.dataset.currentLeadingBid = leadingBid;
+        } else {
+          document.getElementById("itemSelectMode").style.display = "block";
+          document.getElementById("itemCardMode").style.display = "none";
+        }
       };
 
       const selected = itemEl.options[itemEl.selectedIndex];
@@ -583,6 +661,11 @@ Marymount Ball Committee`;
     function formatWithCommas(value) {
       if (!value) return "";
       return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function formatEuro(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? "€" + n.toLocaleString("en-IE", { maximumFractionDigits: 0 }) : "€0";
     }
 
     function formatBidDisplay(value) {
@@ -599,7 +682,8 @@ Marymount Ball Committee`;
       return String(value || "")
         .trim()
         .replace(/\s+/g, "")
-        .replace(/-/g, "");
+        .replace(/-/g, "")
+        .replace(/\+/g, "");
     }
 
     function isValidMobileNumber(value) {
@@ -609,12 +693,29 @@ Marymount Ball Committee`;
         return false;
       }
 
+      // Irish local: 08xxxxxxxxx (10 digits)
       if (mobile.startsWith("08")) {
         return mobile.length === 10;
       }
 
+      // UK local: 0044xxxxxxxxxxx (14 digits)
       if (mobile.startsWith("0044")) {
-        return mobile.length === 13;
+        return mobile.length === 14;
+      }
+
+      // Irish international with 00: 00353xxxxxxxxx (14 digits)
+      if (mobile.startsWith("00353")) {
+        return mobile.length === 14;
+      }
+
+      // Irish international: 353xxxxxxxxx (12 digits, without + or 00)
+      if (mobile.startsWith("353")) {
+        return mobile.length === 12;
+      }
+
+      // UK international: 44xxxxxxxxxx (12 digits, without + or 00)
+      if (mobile.startsWith("44")) {
+        return mobile.length === 12;
       }
 
       return false;
@@ -681,7 +782,7 @@ Marymount Ball Committee`;
       return true;
     }
 
-    async function apiRequest(payload) {
+   async function apiRequest(payload) {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -694,55 +795,26 @@ Marymount Ball Committee`;
       try {
         json = JSON.parse(text);
       } catch (e) {
-        throw new Error("Invalid response from server.");
+        if (res.ok && payload.action === "submitBid") {
+          return { ok: true, message: "Bid received" };
+        }
+        throw new Error("Could not connect to the server. Please try again.");
       }
 
       return json;
     }
 
-    /**
-     * Two loads run at once.
-     *
-     * The CSV paints the dropdown in a few hundred milliseconds so the guest
-     * can start filling the form immediately. The Apps Script call takes two
-     * to nine seconds and carries the things the CSV cannot: whether bidding
-     * is closed, and the outbid token prefill. When it lands it replaces the
-     * dropdown, keeping whatever the guest has already selected.
-     *
-     * Nothing here can let a bad bid through. submitWebBid_ re-reads SETTINGS
-     * and rejects anything at or below the real leading bid.
-     */
     async function loadItemsAndPrefill() {
       const token = getTokenFromUrl();
       tokenEl.value = token;
 
-      let csvPainted = false;
-
-      // Fast path. Never blocks the slow path, and never shows an error:
-      // if it fails, the Apps Script response below fills the dropdown.
-      const csvPromise = fetchItemsFromCsv()
-        .then(items => {
-          if (itemEl.options.length <= 1 || !itemEl.value) {
-            console.time && console.timeEnd && console.log("items painted from CSV");
-            buildItemDropdown(items);
-            csvPainted = true;
-          }
-        })
-        .catch(err => console.warn("CSV item list failed, waiting on server:", err.message));
-
       console.time("getFormData");
       const result = await apiRequest({ action: "getFormData", token });
       console.timeEnd("getFormData");
-
+      
       if (!result.ok) {
         if (isClosedMessage(result.message)) {
           showClosedScreen(DEFAULT_CLOSED_MESSAGE);
-          return;
-        }
-        // The server failed but the CSV may already have painted a usable
-        // dropdown. Only surface the error if the guest has nothing to use.
-        if (csvPainted) {
-          console.warn("getFormData failed, running on the CSV item list:", result.message);
           return;
         }
         throw new Error(result.message || "Could not load form data.");
@@ -752,18 +824,14 @@ Marymount Ball Committee`;
       const items = data.items || [];
       const prefill = data.prefill || {};
 
-      // Keep whatever the guest already picked off the CSV list.
-      const currentItem       = itemEl.value || prefill.item || "";
-      const currentItemNumber = itemNumberEl.value || prefill.itemNumber || "";
+      buildItemDropdown(items, prefill.item || "", prefill.itemNumber || "");
 
-      buildItemDropdown(items, currentItem, currentItemNumber);
+      yourNameEl.value = prefill.yourName || "";
+      mobileNumberEl.value = prefill.mobileNumber || "";
+      emailAddressEl.value = prefill.emailAddress || "";
+      tableValueEl.value = prefill.tableValue || "";
 
-      // Do not overwrite anything the guest has started typing.
-      if (!yourNameEl.value)     yourNameEl.value     = prefill.yourName || "";
-      if (!mobileNumberEl.value) mobileNumberEl.value = prefill.mobileNumber || "";
-      if (!emailAddressEl.value) emailAddressEl.value = prefill.emailAddress || "";
-      if (!tableValueEl.value)   tableValueEl.value   = prefill.tableValue || "";
-
+      bidAmountEl.value = "";
       consentCheckboxEl.checked = true;
 
       itemEl.disabled = false;
@@ -772,11 +840,9 @@ Marymount Ball Committee`;
       emailAddressEl.readOnly = false;
       tableValueEl.readOnly = false;
 
-      if (prefill.mode === "token" && !bidAmountEl.value) {
+      if (prefill.mode === "token") {
         bidAmountEl.focus();
       }
-
-      await csvPromise;
     }
 
     function validateForm() {
@@ -810,6 +876,16 @@ Marymount Ball Committee`;
           bidAmountEl.select();
         }
         isValid = false;
+      } else {
+        const currentLeading = Number(itemEl.dataset.currentLeadingBid || 0);
+        if (currentLeading && bidClean <= currentLeading) {
+          showError(bidErrorEl, "Your bid must be higher than €" + currentLeading.toLocaleString("en-IE") + ".");
+          if (isValid) {
+            bidAmountEl.focus();
+            bidAmountEl.select();
+          }
+          isValid = false;
+        }
       }
 
       if (!yourNameEl.value.trim()) {
@@ -828,12 +904,6 @@ Marymount Ball Committee`;
         isValid = false;
       }
 
-      if (!consentCheckboxEl.checked) {
-        showError(consentErrorEl, "You must agree to WhatsApp notifications to place a bid.");
-        if (isValid) consentCheckboxEl.focus();
-        isValid = false;
-      }
-
       return isValid;
     }
 
@@ -847,7 +917,7 @@ Marymount Ball Committee`;
         const cleanBidAmount = getCleanBidAmount();
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
 
-        console.time("submitBid");
+      console.time("submitBid");
         const result = await apiRequest({
           action: "submitBid",
           token: tokenEl.value,
@@ -872,13 +942,6 @@ Marymount Ball Committee`;
 
         showSuccessScreen(DEFAULT_SUCCESS_MESSAGE);
       } catch (error) {
-        // A rejected bid usually means someone else got in first, so refresh
-        // the list in the background: the guest sees the new leading bid in
-        // the dropdown without reloading the page.
-        fetchItemsFromCsv()
-          .then(items => buildItemDropdown(items, itemEl.value, itemNumberEl.value))
-          .catch(() => {});
-
         if (isClosedMessage(error.message)) {
           showClosedScreen(DEFAULT_CLOSED_MESSAGE);
           return;
@@ -905,23 +968,23 @@ Marymount Ball Committee`;
         tokenEl.value = "";
         window.history.replaceState({}, "", window.location.pathname);
 
-        bidAmountEl.value = "";
-        yourNameEl.value = "";
-        mobileNumberEl.value = "";
-        emailAddressEl.value = "";
-        tableValueEl.value = "";
-        itemEl.innerHTML = '<option value="">Updating items with latest bids...</option>';
-        itemNumberEl.value = "";
-
         await loadItemsAndPrefill();
 
         if (closedScreenEl.style.display === "block") {
           return;
         }
 
+        bidAmountEl.value = "";
+        yourNameEl.value = "";
+        mobileNumberEl.value = "";
+        emailAddressEl.value = "";
+        tableValueEl.value = "";
         consentCheckboxEl.checked = true;
+        document.getElementById("consentMessage").style.display = "none";
         clearAllErrors();
         showFormScreen();
+        document.getElementById("itemSelectMode").style.display = "block";
+        document.getElementById("itemCardMode").style.display = "none";
         itemEl.focus();
       } catch (error) {
         if (isClosedMessage(error.message)) {
@@ -935,27 +998,76 @@ Marymount Ball Committee`;
       }
     }
 
+    function extractLeadBidFromItemText(itemText) {
+      const text = String(itemText || "").trim();
+      const match = text.match(/Lead Bid\s*€\s*([\d,]+)/i);
+
+      if (!match) {
+        return 0;
+      }
+
+      const cleaned = match[1].replace(/[^0-9]/g, "");
+      const amount = Number(cleaned);
+
+      if (isNaN(amount)) {
+        return 0;
+      }
+
+      return amount;
+    }
+
     submitBtnEl.addEventListener("click", submitBid);
     anotherBidBtnEl.addEventListener("click", placeAnotherBid);
 
     yourNameEl.addEventListener("input", () => hideError(nameErrorEl));
     mobileNumberEl.addEventListener("input", handleMobileInput);
     mobileNumberEl.addEventListener("blur", validateMobileField);
-    consentCheckboxEl.addEventListener("change", () => hideError(consentErrorEl));
+
+    consentCheckboxEl.addEventListener("change", function() {
+      const msg = document.getElementById("consentMessage");
+      if (!this.checked) {
+        msg.style.display = "block";
+      } else {
+        msg.style.display = "none";
+      }
+    });
 
     bidAmountEl.addEventListener("keydown", handleBidKeydown);
-    bidAmountEl.addEventListener("input", formatBidInput);
+    bidAmountEl.addEventListener("input", function() {
+      formatBidInput();
+      
+      // Real-time validation: check if bid is below current leading bid
+      const currentLeading = Number(itemEl.dataset.currentLeadingBid || 0);
+      const bidClean = getCleanBidAmount();
+      
+      if (bidClean && currentLeading && bidClean <= currentLeading) {
+        showError(bidErrorEl, "Your bid must be higher than €" + currentLeading.toLocaleString("en-IE") + ".");
+      } else {
+        hideError(bidErrorEl);
+      }
+    });
     bidAmountEl.addEventListener("paste", handleBidPaste);
+
+    document.getElementById("changeItemBtn").addEventListener("click", function() {
+      document.getElementById("itemSelectMode").style.display = "block";
+      document.getElementById("itemCardMode").style.display = "none";
+      itemEl.value = "";
+      itemNumberEl.value = "";
+      // Small delay needed on mobile for display change to render before click fires
+      setTimeout(function() { itemEl.click(); }, 50);
+    });
+
+    // Show dropdown on initial load
+    document.getElementById("itemSelectMode").style.display = "block";
+    document.getElementById("itemCardMode").style.display = "none";
 
     loadItemsAndPrefill().catch(err => {
       if (isClosedMessage(err.message)) {
         showClosedScreen(DEFAULT_CLOSED_MESSAGE);
         return;
       }
-      if (!itemEl.value && itemEl.options.length <= 1) {
-        itemEl.innerHTML = '<option value="">Could not load items</option>';
-        showBidError(err.message || "Could not load the form.");
-      }
+      itemEl.innerHTML = '<option value="">Could not load items</option>';
+      showBidError(err.message || "Could not load the form.");
     });
   </script>
 </body>
