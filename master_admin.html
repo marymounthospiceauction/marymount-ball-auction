@@ -575,7 +575,6 @@
   let allBids    = [];
   let allItems   = [];
   let waStats    = null;
-  let cacheStatus = null;
   let pollerInfo = null;
   let inboxData  = { messages: [], count: 0 };
 
@@ -666,7 +665,6 @@
      ══════════════════════════════════════════════════════════ */
   async function loadDashboard() {
     try {
-      cacheStatus = await api({ action: "getCacheStatus" });
       const r = await api({ action: "getDashboard" });
       const d = r.data || {};
 
@@ -847,17 +845,6 @@
       checks.push({ level: "warn", label: "Screen controls", detail: "The CONTROL tab has not reported in. The form status and the big-screen overlays may not be under this panel's control." });
     } else {
       checks.push({ level: "ok", label: "Screen controls", detail: "Form status and screen overlays are responding." });
-
-    // 6. Leading bids cache refresh trigger
-    if (!cacheStatus) {
-      checks.push({ level: "warn", label: "Leading bids cache", detail: "Cache status has not reported in. Bid form may use sheet lookups instead of cache." });
-    } else if (!cacheStatus.ok) {
-      checks.push({ level: "warn", label: "Leading bids cache", detail: "Cache status error: " + cacheStatus.message });
-    } else if (cacheStatus.isStale) {
-      checks.push({ level: "warn", label: "Leading bids cache", detail: "Cache is " + cacheStatus.secondsAgo + " seconds old (stale after 90s). The cache refresh trigger may have stopped. Check SETTINGS!H3 for the refresh timestamp." });
-    } else {
-      checks.push({ level: "ok", label: "Leading bids cache", detail: "Cache is fresh (" + cacheStatus.secondsAgo + "s old). Bid form validation is running at millisecond speed." });
-    }
     }
 
     return checks;
