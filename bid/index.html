@@ -679,18 +679,34 @@ Marymount Ball Committee`;
       return digitsOnly(bidAmountEl.value);
     }
 
+    /**
+     * Reduces whatever the guest typed, or their phone autofilled, to
+     * bare digits.
+     *
+     * Contacts apps store Irish mobiles every way imaginable: brackets
+     * round the area code, dots, non breaking spaces, and an invisible
+     * left to right mark that iOS puts in front of a + . Stripping only
+     * spaces, hyphens and pluses rejected five of the eleven formats
+     * phones actually produce, and was stricter than the server, which
+     * already strips brackets.
+     *
+     * The trunk zero is the other one. "+353 (0)86 395 1792" is a real
+     * way people store a number, and naively removing the brackets
+     * leaves 3530863951792, which is one digit too long and looks like
+     * a typo. The zero after a country code is never dialled from
+     * abroad, so it comes out.
+     */
     function normalizeMobileNumber(value) {
-      return String(value || "")
-        .trim()
-        .replace(/\s+/g, "")
-        .replace(/-/g, "")
-        .replace(/\+/g, "");
+      let v = String(value || "").replace(/\D/g, "");
+      if (v.indexOf("3530") === 0) v = "353" + v.slice(4);
+      if (v.indexOf("440")  === 0) v = "44"  + v.slice(3);
+      return v;
     }
 
     function isValidMobileNumber(value) {
       const mobile = normalizeMobileNumber(value);
 
-      if (!/^\d+$/.test(mobile)) {
+      if (!mobile) {
         return false;
       }
 
