@@ -888,15 +888,12 @@ Marymount Ball Committee`;
       // Focus the bid field for outbid arrivals, but WITHOUT letting the
       // browser scroll to it. Plain .focus() scrolls the page mid load and
       // opens the keyboard, which shrinks the viewport while it is still
-      // laying out. That is the lurch guests see coming off a WhatsApp
-      // outbid link. preventScroll keeps the convenience everywhere else.
+      // laying out. That is part of the lurch guests see coming off a
+      // WhatsApp outbid link. Browsers too old for the options object
+      // ignore it silently and fall back to the scrolling focus; they do
+      // not throw, so there is nothing to catch.
       if (prefill.mode === "token") {
-        try {
-          bidAmountEl.focus({ preventScroll: true });
-        } catch (e) {
-          // Very old browsers ignore the options object. Skip the focus
-          // rather than fall back to the scrolling version.
-        }
+        bidAmountEl.focus({ preventScroll: true });
       }
     }
 
