@@ -24,18 +24,30 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      overflow-x: hidden;
+      /* Stops the rubber band at the bottom from re-triggering the
+         in-app browser's chrome, which is what makes the page jump. */
+      overscroll-behavior-y: none;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      overflow-x: hidden;
+      overscroll-behavior-y: none;
     }
 
     .page {
       max-width: 760px;
       margin: 0 auto;
-      padding: 6px 10px 16px;
+      /* The generous bottom padding is deliberate. WhatsApp's in-app
+         browser hides its toolbar once a page scrolls, which grows the
+         viewport; if the content then fits, the toolbar returns, the
+         viewport shrinks, and it oscillates. Guaranteeing the page is
+         taller than the viewport breaks that loop. */
+      padding: 6px 10px 120px;
     }
 
     .hero {
@@ -261,6 +273,11 @@
     }
 
     .btn {
+      /* Sticky so the guest never has to scroll to the bottom of a
+         moving page to find it. */
+      position: sticky;
+      bottom: 10px;
+      z-index: 5;
       width: 100%;
       border: none;
       border-radius: 12px;
