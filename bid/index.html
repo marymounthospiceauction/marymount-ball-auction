@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5, user-scalable=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marymount Ball Auction Place Your Bid</title>
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="theme-color" content="#c39243">
@@ -28,7 +28,7 @@
       overflow-x: hidden;
       /* Stops the rubber band at the bottom from re-triggering the
          in-app browser's chrome, which is what makes the page jump. */
-      overscroll-behavior: none;
+      overscroll-behavior-y: none;
     }
 
     body {
@@ -36,8 +36,7 @@
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      overscroll-behavior: none;
-      overflow-x: hidden;
+      overscroll-behavior-y: none;
     }
 
     .page {
@@ -47,13 +46,8 @@
          browser hides its toolbar once a page scrolls, which grows the
          viewport; if the content then fits, the toolbar returns, the
          viewport shrinks, and it oscillates. Guaranteeing the page is
-         taller than the viewport breaks that loop. env() only returns
-         a real value because of viewport-fit=cover in the meta tag. */
-      padding: 6px 10px;
-      padding-left: max(10px, env(safe-area-inset-left));
-      padding-right: max(10px, env(safe-area-inset-right));
-      padding-bottom: max(140px, env(safe-area-inset-bottom) + 100px);
-      padding-top: max(6px, env(safe-area-inset-top));
+         taller than the viewport breaks that loop. */
+      padding: 6px 10px 120px;
     }
 
     .hero {
@@ -67,8 +61,8 @@
       display: block;
       margin: 0 auto;
       /* Reserves the image's space before it downloads. Without this the
-         308 kB header occupies zero height on first paint and everything
-         below it drops when it arrives, which reads as the page jumping.
+         308 kB header is zero height on first paint and everything below
+         drops when it arrives, which reads as the page jumping on load.
          CHECK THIS RATIO against the real Marymount Header.png and correct
          it. object-fit means a wrong ratio only leaves whitespace rather
          than distorting the artwork. */
@@ -81,10 +75,6 @@
       border-radius: 18px;
       padding: 14px 12px 16px;
       box-shadow: var(--shadow);
-      margin: 0 auto;
-      width: 100%;
-      /* Prevent layout shift */
-      box-sizing: border-box;
     }
 
     .title {
@@ -120,7 +110,7 @@
       width: 100%;
       border: 2px solid var(--border);
       border-radius: 12px;
-      padding: 13px 14px;
+      padding: 11px 14px;
       font-size: 16px;
       background: #fffdf8;
       color: var(--text);
@@ -128,8 +118,6 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      min-height: 48px;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     select {
@@ -293,20 +281,15 @@
     }
 
     .btn {
-      /* Sticky so the guest never has to scroll to the bottom of a moving
-         page to find it. SUSPECT: sticky recalculates on every scroll and
-         every toolbar transition in WhatsApp's Android WebView, and is the
-         most likely remaining source of shimmer while scrolling. If the
-         page still feels unsteady after this build, change this one line
-         to position: static and retest before changing anything else. */
+      /* Sticky so the guest never has to scroll to the bottom of a
+         moving page to find it. */
       position: sticky;
-      bottom: max(10px, calc(env(safe-area-inset-bottom) + 4px));
+      bottom: 10px;
       z-index: 5;
       width: 100%;
       border: none;
       border-radius: 12px;
-      padding: 16px 18px;
-      min-height: 56px;
+      padding: 14px 18px;
       font-size: 18px;
       font-weight: 800;
       cursor: pointer;
@@ -314,17 +297,10 @@
       color: #fff;
       box-shadow: 0 4px 14px rgba(0,0,0,0.14);
       -webkit-tap-highlight-color: transparent;
-      margin-top: 8px;
+      margin-top: 4px;
       text-decoration: none;
-      display: block;
+      display: inline-block;
       text-align: center;
-      -webkit-user-select: none;
-      user-select: none;
-      transition: opacity 0.2s, background 0.2s;
-    }
-
-    .btn:active {
-      opacity: 0.85;
     }
 
     .btn:disabled {
