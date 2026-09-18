@@ -205,15 +205,17 @@
     .lb-item-bids { display: none; background: var(--s4); }
     .lb-item-group.open .lb-item-bids { display: block; }
 
-    .lb-bid-row { display: grid; grid-template-columns: 26px 50px minmax(0, 1fr) auto 60px; align-items: center; min-height: 27px; padding: 0 10px 0 12px; border-bottom: 0.5px solid rgba(58,80,128,0.35); font-size: 0.74rem; gap: 6px; }
+    .lb-bid-row { display: grid; grid-template-columns: 18px 26px 50px minmax(0, 1fr) auto 60px; align-items: center; min-height: 27px; padding: 0 10px 0 8px; border-bottom: 0.5px solid rgba(58,80,128,0.35); font-size: 0.74rem; gap: 6px; }
     .lb-bid-row:last-child { border-bottom: none; }
     .lb-bid-row.win { background: rgba(201,151,63,0.12); box-shadow: inset 3px 0 0 var(--gold); }
     .lb-bid-row.win .lb-b-name { color: var(--white); font-weight: 700; }
     .lb-bid-row.win .lb-b-amt  { color: var(--gold-lt); }
     .lb-bid-row.ignored { opacity: 0.4; }
     .lb-bid-row.ignored .lb-b-amt { text-decoration: line-through; }
+    .lb-b-star  { font-size: 0.75rem; text-align: center; color: transparent; }
+    .lb-bid-row.win .lb-b-star { color: var(--gold); }
     .lb-b-rank  { font-size: 0.6rem; font-weight: 800; color: var(--muted); text-align: center; }
-    .lb-bid-row.win .lb-b-rank { color: var(--gold); }
+    .lb-bid-row.win .lb-b-rank { color: var(--muted); }
     .lb-b-time  { color: var(--muted); font-variant-numeric: tabular-nums; }
     .lb-b-name  { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lb-b-amt   { color: var(--green); font-weight: 800; text-align: right; white-space: nowrap; }
@@ -1034,7 +1036,8 @@
         rank++;
         return `
           <div class="lb-bid-row ${isWin ? "win" : ""} ${b.legit === false ? "ignored" : ""}">
-            <div class="lb-b-rank">${isWin ? "★" : rank}</div>
+            <div class="lb-b-star">${isWin ? "★" : ""}</div>
+            <div class="lb-b-rank">${rank}</div>
             <div class="lb-b-time">${escHtml(b.time) || "—"}</div>
             <div class="lb-b-name">${escHtml(b.name) || "—"}</div>
             <div class="lb-b-amt">${euro(b.amount)}</div>
@@ -1093,11 +1096,15 @@
       list.length + (list.length === allItems.length ? " items" : " of " + allItems.length);
   }
 
-  function toggleExpandLabel() {
-    const cb = document.getElementById("fLbExpand");
-    const label = document.getElementById("expandLabel");
-    label.textContent = cb.checked ? "Collapse all" : "Expand all";
+function toggleExpandLabel() {
+  const cb = document.getElementById("fLbExpand");
+  const label = document.getElementById("expandLabel");
+  label.textContent = cb.checked ? "Collapse all" : "Expand all";
+  
+  if (!cb.checked) {
+    document.querySelectorAll(".lb-item-group.open").forEach(el => el.classList.remove("open"));
   }
+}
 
   function toggleGroup(el) { el.classList.toggle("open"); }
 
