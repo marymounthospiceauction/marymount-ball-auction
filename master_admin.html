@@ -171,7 +171,7 @@
 
     .lb-item-header {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) auto auto auto auto 14px;
+      grid-template-columns: 56px minmax(0, 1fr) 100px 90px 70px 70px 14px;
       align-items: center;
       min-height: 36px;
       padding: 0 10px;
@@ -391,15 +391,15 @@
     </div>
     <div class="stat-cell">
       <div class="stat-num" id="waBidsSent">—</div>
-      <div class="stat-lbl">WA confirmations</div>
+      <div class="stat-lbl">WhatsApp confirmations</div>
     </div>
     <div class="stat-cell">
       <div class="stat-num" id="waOutbidsSent">—</div>
-      <div class="stat-lbl">WA outbid alerts</div>
+      <div class="stat-lbl">WhatsApp outbid alerts</div>
     </div>
     <div class="stat-cell">
       <div class="stat-num" id="waWinnersSent">—</div>
-      <div class="stat-lbl">WA winner notices</div>
+      <div class="stat-lbl">WhatsApp winner notices</div>
     </div>
     <div class="stat-cell clickable" onclick="openInbox()" title="Messages guests have sent us">
       <div class="stat-num" id="inboxCount">—</div>
@@ -451,8 +451,8 @@
       </div>
       <div class="filter-bar">
         <input class="filter-input" id="fLbSearch" placeholder="Search item or description" oninput="renderItems()" />
-        <label class="filter-toggle" title="Expand every item">
-          <input type="checkbox" id="fLbExpand" onchange="renderItems()" /> Expand all
+        <label class="filter-toggle" title="Expand or collapse every item">
+          <input type="checkbox" id="fLbExpand" onchange="toggleExpandLabel(); renderItems();" /> <span id="expandLabel">Expand all</span>
         </label>
       </div>
       <div class="panel-body" id="leadingBids">
@@ -1091,6 +1091,12 @@
 
     document.getElementById("leadingUpdated").textContent =
       list.length + (list.length === allItems.length ? " items" : " of " + allItems.length);
+  }
+
+  function toggleExpandLabel() {
+    const cb = document.getElementById("fLbExpand");
+    const label = document.getElementById("expandLabel");
+    label.textContent = cb.checked ? "Collapse all" : "Expand all";
   }
 
   function toggleGroup(el) { el.classList.toggle("open"); }
