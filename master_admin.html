@@ -138,13 +138,14 @@
     .filter-toggle.on { color: var(--gold-lt); font-weight: 700; }
 
     /* ALL BIDS TICKER */
-    .ticker-row { display: grid; grid-template-columns: 46px 56px minmax(0, 1fr) 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
+    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
     .ticker-row:last-child { border-bottom: none; }
     .ticker-row.flash { animation: flash 1.4s ease; }
     @keyframes flash { 0%,100%{background:transparent} 20%{background:rgba(74,222,128,0.15)} }
     .ticker-row.recent { background: rgba(201,151,63,0.13); box-shadow: inset 3px 0 0 var(--gold); }
     .ticker-row.recent .t-desc { color: var(--white); }
-    .ticker-row.winning .t-amount::after { content: " ★"; color: var(--gold-lt); font-size: 0.72rem; }
+    .t-star     { font-size: 0.72rem; line-height: 1; text-align: center; color: transparent; }
+    .ticker-row.winning .t-star { color: var(--gold-lt); }
     .ticker-row.ignored { opacity: 0.45; }
     .ticker-row.ignored .t-amount { text-decoration: line-through; }
     .t-time     { color: var(--gold-lt); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -171,7 +172,7 @@
 
     .lb-item-header {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) 100px 90px 70px 70px 14px;
+      grid-template-columns: 54px minmax(0, 1fr) 74px 74px 46px 62px 12px;
       align-items: center;
       min-height: 36px;
       padding: 0 10px;
@@ -205,15 +206,13 @@
     .lb-item-bids { display: none; background: var(--s4); }
     .lb-item-group.open .lb-item-bids { display: block; }
 
-    .lb-bid-row { display: grid; grid-template-columns: 16px 26px 50px minmax(0, 1fr) 60px auto; align-items: center; min-height: 27px; padding: 0 10px 0 8px; border-bottom: 0.5px solid rgba(58,80,128,0.35); font-size: 0.74rem; gap: 6px; }
+    .lb-bid-row { display: grid; grid-template-columns: 26px 50px minmax(0, 1fr) 60px auto; align-items: center; min-height: 27px; padding: 0 10px 0 8px; border-bottom: 0.5px solid rgba(58,80,128,0.35); font-size: 0.74rem; gap: 6px; }
     .lb-bid-row:last-child { border-bottom: none; }
     .lb-bid-row.win { background: rgba(201,151,63,0.12); box-shadow: inset 3px 0 0 var(--gold); }
     .lb-bid-row.win .lb-b-name { color: var(--white); font-weight: 700; }
     .lb-bid-row.win .lb-b-amt  { color: var(--gold-lt); }
     .lb-bid-row.ignored { opacity: 0.4; }
     .lb-bid-row.ignored .lb-b-amt { text-decoration: line-through; }
-    .lb-b-star  { width: 16px; flex-shrink: 0; font-size: 0.75rem; text-align: center; color: transparent; }
-    .lb-bid-row.win .lb-b-star { color: var(--gold); }
     .lb-b-rank  { font-size: 0.6rem; font-weight: 800; color: var(--muted); text-align: center; }
     .lb-bid-row.win .lb-b-rank { color: var(--muted); }
     .lb-b-time  { color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -321,7 +320,7 @@
     }
 
     @media (max-width: 560px) {
-      .ticker-row { grid-template-columns: 44px 52px minmax(0,1fr) 72px 30px; padding: 0 8px; }
+      .ticker-row { grid-template-columns: 14px 44px 52px minmax(0,1fr) 72px 30px; padding: 0 8px; }
       .t-desc { display: none; }
       .t-increase { display: none; }
     }
@@ -975,6 +974,7 @@
 
     ticker.innerHTML = list.map((b, i) => `
       <div class="ticker-row ${i === 0 && flashNewest ? "flash" : ""} ${isRecent(b) ? "recent" : ""} ${b.bidId && winningIds.has(b.bidId) ? "winning" : ""} ${b.legit === false ? "ignored" : ""}">
+        <div class="t-star">${b.bidId && winningIds.has(b.bidId) ? "★" : "&nbsp;"}</div>
         <div class="t-time">${escHtml(b.time) || "—"}</div>
         <div class="t-item">${escHtml(b.item) || "—"}</div>
         <div class="t-desc">${escHtml(b.desc)}</div>
@@ -1036,7 +1036,6 @@
         rank++;
         return `
           <div class="lb-bid-row ${isWin ? "win" : ""} ${b.legit === false ? "ignored" : ""}">
-            <div class="lb-b-star">${isWin ? "★" : "\u00a0"}</div>
             <div class="lb-b-rank">${rank}</div>
             <div class="lb-b-time">${escHtml(b.time) || "—"}</div>
             <div class="lb-b-name">${escHtml(b.name) || "—"}</div>
@@ -1045,27 +1044,20 @@
           </div>`;
       });
 
-      // A dashed line where the winning bids stop, so it is obvious at a
-      // glance who is in and who is one place outside.
-      if (it.winnerCount > 0 && bids.length > it.winnerCount) {
-        rows.splice(it.winnerCount, 0,
-          `<div class="lb-cut">↑ Winning ${it.winnerCount === 1 ? "bid" : "bids"} &nbsp;·&nbsp; below this line is not winning</div>`);
-      }
-
       const winnersChip = it.winnerCount > 1
         ? `<div class="chip chip-winners">Top ${it.winnerCount} win</div>`
         : `<div class="chip chip-none">1 winner</div>`;
 
       const stateChip = it.isSold
         ? `<div class="chip chip-sold">Sold</div>`
-        : (it.isLive ? `<div class="chip chip-live">Live</div>` : `<div class="chip chip-none">&nbsp;</div>`);
+        : (it.isLive ? `<div class="chip chip-live">Live</div>` : `<div></div>`);
 
       // Target status, from LOW and HIGH on the LEADING BIDS tab.
       const tChip = {
         ABOVE:       `<div class="chip chip-above">Above</div>`,
         "ON TARGET": `<div class="chip chip-target">On target</div>`,
         BELOW:       `<div class="chip chip-below">Below</div>`
-      }[it.status] || `<div class="chip chip-none">&nbsp;</div>`;
+      }[it.status] || `<div></div>`;
 
       const tNote = (it.lowTarget || it.highTarget)
         ? `<div class="lb-target">Target per lot: <b>${euro(it.lowTarget)}</b> to <b>${euro(it.highTarget)}</b>${
