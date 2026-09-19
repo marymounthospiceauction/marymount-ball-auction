@@ -212,7 +212,7 @@
     .lb-bid-row.win .lb-b-amt  { color: var(--gold-lt); }
     .lb-bid-row.ignored { opacity: 0.4; }
     .lb-bid-row.ignored .lb-b-amt { text-decoration: line-through; }
-    .lb-b-star  { font-size: 0.75rem; text-align: center; color: transparent; }
+    .lb-b-star  { width: 16px; flex-shrink: 0; font-size: 0.75rem; text-align: center; color: transparent; }
     .lb-bid-row.win .lb-b-star { color: var(--gold); }
     .lb-b-rank  { font-size: 0.6rem; font-weight: 800; color: var(--muted); text-align: center; }
     .lb-bid-row.win .lb-b-rank { color: var(--muted); }
@@ -1036,7 +1036,7 @@
         rank++;
         return `
           <div class="lb-bid-row ${isWin ? "win" : ""} ${b.legit === false ? "ignored" : ""}">
-            <div class="lb-b-star">${isWin ? "★" : ""}</div>
+            <div class="lb-b-star">${isWin ? "★" : "\u00a0"}</div>
             <div class="lb-b-rank">${rank}</div>
             <div class="lb-b-time">${escHtml(b.time) || "—"}</div>
             <div class="lb-b-name">${escHtml(b.name) || "—"}</div>
