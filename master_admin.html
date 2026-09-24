@@ -183,6 +183,10 @@
       gap: 7px;
     }
     .lb-item-header:hover { background: var(--s3); }
+    /* Joint winner tint sits before is-live deliberately: an item that is
+       both live and joint should still read as live at a glance, and the
+       orange chip carries the joint warning on its own. */
+    .lb-item-group.is-joint .lb-item-header { background: rgba(251,146,60,0.15); box-shadow: inset 3px 0 0 #fb923c; }
     .lb-item-group.is-live  .lb-item-header { background: rgba(201,151,63,0.16); box-shadow: inset 3px 0 0 var(--gold); }
     .lb-item-group.is-sold  .lb-item-header { background: rgba(74,222,128,0.08); }
     .lb-h-num   { font-size: 0.74rem; font-weight: 800; color: var(--gold-lt); }
@@ -194,6 +198,7 @@
 
     .chip { font-size: 0.57rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; text-align: center; }
     .chip-winners { background: rgba(201,151,63,0.16); color: var(--gold-lt); border: 0.5px solid var(--gold); }
+    .chip-joint   { background: rgba(251,146,60,0.22); color: #fdba74;      border: 0.5px solid #c2410c; }
     .chip-live    { background: rgba(245,158,11,0.18); color: var(--amber);  border: 0.5px solid var(--amb-bdr); animation: blink 1.6s infinite; }
     .chip-sold    { background: var(--grn-bg); color: var(--green); border: 0.5px solid var(--grn-bdr); }
     .chip-none    { background: rgba(255,255,255,0.05); color: var(--muted); border: 0.5px solid var(--border); }
@@ -202,6 +207,26 @@
     .chip-above   { background: var(--grn-bg);         color: var(--green); border: 0.5px solid var(--grn-bdr); }
     .lb-target    { font-size: 0.57rem; color: var(--muted); padding: 4px 10px 4px 12px; border-bottom: 0.5px solid rgba(58,80,128,0.35); letter-spacing: 0.03em; }
     .lb-target b  { color: var(--gold-lt); font-weight: 700; }
+
+    /* Joint winner note: what the chairman actually has to say, in the
+       expanded panel, in plain words. */
+    .lb-joint     { font-size: 0.64rem; color: #fdba74; background: rgba(251,146,60,0.12);
+                    padding: 6px 10px 6px 12px; border-bottom: 0.5px solid rgba(194,65,12,0.5);
+                    line-height: 1.45; }
+    .lb-joint b   { color: #fff; font-weight: 800; }
+    .lb-joint + .lb-target { border-top: none; }
+
+    .lb-bid-row.tied { background: rgba(251,146,60,0.10); box-shadow: inset 3px 0 0 #c2410c; }
+    .lb-bid-row.tied .lb-b-name { color: #fdba74; font-weight: 700; }
+    .tiedtag { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+               color: #fdba74; border: 0.5px solid #c2410c; border-radius: 999px; padding: 1px 5px; margin-left: 6px; }
+    .dbltag  { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+               color: var(--gold-lt); border: 0.5px solid var(--gold); border-radius: 999px; padding: 1px 5px; margin-left: 6px; }
+
+    .joint-count { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+                   color: #fdba74; background: rgba(251,146,60,0.22); border: 0.5px solid #c2410c;
+                   border-radius: 999px; padding: 2px 8px; cursor: pointer; }
+    .joint-count.none { display: none; }
 
     .lb-item-bids { display: none; background: var(--s4); }
     .lb-item-group.open .lb-item-bids { display: block; }
@@ -446,7 +471,11 @@
     <div class="panel">
       <div class="panel-hdr">
         <div class="panel-title">🏆 Items &amp; winners</div>
-        <div class="panel-sub" id="leadingUpdated">—</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="joint-count none" id="jointCount" onclick="filterJoint()"
+               title="Lots where a winning slot is tied on amount, or one bidder holds more than one slot. Tap to show only these.">—</div>
+          <div class="panel-sub" id="leadingUpdated">—</div>
+        </div>
       </div>
       <div class="filter-bar">
         <input class="filter-input" id="fLbSearch" placeholder="Search item or description" oninput="renderItems()" />
@@ -1001,6 +1030,93 @@
       .sort((a, b) => (Number(b.amount) - Number(a.amount)) || (a.ts - b.ts));
   }
 
+  /**
+   * Two situations on a multi winner lot that the chairman has to be told
+   * about before the announcement, because the system will never tell the
+   * bidders itself.
+   *
+   * TIED ON THE LINE. The lowest winning bid is matched exactly by a bid
+   * that did not win. On a top N lot a new bid only has to beat the lowest
+   * winning bid, so an equal bid is accepted and then loses on timestamp.
+   * No outbid message goes out for it, because the amount was not beaten,
+   * and no winner message goes out either. That bidder believes they are
+   * still in it right up until the announcement.
+   *
+   * ONE BIDDER, SEVERAL SLOTS. The same person holds more than one of the
+   * winning slots. Nobody loses out, but it looks like a fault from the
+   * floor. This is what caused the confusion on Graham Norton in 2025.
+   *
+   * Returns null when neither applies. Bids arrive already sorted by
+   * amount descending then timestamp ascending, which is the ranking, so
+   * the last winner in the list is the cut line.
+   */
+  function jointWinnerCheck(bids, winIds) {
+    const live    = bids.filter(b => b.legit !== false);
+    const winners = live.filter(b => b.bidId && winIds.has(b.bidId));
+    if (!winners.length) return null;
+
+    const cutAmount = Number(winners[winners.length - 1].amount) || 0;
+
+    const tied = live.filter(b =>
+      !(b.bidId && winIds.has(b.bidId)) &&
+      (Number(b.amount) || 0) === cutAmount
+    );
+
+    // Same bidder holding two or more winning slots. Matched on name,
+    // which is what the chairman would go on anyway.
+    const seen = new Map();
+    winners.forEach(b => {
+      const key = (b.name || "").trim().toUpperCase();
+      if (!key) return;
+      if (!seen.has(key)) seen.set(key, { name: b.name, count: 0 });
+      seen.get(key).count++;
+    });
+    const doubles = [...seen.values()].filter(v => v.count > 1);
+
+    if (!tied.length && !doubles.length) return null;
+
+    return {
+      cutAmount,
+      tied,
+      doubles,
+      tiedIds: new Set(tied.map(b => b.bidId).filter(Boolean)),
+      dblNames: new Set(doubles.map(d => d.name.trim().toUpperCase()))
+    };
+  }
+
+  /** The words the chairman needs, not a description of the data. */
+  function jointSentence(it, j) {
+    const out = [];
+
+    if (j.tied.length) {
+      const names  = j.tied.map(b => escHtml(b.name || "a bidder")).join(", ");
+      const plural = j.tied.length > 1;
+      out.push(
+        `<b>Tied on the last winning slot at ${euro(j.cutAmount)}.</b> ` +
+        names + (plural ? " each bid " : " bid ") +
+        `the same amount but later, so ${plural ? "they are" : "that bidder is"} not winning. ` +
+        `No outbid message and no winner message will go out, so ${plural ? "they" : "they"} will not find out unless told in person.`
+      );
+    }
+
+    if (j.doubles.length) {
+      out.push(
+        j.doubles.map(d =>
+          `<b>${escHtml(d.name)} holds ${d.count} of the ${it.winnerCount} winning slots.</b>`
+        ).join(" ") +
+        ` Correct under the rules, but worth saying out loud before the announcement.`
+      );
+    }
+
+    return out.join("<br>");
+  }
+
+  function filterJoint() {
+    const box = document.getElementById("fLbSearch");
+    box.value = box.value === "##joint" ? "" : "##joint";
+    renderItems();
+  }
+
   function renderItems() {
     const el = document.getElementById("leadingBids");
     const q  = (document.getElementById("fLbSearch").value || "").trim().toUpperCase();
@@ -1011,8 +1127,23 @@
       [...document.querySelectorAll(".lb-item-group.open")].map(g => g.dataset.key)
     );
 
+    // Worked out across every item before any filtering, so the count in
+    // the panel header is a true total and not a count of whatever happens
+    // to be on screen.
+    const jointMap = new Map();
+    allItems.forEach(it => {
+      const j = jointWinnerCheck(bidsForItem(it.itemNumber), new Set(it.winnerBidIds || []));
+      if (j) jointMap.set(it.itemNumber, j);
+    });
+
+    const jc = document.getElementById("jointCount");
+    jc.textContent = "⚠ " + jointMap.size + (jointMap.size === 1 ? " joint winner" : " joint winners");
+    jc.classList.toggle("none", jointMap.size === 0);
+
     let list = allItems;
-    if (q) {
+    if (q === "##JOINT") {
+      list = list.filter(it => jointMap.has(it.itemNumber));
+    } else if (q) {
       list = list.filter(it =>
         (it.item || "").toUpperCase().includes(q) ||
         (it.description || "").toUpperCase().includes(q));
@@ -1028,24 +1159,34 @@
       const isOpen = expandAll || openKeys.has(key);
       const bids   = bidsForItem(it.itemNumber);
       const winIds = new Set(it.winnerBidIds || []);
+      const joint  = jointMap.get(it.itemNumber) || null;
 
       let rank = 0;
       const rows = bids.map(b => {
-        const isWin = b.bidId && winIds.has(b.bidId);
+        const isWin    = b.bidId && winIds.has(b.bidId);
+        const isTied   = !!(joint && b.bidId && joint.tiedIds.has(b.bidId));
+        const dblCount = (joint && isWin)
+          ? (joint.dblNames.get((b.name || "").trim().toUpperCase()) || 0)
+          : 0;
         rank++;
         return `
-          <div class="lb-bid-row ${isWin ? "win" : ""} ${b.legit === false ? "ignored" : ""}">
+          <div class="lb-bid-row ${isWin ? "win" : ""} ${isTied ? "tied" : ""} ${b.legit === false ? "ignored" : ""}">
             <div class="lb-b-rank">${rank}</div>
             <div class="lb-b-time">${escHtml(b.time) || "—"}</div>
-            <div class="lb-b-name">${escHtml(b.name) || "—"}</div>
+            <div class="lb-b-name">${escHtml(b.name) || "—"}${
+              isTied ? '<span class="tiedtag">tied</span>' : ""}${
+              dblCount > 1 ? '<span class="dbltag">&times;' + dblCount + '</span>' : ""}</div>
             <div class="lb-b-amt">${euro(b.amount)}</div>
             <div class="lb-b-inc">${b.increment > 0 ? "+" + euro(b.increment) : ""}</div>
           </div>`;
       });
 
-      const winnersChip = it.winnerCount > 1
-        ? `<div class="chip chip-winners">Top ${it.winnerCount} win</div>`
-        : `<div class="chip chip-none">1 winner</div>`;
+      const winnersChip = joint
+        ? `<div class="chip chip-joint" title="Joint winner situation. Open the item for the wording.">&#9888; ${
+             it.winnerCount > 1 ? "Top " + it.winnerCount : "Check"}</div>`
+        : (it.winnerCount > 1
+            ? `<div class="chip chip-winners">Top ${it.winnerCount} win</div>`
+            : `<div class="chip chip-none">1 winner</div>`);
 
       const stateChip = it.isSold
         ? `<div class="chip chip-sold">Sold</div>`
@@ -1064,8 +1205,10 @@
            }</div>`
         : "";
 
+      const jNote = joint ? `<div class="lb-joint">${jointSentence(it, joint)}</div>` : "";
+
       return `
-        <div class="lb-item-group ${isOpen ? "open" : ""} ${it.isLive ? "is-live" : ""} ${it.isSold ? "is-sold" : ""}"
+        <div class="lb-item-group ${isOpen ? "open" : ""} ${joint ? "is-joint" : ""} ${it.isLive ? "is-live" : ""} ${it.isSold ? "is-sold" : ""}"
              data-key="${escAttr(key)}" id="itemGroup-${escAttr(key)}">
           <div class="lb-item-header" onclick="toggleGroup(this.parentElement)">
             <div class="lb-h-num">${escHtml(it.item)}</div>
@@ -1077,6 +1220,7 @@
             <div class="lb-h-chev">▶</div>
           </div>
           <div class="lb-item-bids">
+            ${jNote}
             ${tNote}
             ${rows.join("") || '<div class="empty" style="padding:9px 14px;font-size:0.68rem;">No bids yet</div>'}
           </div>
