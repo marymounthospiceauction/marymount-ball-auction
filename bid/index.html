@@ -26,20 +26,22 @@
     * { box-sizing: border-box; }
 
     html {
-      overflow-x: hidden;
-      /* Stops the rubber band at the bottom from re-triggering the
-         in-app browser's chrome, which is what makes the page jump. */
-      overscroll-behavior-y: none;
+      height: 100%;
+      overflow: hidden;
     }
 
-    body {
+       body {
       margin: 0;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      overscroll-behavior-y: none;
     }
-
+    
     .page {
       max-width: 760px;
       margin: 0 auto;
@@ -48,7 +50,8 @@
          viewport; if the content then fits, the toolbar returns, the
          viewport shrinks, and it oscillates. Guaranteeing the page is
          taller than the viewport breaks that loop. */
-      padding: 6px 10px 120px;
+      padding: 6px 10px 24px;
+    
     }
 
     .hero {
