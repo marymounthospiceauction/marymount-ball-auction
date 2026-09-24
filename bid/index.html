@@ -26,22 +26,20 @@
     * { box-sizing: border-box; }
 
     html {
-      height: 100%;
-      overflow: hidden;
+      overflow-x: hidden;
+      /* Stops the rubber band at the bottom from re-triggering the
+         in-app browser's chrome, which is what makes the page jump. */
+      overscroll-behavior-y: none;
     }
 
-       body {
+    body {
       margin: 0;
-      height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
+      overscroll-behavior-y: none;
     }
-    
+
     .page {
       max-width: 760px;
       margin: 0 auto;
@@ -50,8 +48,7 @@
          viewport; if the content then fits, the toolbar returns, the
          viewport shrinks, and it oscillates. Guaranteeing the page is
          taller than the viewport breaks that loop. */
-      padding: 6px 10px 24px;
-    
+      padding: 6px 10px 120px;
     }
 
     .hero {
@@ -384,6 +381,27 @@
     @media (max-width: 480px) {
       .title, .success-title, .closed-title { font-size: 18px; }
       .btn, .secondary-btn { font-size: 17px; }
+    }
+
+    /* Phones: fit the whole form on one screen so the guest never has to
+       scroll. No scroll means WhatsApp's toolbar never hides or returns,
+       which is the flicker. The header is smaller here on purpose; do not
+       enlarge it without checking Submit is still visible on load. */
+    @media (max-width: 480px) {
+      .page { padding: 4px 8px 120px; }
+      .hero { margin-bottom: 4px; }
+      .hero img { width: 70%; }
+      .card { padding: 10px 10px 12px; }
+      .title { font-size: 16px; margin: 0 0 6px; }
+      .section { margin-bottom: 6px; }
+      .label { margin-bottom: 3px; }
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      select { padding: 8px 12px; }
+      /* Number format hint. The error message still explains the format. */
+      #mobileNumber + div { display: none; }
+      .btn { padding: 12px 16px; }
     }
   </style>
 </head>
