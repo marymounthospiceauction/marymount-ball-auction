@@ -282,11 +282,10 @@
     }
 
     .btn {
-      /* Sticky so the guest never has to scroll to the bottom of a
-         moving page to find it. */
-      position: sticky;
-      bottom: 10px;
-      z-index: 5;
+      /* Not sticky. A sticky button re-pins itself every time WhatsApp's
+         browser hides or shows its toolbar on scroll, which is the flicker.
+         It now sits at the bottom of the form and scrolls with the page. */
+      position: static;
       width: 100%;
       border: none;
       border-radius: 12px;
@@ -886,16 +885,6 @@ Marymount Ball Committee`;
       emailAddressEl.readOnly = false;
       tableValueEl.readOnly = false;
 
-      // Focus the bid field for outbid arrivals, but WITHOUT letting the
-      // browser scroll to it. Plain .focus() scrolls the page mid load and
-      // opens the keyboard, which shrinks the viewport while it is still
-      // laying out. That is part of the lurch guests see coming off a
-      // WhatsApp outbid link. Browsers too old for the options object
-      // ignore it silently and fall back to the scrolling focus; they do
-      // not throw, so there is nothing to catch.
-      if (prefill.mode === "token") {
-        bidAmountEl.focus({ preventScroll: true });
-      }
     }
 
     function validateForm() {
