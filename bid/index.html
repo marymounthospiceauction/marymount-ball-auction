@@ -650,8 +650,8 @@ Marymount Ball Committee`;
         option.textContent = row.item;
         option.dataset.itemNumber = row.itemNumber || "";
         
-        const leadingBid = extractLeadBidFromItemText(row.item);
-        option.dataset.currentLeadingBid = leadingBid;
+        option.dataset.currentLeadingBid = row.minimumBid || 0;
+        option.dataset.winnerCount = row.winnerCount || 1;
 
         if (
           (normalizedSelectedNumber && normalizeItemNumberValue(row.itemNumber) === normalizedSelectedNumber) ||
@@ -690,10 +690,12 @@ Marymount Ball Committee`;
           document.getElementById("itemCardBid").textContent = formatEuro(leadingBid);
           
           itemEl.dataset.currentLeadingBid = leadingBid;
+          itemEl.dataset.winnerCount = selected.dataset.winnerCount || 1;
         } else {
           document.getElementById("itemSelectMode").style.display = "block";
           document.getElementById("itemCardMode").style.display = "none";
           delete itemEl.dataset.currentLeadingBid;
+          delete itemEl.dataset.winnerCount;
         }
       };
 
@@ -908,6 +910,13 @@ Marymount Ball Committee`;
 
     }
 
+    function bidTooLowMessage(minimum, winnerCount) {
+  return winnerCount > 1
+    ? "Top " + winnerCount + " bids win this item. Your bid must be higher than €" +
+      minimum.toLocaleString("en-IE") + " to be among them."
+    : "Your bid must be higher than the current leading bid of €" +
+      minimum.toLocaleString("en-IE") + ".";
+}
     function validateForm() {
       clearAllErrors();
       let isValid = true;
@@ -939,10 +948,11 @@ Marymount Ball Committee`;
           bidAmountEl.select();
         }
         isValid = false;
-      } else {
+            } else {
         const currentLeading = Number(itemEl.dataset.currentLeadingBid || 0);
+        const winnerCount = Number(itemEl.dataset.winnerCount || 1);
         if (currentLeading && bidClean <= currentLeading) {
-          showError(bidErrorEl, "Your bid must be higher than €" + currentLeading.toLocaleString("en-IE") + ".");
+          showError(bidErrorEl, bidTooLowMessage(currentLeading, winnerCount));
           if (isValid) {
             bidAmountEl.focus();
             bidAmountEl.select();
@@ -1102,10 +1112,11 @@ Marymount Ball Committee`;
       
       // Real-time validation: check if bid is below current leading bid
       const currentLeading = Number(itemEl.dataset.currentLeadingBid || 0);
+      const winnerCount = Number(itemEl.dataset.winnerCount || 1);
       const bidClean = getCleanBidAmount();
       
       if (bidClean && currentLeading && bidClean <= currentLeading) {
-        showError(bidErrorEl, "Your bid must be higher than €" + currentLeading.toLocaleString("en-IE") + ".");
+        showError(bidErrorEl, bidTooLowMessage(currentLeading, winnerCount));
       } else if (bidErrorEl.textContent !== "Decimal points not allowed.") {
         // Leave the decimal warning alone; formatBidInput just set it.
         hideError(bidErrorEl);
@@ -1121,6 +1132,7 @@ Marymount Ball Committee`;
       // Without this the old item's minimum keeps rejecting valid bids
       // on the newly chosen item.
       delete itemEl.dataset.currentLeadingBid;
+      delete itemEl.dataset.winnerCount;
       hideError(bidErrorEl);
       // Small delay needed on mobile for display change to render before click fires
       setTimeout(function() { itemEl.click(); }, 50);
