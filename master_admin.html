@@ -1080,8 +1080,7 @@
       tied,
       doubles,
       tiedIds: new Set(tied.map(b => b.bidId).filter(Boolean)),
-      dblNames: new Set(doubles.map(d => d.name.trim().toUpperCase()))
-    };
+      dblNames: new Map(doubles.map(d => [d.name.trim().toUpperCase(), d.count]))    };
   }
 
   /** The words the chairman needs, not a description of the data. */
