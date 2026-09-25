@@ -235,13 +235,12 @@
     .status-above     { background: #d4edda; }
 
     .joint-flag {
-      background: #ffb347 !important;
       font-weight: bold;
       color: #5a2d00;
     }
 
-    tr.has-joint td.col-item {
-      border-left: 4px solid #e67e22;
+    tr.has-joint td:not(.status-below):not(.status-on-target):not(.status-above) {
+      background-color: #fde3c2 !important;
     }
 
     tbody tr.alt-gold td:not(.status-below):not(.status-on-target):not(.status-above) {
