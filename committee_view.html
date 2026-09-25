@@ -234,6 +234,16 @@
     .status-on-target { background: #fff3cd; }
     .status-above     { background: #d4edda; }
 
+    .joint-flag {
+      background: #ffb347 !important;
+      font-weight: bold;
+      color: #5a2d00;
+    }
+
+    tr.has-joint td.col-item {
+      border-left: 4px solid #e67e22;
+    }
+
     tbody tr.alt-gold td:not(.status-below):not(.status-on-target):not(.status-above) {
       background-color: #f5ebd0;
     }
@@ -322,6 +332,7 @@
               <th class="col-item">Item</th>
               <th>Leading Bid</th>
               <th>Winner</th>
+              <th>Joint</th>
               <th>Bids</th>
               <th>Low Target</th>
               <th>High Target</th>
@@ -418,6 +429,7 @@
         high:       find("HIGH"),
         numBids:    find("NUMBER OF BIDS"),
         name:       find("NAME"),
+        joint:      find("JOINT TOP BID"),
       };
 
       const required = ["item", "currentBid", "status", "low", "high"];
@@ -496,8 +508,10 @@
           const high    = row[idx.high];
           const numBids = idx.numBids > -1 ? row[idx.numBids] : "";
           const name    = idx.name > -1 ? String(row[idx.name] || "").trim() : "";
+          const joint   = idx.joint > -1 ? String(row[idx.joint] || "").trim() : "";
+          const isJoint = joint !== "";
 
-          const rowClass  = stripe === 1 ? "alt-gold" : "";
+          const rowClass  = [stripe === 1 ? "alt-gold" : "", isJoint ? "has-joint" : ""].filter(Boolean).join(" ");
           const statClass = statusClass(status);
 
           html += `<tr class="${rowClass}">`;
@@ -505,6 +519,7 @@
           html += `<td class="col-item">${item}</td>`;
           html += `<td class="bid-amount">${formatEuro(bid)}</td>`;
           html += `<td>${name}</td>`;
+          html += `<td class="${isJoint ? "joint-flag" : ""}">${joint}</td>`;
           html += `<td>${numBids !== "" && numBids != null ? numBids : ""}</td>`;
           html += `<td style="background:#f1f1f1">${formatEuro(low)}</td>`;
           html += `<td style="background:#f1f1f1">${formatEuro(high)}</td>`;
