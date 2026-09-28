@@ -2,7 +2,7 @@
 <html lang="en-IE">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#e6d4ad" />
 <meta name="mobile-web-app-capable" content="yes" />
 <title>Live Auction Marymount</title>
@@ -23,239 +23,294 @@
   --red:#b42318;
   --amber:#8a5f00;
   --amber-bg:#fdf2d4;
-  --tap:52px;
+  --char:#1d1b17;
+  --bar-h:56px;
+  --tabs-h:64px;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
 html{-webkit-text-size-adjust:100%}
-
 body{
   margin:0;
   font-family:Calibri,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  background:var(--sand);
-  color:var(--ink);
-  font-size:17px;
-  line-height:1.4;
+  background:var(--sand);color:var(--ink);
+  font-size:17px;line-height:1.35;
   overscroll-behavior-y:contain;
 }
+button,input{font-family:inherit;touch-action:manipulation}
+button{cursor:pointer}
 
-/* ═══════════ LOGIN ═══════════ */
+/* LOGIN */
 #login{
   position:fixed;inset:0;z-index:900;
   display:flex;align-items:center;justify-content:center;padding:20px;
   background:linear-gradient(155deg,#e6d4ad,#f7ebce 55%,#dfc99e);
 }
 .login-card{
-  background:#fff;border-radius:20px;padding:30px 22px;
+  background:#fff;border-radius:22px;padding:30px 22px;
   width:100%;max-width:340px;text-align:center;
   box-shadow:0 16px 44px rgba(0,0,0,.22);
 }
 .login-card h1{margin:0 0 2px;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase}
 .login-card p{margin:0 0 22px;font-size:.88rem;color:var(--muted)}
 .login-card input{
-  width:100%;height:var(--tap);padding:0 14px;font-size:17px;
-  border:2px solid var(--line);border-radius:12px;background:#fffdf8;
+  width:100%;height:56px;padding:0 14px;font-size:17px;
+  border:2px solid var(--line);border-radius:14px;background:var(--card);
 }
 .login-card input:focus{outline:none;border-color:var(--gold)}
 .login-card button{
-  width:100%;height:var(--tap);margin-top:14px;
-  border:none;border-radius:999px;font-size:16px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.08em;
+  width:100%;height:56px;margin-top:14px;border:none;border-radius:999px;
+  font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
   background:var(--gold);color:#fff;
 }
 #loginMsg{margin-top:12px;min-height:18px;font-size:.85rem;font-weight:700;color:var(--red)}
 
-/* ═══════════ SHELL ═══════════ */
-#app{display:none;padding-bottom:calc(28px + var(--safe-b))}
+/* SHELL */
+#app{display:none;padding-bottom:calc(var(--tabs-h) + var(--safe-b) + 28px)}
 
 .masthead{padding:6px 10px 0}
-.masthead img{width:100%;max-width:460px;display:block;margin:0 auto;border-radius:8px}
+.masthead img{
+  display:block;margin:0 auto;border-radius:8px;
+  width:auto;height:auto;max-width:100%;max-height:22vh;
+}
 .masthead img.gone{display:none}
 
 .bar{
-  position:sticky;top:0;z-index:60;
-  display:flex;align-items:center;gap:8px;
-  padding:9px 12px;margin-top:6px;
-  background:#e6d4ad;border-bottom:1px solid var(--sand-dk);
+  position:sticky;top:0;z-index:60;height:var(--bar-h);
+  display:flex;align-items:center;gap:10px;
+  padding:0 12px;margin-top:6px;
+  background:var(--sand);border-bottom:1px solid var(--sand-dk);
 }
-.bar h1{
-  flex:1;min-width:0;margin:0;
-  font-size:.92rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.stamp{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.bar h1{flex:1;min-width:0;margin:0;font-size:.95rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.pill{display:flex;align-items:center;gap:7px;font-size:.74rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill i{width:9px;height:9px;border-radius:50%;background:#9a927e}
+.pill.ok i{background:var(--green)}
+.pill.sync i{background:#d99a1c;animation:pulse 1s infinite}
+.pill.off i{background:var(--red)}
+.pill.off{color:var(--red)}
 #refresh{
-  flex:0 0 auto;height:38px;padding:0 14px;
-  border:1px solid var(--sand-dk);background:#fff;color:var(--ink);
-  border-radius:10px;font-size:.74rem;font-weight:800;
-  letter-spacing:.06em;text-transform:uppercase;
+  width:42px;height:42px;padding:0;border-radius:50%;
+  border:1px solid var(--sand-dk);background:#fff;
+  display:flex;align-items:center;justify-content:center;
 }
-#refresh:disabled{opacity:.45}
+#refresh svg{width:20px;height:20px;stroke:var(--char);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#refresh.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(1.18)}}
 
-.wrap{padding:0 10px;max-width:640px;margin:0 auto}
+.wrap{padding:0 10px;max-width:600px;margin:0 auto}
+.pane{display:none}
+.pane.on{display:block}
 
-.banner{margin:12px 0;padding:13px 14px;border-radius:11px;font-size:.9rem;font-weight:600;display:none}
-.banner.show{display:block}
-.banner.err {background:#fde8e6;border-left:5px solid var(--red);color:#7a1a12}
-.banner.warn{background:var(--amber-bg);border-left:5px solid var(--amber);color:#5f4200}
-.banner.ok  {background:#e3f5ea;border-left:5px solid var(--green);color:#0e5230}
+h2.sect{margin:18px 2px 8px;font-size:.76rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#544c3b}
 
-h2.sect{margin:22px 0 3px;font-size:.76rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#544c3b}
-.note{margin:0 0 10px;font-size:.82rem;color:var(--muted)}
-
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:.9rem}
-
-.dupe{
-  display:inline-block;margin-left:6px;
-  font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-  background:var(--amber-bg);color:var(--amber);
-  border:1px solid #e2c98a;border-radius:999px;padding:2px 7px;
-  vertical-align:middle;
+/* SKELETON */
+.skel{
+  height:130px;border-radius:20px;margin:14px 0;
+  background:linear-gradient(90deg,#efe3c4 25%,#f7eed8 37%,#efe3c4 63%);
+  background-size:400% 100%;animation:shim 1.3s ease infinite;
 }
+@keyframes shim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
-/* ═══════════ LIVE ═══════════ */
-.live{border:2px solid var(--green);border-radius:16px;background:#fff;margin-bottom:14px;overflow:hidden}
-.live:last-child{margin-bottom:0}
-.live-top{padding:13px 15px;background:#f0f9f3;border-bottom:1px solid #d3e9dc}
-.tag{
-  display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.14em;
-  text-transform:uppercase;background:var(--green);color:#fff;
-  padding:4px 9px;border-radius:999px;
+/* EMPTY */
+.empty-card{
+  margin-top:14px;padding:30px 20px;text-align:center;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;
 }
-.live-num{font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--muted);margin-top:9px}
-.live-name{font-size:1.12rem;font-weight:800;line-height:1.22;margin:1px 0 5px}
-.live-lead{font-size:.82rem;color:var(--muted)}
-.live-body{padding:13px 15px}
+.empty-t{font-size:1.1rem;font-weight:800;margin-bottom:4px}
+.empty-card p{margin:0 0 16px;color:var(--muted);font-size:.92rem}
+.empty-card .btn{max-width:280px;margin:0 auto}
 
-/* ═══════════ PENDING (awaiting winner details) ═══════════ */
-.pending{border:2px solid var(--gold);border-radius:16px;background:#fff;margin-bottom:14px;overflow:hidden}
-.pending:last-child{margin-bottom:0}
-.pending-top{padding:13px 15px;background:#fbf3e4;border-bottom:1px solid #ecdcb8}
-.tag-gold{
-  display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.14em;
-  text-transform:uppercase;background:var(--gold);color:#fff;
-  padding:4px 9px;border-radius:999px;
+/* LOT CARD (on the block, awaiting winner) */
+.lot{
+  background:#fff;border:1px solid #d9c79f;border-radius:22px;overflow:hidden;
+  margin-bottom:14px;box-shadow:0 8px 22px rgba(60,40,10,.15);
 }
-.pending-num{font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--muted);margin-top:9px}
-.pending-name{font-size:1.12rem;font-weight:800;line-height:1.22;margin:1px 0 5px}
-.pending-price{font-size:.95rem;font-weight:800;color:var(--gold)}
-.pending-body{padding:13px 15px}
+.lot-head{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  background:linear-gradient(160deg,#28251f,#171512);color:#fff;
+}
+.lot-num{
+  flex:0 0 auto;min-width:58px;height:58px;padding:0 8px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#dcb262,#bc8b41);color:#1a1408;
+  font-size:1.55rem;font-weight:800;font-variant-numeric:tabular-nums;
+}
+.lot-meta{min-width:0;flex:1}
+.lot-tag{display:block;font-size:.64rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#e6c27a}
+.lot-name{margin:2px 0;font-size:1.1rem;line-height:1.22;font-weight:800;color:#fff}
+.lot-sub{font-size:.8rem;color:#cbbf9f}
+.lot-price{font-size:1.3rem;font-weight:800;color:#f1d089;font-variant-numeric:tabular-nums}
+.lot.syncing .lot-head{opacity:.88}
+.lot-body{padding:16px}
 
-.field{margin-bottom:12px}
-.field label{
-  display:block;font-size:.68rem;font-weight:800;letter-spacing:.09em;
-  text-transform:uppercase;margin-bottom:5px;color:#463f31;
+.lbl{display:block;margin:0 0 6px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#463f31}
+.lbl.gap{margin-top:14px}
+
+.price-box{
+  display:flex;align-items:center;height:78px;padding:0 18px;
+  border:2px solid var(--line);border-radius:18px;background:var(--card);
 }
-.field input{
-  width:100%;height:var(--tap);padding:0 14px;font-size:17px;
-  border:2px solid var(--line);border-radius:12px;background:#fffdf8;color:var(--ink);
+.price-box:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px rgba(188,139,65,.2)}
+.price-box .cur{font-size:2rem;font-weight:800;color:var(--gold-dk);margin-right:8px}
+.price-box input{
+  flex:1;min-width:0;height:100%;border:none;background:transparent;outline:none;
+  font-size:2.5rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;
 }
-.field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(188,139,65,.18)}
-.field input.bad{border-color:var(--red);background:#fff6f5}
-.hint{margin-top:5px;font-size:.75rem;color:var(--muted)}
+.price-box input::placeholder{color:#cdbf9c}
+
+.in{
+  width:100%;height:56px;padding:0 16px;font-size:17px;
+  border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);
+}
+.in:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(188,139,65,.2)}
+
+.hint{min-height:18px;margin-top:6px;font-size:.78rem;color:var(--muted)}
 .hint.bad{color:var(--red);font-weight:700}
+.hint.warn{color:var(--amber);font-weight:700}
+.hint.ok{color:var(--green);font-weight:700}
 
 .btn{
-  display:block;width:100%;min-height:var(--tap);
-  border:none;border-radius:13px;
-  font-size:16px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  display:block;width:100%;min-height:62px;margin-top:12px;border:none;border-radius:17px;
+  font-size:17px;font-weight:800;letter-spacing:.04em;
+  transition:transform .08s ease,opacity .15s ease;
 }
-.btn-sell{background:var(--green);color:#fff;height:58px;font-size:17px}
-.btn-sell:active{background:var(--green-dk)}
-.btn-notify{background:var(--gold);color:#fff;height:58px;font-size:17px}
-.btn-notify:active{opacity:.85}
-.btn-undo{
-  background:#fff;color:var(--muted);border:1px solid var(--line);
-  min-height:44px;font-size:.76rem;margin-top:9px;
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{background:#ddd5c0;color:#8b8370}
+.btn-sell{background:linear-gradient(180deg,#25965a,#1c7f45);color:#fff;box-shadow:0 6px 16px rgba(28,127,69,.35)}
+.btn-notify{background:linear-gradient(180deg,#cf9d4d,#bc8b41);color:#fff;box-shadow:0 6px 16px rgba(188,139,65,.35)}
+.btn-gold{background:linear-gradient(180deg,#cf9d4d,#bc8b41);color:#fff}
+.btn:disabled{box-shadow:none}
+.linkbtn{
+  display:block;width:100%;min-height:46px;margin-top:6px;border:none;background:none;
+  font-size:.8rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
 }
-.btn:disabled{opacity:.5}
 
-/* ═══════════ AVAILABLE ═══════════ */
-.search-wrap{padding:10px;border-bottom:1px solid var(--line);background:var(--card)}
+/* ITEMS */
+.searchbar{
+  position:sticky;top:var(--bar-h);z-index:40;
+  padding:10px 0 8px;background:var(--sand);
+}
 .search{
-  width:100%;height:var(--tap);padding:0 14px;font-size:17px;
-  border:2px solid var(--line);border-radius:12px;background:#fff;
+  width:100%;height:56px;padding:0 16px;font-size:17px;
+  border:2px solid var(--line);border-radius:16px;background:#fff;
 }
-.search:focus{outline:none;border-color:var(--gold)}
+.search:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(188,139,65,.2)}
+.count{margin:6px 4px 0;font-size:.76rem;font-weight:700;color:var(--muted)}
 
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-top:8px}
 .row{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 13px;min-height:66px;
-  border-bottom:1px solid #f2ead8;
+  display:flex;align-items:center;gap:12px;width:100%;min-height:70px;
+  padding:11px 13px;border:none;border-bottom:1px solid #f0e7d2;
+  background:transparent;text-align:left;color:var(--ink);
 }
 .row:last-child{border-bottom:none}
-.row:active{background:#f9f2e2}
-.row-num{
-  flex:0 0 44px;text-align:center;
-  font-size:.74rem;font-weight:800;
-  background:#f1e6cd;color:#6b5a35;border-radius:8px;padding:7px 0;
+.row:active{background:#f7eed9}
+.rn{
+  flex:0 0 auto;min-width:46px;padding:9px 6px;text-align:center;border-radius:10px;
+  background:#f1e6cd;color:#6b5a35;font-size:.86rem;font-weight:800;font-variant-numeric:tabular-nums;
 }
 .row-main{flex:1;min-width:0}
-.row-name{display:block;font-weight:700;font-size:.95rem;line-height:1.28}
-.row-lead{display:block;font-size:.78rem;color:var(--muted);margin-top:3px}
+.row-name{display:block;font-weight:700;font-size:.98rem;line-height:1.25}
+.row-lead{display:block;margin-top:2px;font-size:.78rem;color:var(--muted)}
 .row-go{
-  flex:0 0 auto;font-size:.68rem;font-weight:800;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--gold-dk);
-  border:1.5px solid var(--gold);border-radius:999px;padding:9px 13px;
+  flex:0 0 auto;padding:10px 16px;border:1.5px solid var(--gold);border-radius:999px;
+  font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dk);
 }
 
-/* ═══════════ SOLD ═══════════ */
-.sold-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 14px;min-height:var(--tap)}
-.sold-head .caret{font-size:.7rem;color:var(--muted)}
-.sold-total{font-weight:800;font-size:1.02rem}
-.sold-list{display:none;border-top:1px solid var(--line)}
-.sold-list.show{display:block}
-.sold-row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid #f5eee0;font-size:.88rem}
-.sold-row:last-child{border-bottom:none}
+/* SOLD */
+.sold-card{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:14px;padding:18px;border-radius:20px;
+  background:linear-gradient(160deg,#28251f,#171512);color:#fff;
+}
+.sold-k{font-size:.66rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#e6c27a}
+.sold-n{font-size:.9rem;color:#cbbf9f}
+.sold-total{font-size:2rem;font-weight:800;color:#f1d089;font-variant-numeric:tabular-nums}
+.srow{display:flex;align-items:center;gap:12px;padding:12px 13px;border-bottom:1px solid #f0e7d2}
+.srow:last-child{border-bottom:none}
+.srow-name{flex:1;min-width:0;font-size:.94rem;font-weight:600}
+.srow-amt{font-weight:800;font-variant-numeric:tabular-nums}
 
-/* ═══════════ LOG ═══════════ */
-.log{max-height:240px;overflow-y:auto;padding:4px 12px;-webkit-overflow-scrolling:touch}
-.log-row{padding:10px 0;border-bottom:1px solid #f2ead8;font-size:.86rem}
-.log-row:last-child{border-bottom:none}
-.log-time{color:var(--muted);font-size:.71rem;font-variant-numeric:tabular-nums}
+/* TABS */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  padding:0 6px var(--safe-b);
+  background:rgba(238,225,192,.96);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-top:1px solid var(--sand-dk);
+}
+.tab{
+  position:relative;height:var(--tabs-h);border:none;background:none;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+}
+.tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--char)}
+.tab.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+.badge{
+  position:absolute;top:6px;left:calc(50% + 8px);min-width:20px;height:20px;padding:0 6px;
+  border-radius:999px;background:var(--char);color:#f1d089;
+  font-size:.72rem;line-height:20px;text-align:center;font-weight:800;
+}
+.badge.hot{background:var(--red);color:#fff;animation:pulse 1.4s infinite}
+.badge[hidden]{display:none}
 
-/* ═══════════ MODAL ═══════════ */
+/* TOASTS */
+#toasts{
+  position:fixed;left:10px;right:10px;z-index:80;
+  bottom:calc(var(--tabs-h) + var(--safe-b) + 10px);
+  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;
+}
+.toast{
+  pointer-events:auto;width:100%;max-width:560px;
+  display:flex;align-items:center;gap:12px;justify-content:space-between;
+  padding:14px 16px;border-radius:16px;color:#fff;font-size:.92rem;font-weight:700;
+  background:var(--char);box-shadow:0 10px 28px rgba(0,0,0,.35);
+  animation:rise .16s ease-out;
+}
+.toast.err{background:var(--red)}
+.toast.warn{background:#7a5200}
+.toast button{
+  flex:0 0 auto;padding:8px 12px;border:1px solid rgba(255,255,255,.5);border-radius:10px;
+  background:transparent;color:#fff;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+}
+@keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+
+/* CONFIRM SHEET */
 #modal{position:fixed;inset:0;z-index:800;display:none;background:rgba(24,18,8,.55)}
 #modal.show{display:flex;align-items:flex-end;justify-content:center}
-.modal-card{
-  background:#fff;width:100%;max-width:520px;
-  border-radius:22px 22px 0 0;
-  padding:22px 20px calc(20px + var(--safe-b));
-  max-height:90vh;overflow-y:auto;
+.sheet{
+  width:100%;max-width:520px;background:#fff;
+  border-radius:24px 24px 0 0;padding:14px 20px calc(18px + var(--safe-b));
   animation:rise .18s ease-out;
 }
-@keyframes rise{from{transform:translateY(16px)}to{transform:translateY(0)}}
+.grab{width:42px;height:5px;border-radius:3px;background:#e2d9c3;margin:0 auto 14px}
+.sheet h3{margin:0 0 12px;font-size:1.1rem}
+.m-item{display:flex;align-items:center;gap:14px}
+.m-num{
+  min-width:56px;height:56px;padding:0 8px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#dcb262,#bc8b41);color:#1a1408;font-size:1.5rem;font-weight:800;
+}
+.m-name{font-size:1.08rem;font-weight:800;line-height:1.22}
+.m-sub{font-size:.82rem;color:var(--muted)}
+.conseq{margin:14px 0 0;padding:12px 13px;border-radius:12px;background:var(--amber-bg);color:#5f4200;font-size:.85rem}
+.sheet button{
+  display:block;width:100%;min-height:58px;margin-top:10px;border:none;border-radius:16px;
+  font-size:17px;font-weight:800;letter-spacing:.04em;
+}
+.mo-go{background:var(--green);color:#fff}
+.mo-go.danger{background:var(--gold-dk)}
+.mo-cancel{background:#f0ebdf;color:#4a4335}
 @media(min-width:560px){
   #modal.show{align-items:center}
-  .modal-card{border-radius:20px;padding-bottom:22px}
+  .sheet{border-radius:24px}
+  .grab{display:none}
 }
-.modal-card h3{margin:0 0 12px;font-size:1.08rem}
-.mb{font-size:.94rem;color:#33302a}
-.mb .big{display:block;font-size:1.12rem;font-weight:800;line-height:1.25;margin:10px 0 4px}
-.mb dl{margin:12px 0 0;display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:.94rem}
-.mb dt{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;padding-top:2px}
-.mb dd{margin:0;font-weight:700;word-break:break-word}
-.conseq{font-size:.85rem;color:#5f4200;background:var(--amber-bg);border-radius:10px;padding:12px 13px;margin-top:16px}
-.modal-actions{display:grid;grid-template-columns:1fr;gap:9px;margin-top:18px}
-.modal-actions button{
-  min-height:56px;border:none;border-radius:13px;
-  font-size:16px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-}
-.mo-go{background:var(--green);color:#fff;order:1}
-.mo-go.danger{background:var(--gold-dk)}
-.mo-cancel{background:#f0ebdf;color:#4a4335;order:2}
-
-/* ═══════════ BUSY ═══════════ */
-#busy{
-  position:fixed;inset:0;z-index:850;display:none;
-  align-items:center;justify-content:center;
-  background:rgba(255,253,248,.8);
-  font-weight:800;letter-spacing:.1em;text-transform:uppercase;font-size:.82rem;
-}
-#busy.show{display:flex}
 </style>
 </head>
 
@@ -274,87 +329,93 @@ h2.sect{margin:22px 0 3px;font-size:.76rem;font-weight:800;letter-spacing:.13em;
 <div id="app">
 
   <div class="masthead">
-    <img id="masthead" src="/assets/Marymount%20Header.png" alt="The Starry Night Ball" />
+    <img id="masthead" src="LiveHeader.png" alt="The Starry Night Ball" />
   </div>
 
-  <div class="bar">
+  <header class="bar">
     <h1>Live auction</h1>
-    <span class="stamp" id="stamp"></span>
-    <button id="refresh" type="button">Refresh</button>
-  </div>
+    <span class="pill sync" id="pill"><i></i><span id="pillTxt">Loading</span></span>
+    <button id="refresh" type="button" aria-label="Refresh">
+      <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+    </button>
+  </header>
 
-  <div class="wrap">
+  <main class="wrap">
+    <section id="pane-block" class="pane on"><div id="blockWrap"></div></section>
 
-    <div class="banner err"  id="bErr"></div>
-    <div class="banner warn" id="bWarn"></div>
-    <div class="banner ok"   id="bOk"></div>
-    <div class="banner warn" id="bDupe"></div>
-
-    <h2 class="sect">On the block</h2>
-    <p class="note" id="liveNote">Items the chairman has called.</p>
-    <div id="liveWrap"><div class="panel"><div class="empty">Loading.</div></div></div>
-
-    <h2 class="sect">Awaiting winner details</h2>
-    <p class="note" id="pendingNote">Sold, flashed on every screen, waiting on a name and mobile.</p>
-    <div id="pendingWrap"><div class="panel"><div class="empty">Loading.</div></div></div>
-
-    <h2 class="sect">Send an item live</h2>
-    <p class="note">Tick the moment the chairman calls it. It leaves the bidding form straight away.</p>
-    <div class="panel">
-      <div class="search-wrap">
+    <section id="pane-items" class="pane">
+      <div class="searchbar">
         <input class="search" id="search" type="search" inputmode="search" placeholder="Search number or name" autocomplete="off" />
+        <div class="count" id="itemCount"></div>
       </div>
-      <div id="availWrap"><div class="empty">Loading.</div></div>
-    </div>
+      <div id="itemsWrap"></div>
+    </section>
 
-    <h2 class="sect">Sold tonight</h2>
-    <div class="panel">
-      <div class="sold-head" id="soldHead">
-        <span id="soldCount">0 items</span>
-        <span class="sold-total" id="soldTotal">&euro;0</span>
-        <span class="caret" id="soldCaret">Show</span>
-      </div>
-      <div class="sold-list" id="soldList"></div>
-    </div>
+    <section id="pane-sold" class="pane"><div id="soldWrap"></div></section>
+  </main>
 
-    <h2 class="sect">This session</h2>
-    <div class="panel">
-      <div class="log" id="log"><div class="empty">Nothing yet.</div></div>
-    </div>
-
-  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab on" type="button" data-act="tab" data-tab="block" aria-selected="true">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/></svg>
+      On the block
+      <span class="badge" id="badgeBlock" hidden>0</span>
+    </button>
+    <button class="tab" type="button" data-act="tab" data-tab="items" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      Send live
+    </button>
+    <button class="tab" type="button" data-act="tab" data-tab="sold" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      Sold
+    </button>
+  </nav>
 </div>
+
+<div id="toasts" aria-live="polite"></div>
 
 <div id="modal">
-  <div class="modal-card">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="grab"></div>
     <h3 id="mTitle"></h3>
-    <div class="mb" id="mBody"></div>
-    <div class="conseq" id="mConseq"></div>
-    <div class="modal-actions">
-      <button class="mo-go"     id="mGo"     type="button">Confirm</button>
-      <button class="mo-cancel" id="mCancel" type="button">Cancel</button>
+    <div class="m-item">
+      <span class="m-num" id="mNum"></span>
+      <div><div class="m-name" id="mName"></div><div class="m-sub" id="mSub"></div></div>
     </div>
+    <p class="conseq" id="mConseq"></p>
+    <button class="mo-go" id="mGo" type="button">Confirm</button>
+    <button class="mo-cancel" id="mCancel" type="button">Cancel</button>
   </div>
 </div>
-
-<div id="busy">Working</div>
 
 <script>
 "use strict";
 
-/* ═══════════ CONFIG ═══════════ */
+/* CONFIG */
 var PASSWORD     = "Brendan2026";
 var ADMIN_SECRET = "mh_control_#2026#";
 var SCRIPT_URL   = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
+var POLL_MS      = 10000;
 
-/* ═══════════ STATE ═══════════ */
-var data    = { live: [], available: [], sold: [], duplicates: [] };
-var pending = [];
-var logRows = [];
-var filter  = "";
-var pending = null;
+/* STATE */
+var data        = { live: [], available: [], sold: [], duplicates: [] };
+var pendingList = [];                       /* sold, awaiting winner details */
+var drafts      = { price: {}, name: {}, mobile: {} };
+var expect      = {};                       /* sales recorded but not yet seen in pendingList */
+var sending     = {};
+var filter      = "";
+var loaded      = false;
+var firstDone   = false;
+var touched     = false;
+var inflight    = 0;
+var writeGen    = 0;
+var loadId      = 0;
+var loadActive  = false;
+var lastSig     = "";
+var confirmRun  = null;
+var counts      = {};
+var dupKeys     = {};
 
-/* ═══════════ HELPERS ═══════════ */
+/* HELPERS */
 function $(id){ return document.getElementById(id); }
 
 function esc(s){
@@ -367,220 +428,463 @@ function euro(n){
   return "\u20AC" + (Number(n) || 0).toLocaleString("en-IE",{maximumFractionDigits:0});
 }
 
+function fmtNum(d){ return d ? Number(d).toLocaleString("en-IE") : ""; }
+
 function now(){
   return new Date().toLocaleTimeString("en-IE",{hour:"2-digit",minute:"2-digit"});
 }
 
-function banner(kind, msg){
-  var el = kind === "err" ? $("bErr") : kind === "warn" ? $("bWarn") : $("bOk");
-  el.textContent = msg;
-  el.classList.add("show");
-  el.scrollIntoView({ behavior:"smooth", block:"center" });
-  if (kind === "ok") setTimeout(function(){ el.classList.remove("show"); }, 8000);
+function buzz(p){ try { if (navigator.vibrate) navigator.vibrate(p); } catch(e){} }
+
+function numOf(it){
+  return String(it.itemLabel || it.itemNumber || "").replace(/^ITEM\s*/i,"").trim();
 }
 
-function clearBanners(){
-  ["bErr","bWarn","bOk"].forEach(function(id){ $(id).classList.remove("show"); });
+/* One stable key per item number, so typed drafts survive re-renders. */
+function keyOf(it){
+  var raw = (it.itemNumber != null && it.itemNumber !== "") ? it.itemNumber : (it.itemLabel || "");
+  var d = String(raw).replace(/\D/g,"");
+  if (d) return "n" + Number(d);
+  return "r" + String(it.rowId != null ? it.rowId : it.settingsRow);
 }
 
-function busy(on, label){
-  $("busy").textContent = label || "Working";
-  $("busy").classList.toggle("show", !!on);
+function byRow(list, rowId){
+  for (var i = 0; i < list.length; i++){
+    if (String(list[i].rowId) === String(rowId)) return list[i];
+  }
+  return null;
 }
 
-/* ═══════════ API ═══════════ */
+function byKey(list, k){
+  for (var i = 0; i < list.length; i++){
+    if (keyOf(list[i]) === k) return list[i];
+  }
+  return null;
+}
+
+/* Items whose number appears more than once never go to a live auction. */
+function prep(){
+  counts = {}; dupKeys = {};
+  ["available","live","sold"].forEach(function(n){
+    (data[n] || []).forEach(function(it){ var k = keyOf(it); counts[k] = (counts[k] || 0) + 1; });
+  });
+  (data.duplicates || []).forEach(function(d){ dupKeys[keyOf({ itemNumber:d })] = 1; });
+}
+
+function isMulti(it){
+  var k = keyOf(it);
+  return it.duplicate === true || counts[k] > 1 || !!dupKeys[k];
+}
+
+/* TOASTS */
+function toast(kind, msg, id){
+  var box = $("toasts");
+  if (id){
+    var old = box.querySelector('[data-tid="' + id + '"]');
+    if (old) old.remove();
+  }
+  var t = document.createElement("div");
+  t.className = "toast " + kind;
+  if (id) t.setAttribute("data-tid", id);
+
+  var m = document.createElement("span");
+  m.textContent = msg;
+  t.appendChild(m);
+
+  if (kind === "err" || kind === "warn"){
+    var x = document.createElement("button");
+    x.type = "button"; x.textContent = "Dismiss";
+    x.addEventListener("click", function(){ t.remove(); });
+    t.appendChild(x);
+    buzz([60,40,60]);
+  } else {
+    setTimeout(function(){ t.remove(); }, 3500);
+    buzz(25);
+  }
+
+  box.appendChild(t);
+  while (box.children.length > 3) box.firstChild.remove();
+}
+
+function clearToast(id){
+  var el = $("toasts").querySelector('[data-tid="' + id + '"]');
+  if (el) el.remove();
+}
+
+function setPill(state){
+  $("pill").className = "pill " + state;
+  $("pillTxt").textContent = state === "ok" ? now() : state === "sync" ? "Syncing" : "Offline";
+}
+
+/* API */
 function api(payload){
+  var ctl   = ("AbortController" in window) ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function(){ ctl.abort(); }, 25000) : 0;
+
   return fetch(SCRIPT_URL, {
     method:"POST",
     headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body:JSON.stringify(payload)
+    body:JSON.stringify(payload),
+    signal: ctl ? ctl.signal : undefined
   })
   .then(function(r){ return r.text(); })
   .then(function(t){
+    clearTimeout(timer);
     var j;
     try { j = JSON.parse(t); }
     catch(e){ throw new Error("The server sent something unreadable. Check the deployment URL."); }
     if (!j.ok) throw new Error(j.message || "The request was refused.");
     return j;
+  })
+  .catch(function(e){
+    clearTimeout(timer);
+    if (e && e.name === "AbortError") throw new Error("The server took too long to answer.");
+    if (e instanceof TypeError) throw new Error("No connection.");
+    throw e;
   });
 }
 
-/* ═══════════ LOAD ═══════════ */
-function load(quiet){
-  if (!quiet) busy(true, "Loading");
-  $("refresh").disabled = true;
+/* LOAD */
+function normalise(d){
+  d = d || {};
+  return {
+    live:       d.live       || [],
+    available:  d.available  || [],
+    sold:       d.sold       || [],
+    duplicates: d.duplicates || []
+  };
+}
+
+function load(manual){
+  var id  = ++loadId;
+  var gen = writeGen;
+  loadActive = true;
+  setPill("sync");
+  $("refresh").classList.add("spin");
 
   return Promise.all([
     api({ action:"getCommitteeItems" }),
     api({ action:"getPendingWinners" })
   ])
-    .then(function(results){
-      data = results[0].data || { live:[], available:[], sold:[], duplicates:[] };
-      pending = (results[1].data && results[1].data.pending) || [];
-      render();
-      $("stamp").textContent = now();
-      $("bErr").classList.remove("show");
-    })
-    .catch(function(err){
-      banner("err", "Could not load items. " + err.message);
-    })
-    .then(function(){
-      busy(false);
-      $("refresh").disabled = false;
-    });
-}
+  .then(function(res){
+    /* Drop results that a newer load or a write has overtaken. */
+    if (id !== loadId || gen !== writeGen || inflight > 0) return;
 
-/* ═══════════ RENDER ═══════════ */
-function render(){ renderDupes(); renderLive(); renderPending(); renderAvail(); renderSold(); }
+    data        = normalise(res[0].data);
+    pendingList = (res[1].data && res[1].data.pending) || [];
+    loaded      = true;
+    reconcileExpected();
+    clearToast("load");
+    setPill("ok");
 
-function renderDupes(){
-  var el = $("bDupe");
-  var d  = data.duplicates || [];
+    var sig = JSON.stringify([data, pendingList]);
+    if (sig !== lastSig || !firstDone){
+      lastSig = sig;
+      renderAll();
+    }
 
-  if (!d.length){ el.classList.remove("show"); return; }
-
-  el.textContent = "Repeated item numbers in the sheet: " + d.join(", ") +
-    ". This panel keeps them apart, but the public bidding form shows them as one. Check the bid form before opening.";
-  el.classList.add("show");
-}
-
-function renderLive(){
-  var wrap = $("liveWrap");
-
-  if (!data.live.length){
-    wrap.innerHTML = '<div class="panel"><div class="empty">Nothing on the block.<br>Tick an item below when the chairman calls it.</div></div>';
-    $("liveNote").textContent = "Items the chairman has called.";
-    return;
-  }
-
-  $("liveNote").textContent = data.live.length === 1
-    ? "One item on the block."
-    : data.live.length + " items on the block.";
-
-  wrap.innerHTML = data.live.map(function(it){
-    var r = esc(it.rowId);
-    return '' +
-      '<div class="live">' +
-        '<div class="live-top">' +
-          '<span class="tag">On the block</span>' +
-          '<div class="live-num">' + esc(it.itemLabel) +
-            (it.duplicate ? '<span class="dupe">Shared number</span>' : '') +
-          '</div>' +
-          '<div class="live-name">' + esc(it.description) + '</div>' +
-          '<div class="live-lead">Silent auction reached ' + euro(it.leadBid) + '</div>' +
-        '</div>' +
-        '<div class="live-body">' +
-          '<div class="field">' +
-            '<label for="wp-' + r + '">Hammer price</label>' +
-            '<input id="wp-' + r + '" type="tel" inputmode="numeric" autocomplete="off" placeholder="\u20AC" />' +
-          '</div>' +
-          '<button class="btn btn-sell" data-act="sellPrice" data-row="' + r + '" type="button">Sold, flash the screens</button>' +
-          '<button class="btn btn-undo" data-act="undo" data-row="' + r + '" type="button">Not live, put it back</button>' +
-        '</div>' +
-      '</div>';
-  }).join("");
-}
-
-function renderPending(){
-  var wrap = $("pendingWrap");
-
-  if (!pending.length){
-    wrap.innerHTML = '<div class="panel"><div class="empty">Nothing waiting. Winner details go here the moment a price is recorded.</div></div>';
-    $("pendingNote").textContent = "Sold, flashed on every screen, waiting on a name and mobile.";
-    return;
-  }
-
-  $("pendingNote").textContent = pending.length === 1
-    ? "One sale waiting on winner details."
-    : pending.length + " sales waiting on winner details.";
-
-  wrap.innerHTML = pending.map(function(it, idx){
-    var r = esc(it.settingsRow);
-    var n = esc(it.itemNumber);
-    var key = r + "-" + idx;
-    return '' +
-      '<div class="pending">' +
-        '<div class="pending-top">' +
-          '<span class="tag-gold">Awaiting details</span>' +
-          '<div class="pending-num">' + esc(it.itemLabel) + '</div>' +
-          '<div class="pending-name">' + esc(it.description) + '</div>' +
-          '<div class="pending-price">Sold ' + euro(it.price) + '</div>' +
-        '</div>' +
-        '<div class="pending-body">' +
-          '<div class="field">' +
-            '<label for="pn-' + key + '">Winner name</label>' +
-            '<input id="pn-' + key + '" type="text" autocomplete="off" autocapitalize="words" placeholder="Full name" />' +
-          '</div>' +
-          '<div class="field">' +
-            '<label for="pm-' + key + '">Winner mobile</label>' +
-            '<input id="pm-' + key + '" type="tel" inputmode="numeric" autocomplete="off" placeholder="087 123 4567" />' +
-            '<div class="hint" id="pmh-' + key + '">Irish 08x, or UK as 0044</div>' +
-          '</div>' +
-          '<button class="btn btn-notify" data-act="notify" data-row="' + r + '" data-item="' + n + '" data-key="' + esc(key) + '" type="button">Send winner WhatsApp</button>' +
-        '</div>' +
-      '</div>';
-  }).join("");
-}
-
-function renderAvail(){
-  var wrap = $("availWrap");
-  var f = filter.trim().toLowerCase();
-
-  if (!data.available.length){
-    wrap.innerHTML = '<div class="empty">Every item is live or sold.</div>';
-    return;
-  }
-
-  var list = data.available.filter(function(it){
-    if (!f) return true;
-    return (it.itemLabel + " " + it.description).toLowerCase().indexOf(f) !== -1;
+    if (!firstDone){
+      firstDone = true;
+      if (!touched) setTab((data.live.length || pendingList.length) ? "block" : "items");
+    }
+  })
+  .catch(function(err){
+    if (id !== loadId) return;
+    setPill("off");
+    if (manual || !loaded) toast("err", "Could not load items. " + err.message, "load");
+  })
+  .then(function(){
+    if (id === loadId){
+      loadActive = false;
+      $("refresh").classList.remove("spin");
+    }
   });
+}
 
+/* A recorded sale can take a moment to show in the pending list.
+   Keep it on screen and re check rather than let it vanish. */
+function reconcileExpected(){
+  Object.keys(expect).forEach(function(k){
+    var e = expect[k];
+    if (byKey(pendingList, k)){ delete expect[k]; return; }
+    e.tries++;
+    if (e.tries > 3){
+      delete expect[k];
+      toast("warn", e.entry.itemLabel + " was recorded but is not listed under awaiting winner details. Refresh. If it is still missing, take the winner details by hand.");
+      return;
+    }
+    pendingList = pendingList.concat([e.entry]);
+    setTimeout(function(){ load(); }, 2500);
+  });
+}
+
+/* Change the screen first, confirm with the server after, undo if it fails. */
+function transact(o){
+  var snap = JSON.stringify({ d:data, p:pendingList });
+  writeGen++; inflight++;
+  setPill("sync");
+  o.optimistic();
+  renderAll();
+
+  return o.call().then(
+    function(j){
+      inflight--;
+      o.ok(j);
+      renderAll();
+      return load();
+    },
+    function(err){
+      inflight--;
+      var s = JSON.parse(snap);
+      data = s.d; pendingList = s.p;
+      renderAll();
+      o.fail(err);
+      return load();
+    }
+  );
+}
+
+/* RENDER */
+function withFocus(fn){
+  var a  = document.activeElement;
+  var id = a && a.id ? a.id : null;
+  var s = null, e = null;
+  if (id){ try { s = a.selectionStart; e = a.selectionEnd; } catch(x){} }
+  fn();
+  if (id){
+    var el = $(id);
+    if (el && (el.tagName === "INPUT")){
+      try { el.focus({ preventScroll:true }); } catch(x){ el.focus(); }
+      if (s != null){ try { el.setSelectionRange(s, e); } catch(x){} }
+    }
+  }
+}
+
+function renderAll(){
+  prep();
+  withFocus(renderBlock);
+  renderItems();
+  renderSold();
+  renderTabs();
+}
+
+function skel(n){
+  var h = "";
+  for (var i = 0; i < n; i++) h += '<div class="skel"></div>';
+  return h;
+}
+
+function liveCard(it){
+  var k = keyOf(it);
+  var r = esc(it.rowId);
+  var v = fmtNum(drafts.price[k] || "");
+  return '' +
+    '<article class="lot' + (it._syncing ? ' syncing' : '') + '">' +
+      '<header class="lot-head">' +
+        '<div class="lot-num">' + esc(numOf(it)) + '</div>' +
+        '<div class="lot-meta">' +
+          '<span class="lot-tag">' + (it._syncing ? 'Sending live' : 'On the block') + '</span>' +
+          '<h3 class="lot-name">' + esc(it.description) + '</h3>' +
+          '<div class="lot-sub">Silent auction reached ' + euro(it.leadBid) + '</div>' +
+        '</div>' +
+      '</header>' +
+      '<div class="lot-body">' +
+        '<label class="lbl" for="wp-' + k + '">Hammer price</label>' +
+        '<div class="price-box"><span class="cur">\u20AC</span>' +
+          '<input id="wp-' + k + '" data-in="price" data-key="' + k + '" type="tel" inputmode="numeric" autocomplete="off" placeholder="0" value="' + esc(v) + '" />' +
+        '</div>' +
+        '<div class="hint" id="wph-' + k + '"></div>' +
+        '<button class="btn btn-sell" id="ws-' + k + '" data-act="sell" data-row="' + r + '" data-key="' + k + '" type="button" disabled>Enter the hammer price</button>' +
+        '<button class="linkbtn" data-act="undo" data-row="' + r + '" type="button">Not live, put it back</button>' +
+      '</div>' +
+    '</article>';
+}
+
+function pendCard(it){
+  var k = keyOf(it);
+  var nm = esc(drafts.name[k] || "");
+  var mb = esc(drafts.mobile[k] || "");
+  return '' +
+    '<article class="lot' + (it._syncing ? ' syncing' : '') + '">' +
+      '<header class="lot-head">' +
+        '<div class="lot-num">' + esc(numOf(it)) + '</div>' +
+        '<div class="lot-meta">' +
+          '<span class="lot-tag">Sold</span>' +
+          '<h3 class="lot-name">' + esc(it.description) + '</h3>' +
+          '<div class="lot-price">' + euro(it.price) + '</div>' +
+        '</div>' +
+      '</header>' +
+      '<div class="lot-body">' +
+        '<label class="lbl" for="pn-' + k + '">Winner name</label>' +
+        '<input class="in" id="pn-' + k + '" data-in="name" data-key="' + k + '" type="text" autocomplete="off" autocapitalize="words" placeholder="Full name" value="' + nm + '" />' +
+        '<label class="lbl gap" for="pm-' + k + '">Winner mobile</label>' +
+        '<input class="in" id="pm-' + k + '" data-in="mobile" data-key="' + k + '" type="tel" inputmode="tel" autocomplete="off" placeholder="087 123 4567" value="' + mb + '" />' +
+        '<div class="hint" id="pmh-' + k + '"></div>' +
+        '<button class="btn btn-notify" id="pb-' + k + '" data-act="notify" data-row="' + esc(it.settingsRow) + '" data-item="' + esc(it.itemNumber) + '" data-key="' + k + '" type="button" disabled>Enter the winner\u2019s name</button>' +
+      '</div>' +
+    '</article>';
+}
+
+function renderBlock(){
+  var w = $("blockWrap");
+
+  if (!loaded){ w.innerHTML = skel(2); return; }
+
+  var h = "";
+  if (data.live.length){
+    h += '<h2 class="sect">On the block</h2>' + data.live.map(liveCard).join("");
+  }
+  if (pendingList.length){
+    h += '<h2 class="sect">Awaiting winner details</h2>' + pendingList.map(pendCard).join("");
+  }
+  if (!h){
+    h = '<div class="empty-card">' +
+          '<div class="empty-t">Nothing on the block</div>' +
+          '<p>Pick the next item when the chairman calls it.</p>' +
+          '<button class="btn btn-gold" data-act="tab" data-tab="items" type="button">Choose an item</button>' +
+        '</div>';
+  }
+
+  w.innerHTML = h;
+  data.live.forEach(function(it){ syncSellBtn(keyOf(it)); });
+  pendingList.forEach(function(it){ syncNotifyBtn(keyOf(it)); });
+}
+
+function renderItems(){
+  var w = $("itemsWrap");
+
+  if (!loaded){ w.innerHTML = skel(3); return; }
+
+  var f    = filter.trim().toLowerCase();
+  var all  = data.available.filter(function(it){ return !isMulti(it); });
+  var list = f ? all.filter(function(it){
+    return (it.itemLabel + " " + it.description).toLowerCase().indexOf(f) !== -1;
+  }) : all;
+
+  if (/^\d+$/.test(f)){
+    var n = Number(f);
+    var exact = list.filter(function(it){ return Number(numOf(it).replace(/\D/g,"")) === n; });
+    list = exact.concat(list.filter(function(it){ return exact.indexOf(it) === -1; }));
+  }
+
+  $("itemCount").textContent = f ? (list.length + " of " + all.length) : (all.length + " available");
+
+  if (!all.length){
+    w.innerHTML = '<div class="empty-card"><div class="empty-t">Every item is live or sold</div></div>';
+    return;
+  }
   if (!list.length){
-    wrap.innerHTML = '<div class="empty">Nothing matches that search.</div>';
+    w.innerHTML = '<div class="empty-card"><div class="empty-t">No match</div><p>Try the item number.</p></div>';
     return;
   }
 
-  wrap.innerHTML = list.map(function(it){
+  w.innerHTML = '<div class="panel">' + list.map(function(it){
     return '' +
-      '<div class="row" data-act="live" data-row="' + esc(it.rowId) + '">' +
-        '<span class="row-num">' + esc(it.itemLabel.replace(/^ITEM\s*/i,"")) + '</span>' +
+      '<button class="row" type="button" data-act="live" data-row="' + esc(it.rowId) + '">' +
+        '<span class="rn">' + esc(numOf(it)) + '</span>' +
         '<span class="row-main">' +
-          '<span class="row-name">' + esc(it.description) +
-            (it.duplicate ? '<span class="dupe">Shared no.</span>' : '') +
-          '</span>' +
-          '<span class="row-lead">Lead ' + euro(it.leadBid) + '</span>' +
+          '<span class="row-name">' + esc(it.description) + '</span>' +
+          '<span class="row-lead">Silent bid ' + euro(it.leadBid) + '</span>' +
         '</span>' +
-        '<span class="row-go">Go live</span>' +
-      '</div>';
-  }).join("");
+        '<span class="row-go">Live</span>' +
+      '</button>';
+  }).join("") + '</div>';
 }
 
 function renderSold(){
-  $("soldCount").textContent = data.sold.length + (data.sold.length === 1 ? " item" : " items");
-  $("soldTotal").textContent = euro(data.sold.reduce(function(a,b){ return a + (Number(b.leadBid)||0); },0));
+  var w = $("soldWrap");
+  if (!loaded){ w.innerHTML = skel(1); return; }
 
-  $("soldList").innerHTML = data.sold.length
-    ? data.sold.map(function(it){
-        return '<div class="sold-row"><span class="row-num">' +
-          esc(it.itemLabel.replace(/^ITEM\s*/i,"")) +
-          '</span><span style="flex:1">' + esc(it.description) + '</span></div>';
-      }).join("")
-    : '<div class="empty">Nothing sold yet.</div>';
+  var total = data.sold.reduce(function(a,b){ return a + (Number(b.leadBid) || 0); }, 0);
+  var n = data.sold.length;
+
+  var h = '<div class="sold-card"><div><div class="sold-k">Sold tonight</div>' +
+          '<div class="sold-n">' + n + (n === 1 ? ' item' : ' items') + '</div></div>' +
+          '<div class="sold-total">' + euro(total) + '</div></div>';
+
+  if (n){
+    h += '<div class="panel">' + data.sold.map(function(it){
+      return '<div class="srow"><span class="rn">' + esc(numOf(it)) + '</span>' +
+             '<span class="srow-name">' + esc(it.description) + '</span>' +
+             '<span class="srow-amt">' + euro(it.leadBid) + '</span></div>';
+    }).join("") + '</div>';
+  }
+  w.innerHTML = h;
 }
 
-function addLog(text){
-  logRows.unshift({ t: now(), text: text });
-  $("log").innerHTML = logRows.slice(0,40).map(function(r){
-    return '<div class="log-row"><div class="log-time">' + esc(r.t) + '</div>' + esc(r.text) + '</div>';
-  }).join("");
+function renderTabs(){
+  var n = data.live.length + pendingList.length;
+  var b = $("badgeBlock");
+  b.textContent = n;
+  b.hidden = !n;
+  b.classList.toggle("hot", n > 0);
 }
 
-/* ═══════════ MODAL ═══════════ */
+function setTab(t){
+  ["block","items","sold"].forEach(function(n){
+    $("pane-" + n).classList.toggle("on", n === t);
+    var btn = document.querySelector('.tab[data-tab="' + n + '"]');
+    btn.classList.toggle("on", n === t);
+    btn.setAttribute("aria-selected", n === t ? "true" : "false");
+  });
+  window.scrollTo(0, 0);
+}
+
+/* BUTTON STATES */
+function syncSellBtn(k){
+  var btn = $("ws-" + k), hint = $("wph-" + k);
+  if (!btn) return;
+
+  var it = byKey(data.live, k);
+  var digits = drafts.price[k] || "";
+  var n = Number(digits);
+
+  hint.className = "hint";
+  hint.textContent = "";
+
+  if (it && it._syncing){ btn.disabled = true; btn.textContent = "Sending live"; return; }
+  if (!digits || n <= 0){ btn.disabled = true; btn.textContent = "Enter the hammer price"; return; }
+
+  btn.disabled = false;
+  btn.textContent = "Sold for " + euro(n);
+
+  if (it && n < Number(it.leadBid || 0)){
+    hint.className = "hint warn";
+    hint.textContent = "Below the silent bid of " + euro(it.leadBid) + ". Check before you tap.";
+  } else if (n >= 100000){
+    hint.className = "hint warn";
+    hint.textContent = "That is " + euro(n) + ". Check the zeros.";
+  }
+}
+
+function syncNotifyBtn(k){
+  var b = $("pb-" + k), h = $("pmh-" + k);
+  if (!b) return;
+
+  var it   = byKey(pendingList, k);
+  var name = (drafts.name[k] || "").trim();
+  var mob  = drafts.mobile[k] || "";
+  var ok   = !!mob && mobileOk(mob);
+
+  if (h){
+    if (ok){ h.className = "hint ok"; h.textContent = "Sends to " + tidyMobile(mob); }
+    else   { h.className = "hint";    h.textContent = "Irish 08x, or UK as 0044"; }
+  }
+
+  if (sending[k])               { b.disabled = true;  b.textContent = "Sending"; }
+  else if (it && it._syncing)   { b.disabled = true;  b.textContent = "Recording sale"; }
+  else if (!name)               { b.disabled = true;  b.textContent = "Enter the winner\u2019s name"; }
+  else if (!ok)                 { b.disabled = true;  b.textContent = "Enter a valid mobile"; }
+  else                          { b.disabled = false; b.textContent = "Send winner WhatsApp"; }
+}
+
+/* CONFIRM SHEET */
 function ask(o){
-  pending = o.run;
+  confirmRun = o.run;
   $("mTitle").textContent  = o.title;
-  $("mBody").innerHTML     = o.body;
+  $("mNum").textContent    = o.num;
+  $("mName").textContent   = o.name;
+  $("mSub").textContent    = o.sub || "";
   $("mConseq").textContent = o.consequence;
   $("mGo").textContent     = o.go || "Confirm";
   $("mGo").classList.toggle("danger", !!o.danger);
@@ -591,15 +895,16 @@ function ask(o){
 function closeModal(){
   $("modal").classList.remove("show");
   document.body.style.overflow = "";
-  pending = null;
+  confirmRun = null;
 }
 
-/* ═══════════ MOBILE NUMBER ═══════════ */
+/* MOBILE NUMBER */
 function tidyMobile(v){
-  var s = String(v || "").trim().replace(/[\s\-()]/g,"");
+  var s = String(v || "").trim().replace(/[\s\-()\.]/g,"");
   if (s.indexOf("+353") === 0)       s = "0" + s.slice(4);
   else if (s.indexOf("+44") === 0)   s = "0044" + s.slice(3);
   else if (s.indexOf("00353") === 0) s = "0" + s.slice(5);
+  else if (/^353\d{9}$/.test(s))     s = "0" + s.slice(3);
   return s;
 }
 
@@ -611,36 +916,39 @@ function mobileOk(v){
   return false;
 }
 
-/* ═══════════ ACTIONS ═══════════ */
-function byRow(list, rowId){
-  for (var i = 0; i < list.length; i++){
-    if (String(list[i].rowId) === String(rowId)) return list[i];
-  }
-  return null;
-}
-
+/* ACTIONS */
 function goLive(rowId){
   var it = byRow(data.available, rowId);
   if (!it) return;
 
   ask({
     title: "Send this item live?",
-    body: '<span class="big">' + esc(it.description) + '</span>' +
-          '<dl><dt>Item</dt><dd>' + esc(it.itemLabel) + '</dd>' +
-          '<dt>Lead</dt><dd>' + euro(it.leadBid) + '</dd>' +
-          '<dt>Sheet row</dt><dd>' + esc(it.rowId) + '</dd></dl>',
-    consequence: "It leaves the bidding form immediately. Anyone part way through a bid on it will be told it is no longer available.",
+    num: numOf(it),
+    name: it.description,
+    sub: "Silent bid " + euro(it.leadBid),
+    consequence: "It leaves the bidding form straight away. Guests part way through a bid on it are told it is unavailable.",
     go: "Send live",
     run: function(){
-      busy(true, "Sending live");
-      return api({ action:"markItemLive", secret:ADMIN_SECRET, rowId:it.rowId, itemNumber:it.itemNumber })
-        .then(function(j){
-          addLog(it.itemLabel + " " + it.description + " sent live");
-          banner("ok", j.message);
-          return load(true);
-        })
-        .catch(function(err){ banner("err", err.message); })
-        .then(function(){ busy(false); });
+      transact({
+        optimistic: function(){
+          data.available = data.available.filter(function(x){ return String(x.rowId) !== String(it.rowId); });
+          var copy = Object.assign({}, it, { _syncing:true });
+          data.live = data.live.concat([copy]);
+          filter = ""; $("search").value = "";
+          touched = true; setTab("block");
+        },
+        call: function(){
+          return api({ action:"markItemLive", secret:ADMIN_SECRET, rowId:it.rowId, itemNumber:it.itemNumber });
+        },
+        ok: function(){
+          var x = byRow(data.live, it.rowId);
+          if (x) delete x._syncing;
+          toast("ok", it.itemLabel + " is live");
+        },
+        fail: function(err){
+          toast("err", it.itemLabel + " did not go live. " + err.message + " Check the list before trying again.");
+        }
+      });
     }
   });
 }
@@ -651,148 +959,139 @@ function putBack(rowId){
 
   ask({
     title: "Put this item back?",
-    body: '<span class="big">' + esc(it.description) + '</span>' +
-          '<dl><dt>Item</dt><dd>' + esc(it.itemLabel) + '</dd></dl>',
+    num: numOf(it),
+    name: it.description,
+    sub: "",
     consequence: "It returns to the bidding form and guests can bid on it again. Use this only if it went live by mistake.",
     go: "Put it back",
     danger: true,
     run: function(){
-      busy(true, "Restoring");
-      return api({ action:"undoItemLive", secret:ADMIN_SECRET, rowId:it.rowId, itemNumber:it.itemNumber })
-        .then(function(j){
-          addLog(it.itemLabel + " " + it.description + " put back");
-          banner(j.formulaMissing ? "warn" : "ok", j.message);
-          return load(true);
-        })
-        .catch(function(err){ banner("err", err.message); })
-        .then(function(){ busy(false); });
+      var k = keyOf(it);
+      var msg = null;
+      transact({
+        optimistic: function(){
+          data.live = data.live.filter(function(x){ return String(x.rowId) !== String(it.rowId); });
+          var back = Object.assign({}, it);
+          delete back._syncing;
+          data.available = data.available.concat([back]);
+          delete drafts.price[k];
+        },
+        call: function(){
+          return api({ action:"undoItemLive", secret:ADMIN_SECRET, rowId:it.rowId, itemNumber:it.itemNumber });
+        },
+        ok: function(j){
+          toast(j.formulaMissing ? "warn" : "ok", j.message || (it.itemLabel + " is back on the form"));
+        },
+        fail: function(err){
+          toast("err", it.itemLabel + " was not put back. " + err.message);
+        }
+      });
     }
   });
 }
 
-function sellPrice(rowId){
+/* No confirm dialog on a sale. The button shows the amount instead. */
+function sell(rowId, k){
   var it = byRow(data.live, rowId);
-  if (!it) return;
+  if (!it || it._syncing) return;
 
-  var priEl = $("wp-" + rowId);
-  var price = priEl.value.replace(/[^\d]/g,"");
+  var price = drafts.price[k] || "";
+  if (!price || Number(price) <= 0) return;
 
-  priEl.classList.remove("bad");
+  var entry = {
+    settingsRow: it.rowId,
+    itemNumber:  it.itemNumber,
+    itemLabel:   it.itemLabel,
+    description: it.description,
+    price:       Number(price),
+    _syncing:    true
+  };
 
-  if (!price || Number(price) <= 0){
-    priEl.classList.add("bad"); priEl.focus();
-    banner("err","Enter the hammer price in whole euro.");
-    return;
-  }
-
-  // Deliberately no confirm dialog here. This is the one action Brendan
-  // needs to fire in a single tap while the room is moving, and the
-  // price can still be corrected afterwards, unlike the old all-in-one
-  // sale which had no undo. Winner details are a separate, unhurried step.
-  busy(true, "Recording");
-  api({
-    action:"recordSalePrice",
-    secret:ADMIN_SECRET,
-    rowId:it.rowId,
-    itemNumber:it.itemNumber,
-    soldPrice:price
-  })
-    .then(function(j){
-      addLog(it.itemLabel + " " + it.description + " sold for " + euro(price));
-      clearBanners();
-
+  transact({
+    optimistic: function(){
+      data.live = data.live.filter(function(x){ return String(x.rowId) !== String(it.rowId); });
+      pendingList = pendingList.concat([entry]);
+    },
+    call: function(){
+      return api({
+        action:"recordSalePrice", secret:ADMIN_SECRET,
+        rowId:it.rowId, itemNumber:it.itemNumber, soldPrice:price
+      });
+    },
+    ok: function(j){
+      delete drafts.price[k];
+      expect[k] = { entry:entry, tries:0 };
       if (j.overlayOk === false){
-        banner("warn", "Sale recorded and screens should update, but the sold overlay may not have fired.");
+        toast("warn", it.itemLabel + " sale recorded, but the sold overlay may not have fired on the screens.");
       } else {
-        banner("ok", j.message);
+        toast("ok", it.itemLabel + " sold for " + euro(price));
       }
-
-      return load(true);
-    })
-    .catch(function(err){ banner("err", "Not recorded. " + err.message); })
-    .then(function(){ busy(false); });
+    },
+    fail: function(err){
+      toast("err", it.itemLabel + " sale was not recorded. " + err.message + " Check the screens, then try again.");
+    }
+  });
 }
 
-function notifyWinner(settingsRow, itemNumber, key){
-  var nameEl = $("pn-" + key);
-  var mobEl  = $("pm-" + key);
-  var hint   = $("pmh-" + key);
+function notify(k, settingsRow, itemNumber){
+  if (sending[k]) return;
 
-  var name = nameEl.value.trim();
-  var mob  = mobEl.value.trim();
+  var name = (drafts.name[k] || "").trim();
+  var mob  = drafts.mobile[k] || "";
+  if (!name || !mobileOk(mob)) return;
 
-  [nameEl, mobEl].forEach(function(el){ el.classList.remove("bad"); });
-  hint.classList.remove("bad");
-  hint.textContent = "Irish 08x, or UK as 0044";
+  sending[k] = true;
+  syncNotifyBtn(k);
+  writeGen++; inflight++;
+  setPill("sync");
 
-  if (!name){
-    nameEl.classList.add("bad"); nameEl.focus();
-    banner("err","Enter the winner's name.");
-    return;
-  }
-
-  if (!mobileOk(mob)){
-    mobEl.classList.add("bad");
-    hint.classList.add("bad");
-    hint.textContent = "Irish mobiles are 10 digits starting 08. UK mobiles start 0044.";
-    mobEl.focus();
-    return;
-  }
-
-  var clean = tidyMobile(mob);
-
-  busy(true, "Sending");
   api({
-    action:"sendWinnerNotice",
-    secret:ADMIN_SECRET,
-    rowId:settingsRow,
-    itemNumber:itemNumber,
-    winnerName:name,
-    winnerMobile:clean
+    action:"sendWinnerNotice", secret:ADMIN_SECRET,
+    rowId:settingsRow, itemNumber:itemNumber,
+    winnerName:name, winnerMobile:tidyMobile(mob)
   })
-    .then(function(j){
-      clearBanners();
-      addLog("Winner " + name + " notified");
-      if (j.whatsappOk === false){
-        banner("warn", "Saved, but the WhatsApp to " + name + " did not send. Tell them in person. " + (j.whatsappError || ""));
-      } else {
-        banner("ok", j.message);
-      }
-      return load(true);
-    })
-    .catch(function(err){ banner("err", "Not sent. " + err.message); })
-    .then(function(){ busy(false); });
+  .then(function(j){
+    inflight--; delete sending[k];
+    pendingList = pendingList.filter(function(p){ return keyOf(p) !== k; });
+    delete drafts.name[k]; delete drafts.mobile[k]; delete expect[k];
+    renderAll();
+    if (j.whatsappOk === false){
+      toast("warn", "Saved, but the WhatsApp to " + name + " did not send. Tell them in person. " + (j.whatsappError || ""));
+    } else {
+      toast("ok", j.message || ("Winner notice sent to " + name));
+    }
+    return load();
+  }, function(err){
+    inflight--; delete sending[k];
+    syncNotifyBtn(k);
+    toast("err", "Not sent. " + err.message);
+    return load();
+  });
 }
 
-/* ═══════════ EVENTS ═══════════ */
+/* EVENTS */
 $("loginForm").addEventListener("submit", function(e){
   e.preventDefault();
   if ($("pw").value === PASSWORD){
-    $("login").style.display = "none";
-    $("app").style.display   = "block";
-    load();
+    try { sessionStorage.setItem("ca_ok", "1"); } catch(x){}
+    unlock();
   } else {
     $("loginMsg").textContent = "That password is not right.";
     $("pw").select();
   }
 });
 
-$("refresh").addEventListener("click", function(){ load(); });
+$("refresh").addEventListener("click", function(){ load(true); });
 
 $("search").addEventListener("input", function(e){
   filter = e.target.value;
-  renderAvail();
-});
-
-$("soldHead").addEventListener("click", function(){
-  var open = $("soldList").classList.toggle("show");
-  $("soldCaret").textContent = open ? "Hide" : "Show";
+  renderItems();
 });
 
 $("mCancel").addEventListener("click", closeModal);
 
 $("mGo").addEventListener("click", function(){
-  var run = pending;
+  var run = confirmRun;
   closeModal();
   if (run) run();
 });
@@ -801,20 +1100,94 @@ $("modal").addEventListener("click", function(e){
   if (e.target === $("modal")) closeModal();
 });
 
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape" && confirmRun) closeModal();
+});
+
 /* Delegation, so apostrophes such as WINE LOVER'S DREAM
-   cannot break a handler, and rows can be rebuilt freely. */
+   cannot break a handler and cards can be rebuilt freely. */
 document.addEventListener("click", function(e){
   var el = e.target.closest("[data-act]");
   if (!el) return;
-  var row = el.getAttribute("data-row");
   var act = el.getAttribute("data-act");
-  if (act === "live")           goLive(row);
-  else if (act === "undo")      putBack(row);
-  else if (act === "sellPrice") sellPrice(row);
-  else if (act === "notify")    notifyWinner(row, el.getAttribute("data-item"), el.getAttribute("data-key"));
+  var row = el.getAttribute("data-row");
+  var k   = el.getAttribute("data-key");
+
+  if (act === "live")        goLive(row);
+  else if (act === "undo")   putBack(row);
+  else if (act === "sell")   sell(row, k);
+  else if (act === "notify") notify(k, row, el.getAttribute("data-item"));
+  else if (act === "tab"){ touched = true; setTab(el.getAttribute("data-tab")); }
+});
+
+document.addEventListener("input", function(e){
+  var t = e.target;
+  var kind = t.getAttribute && t.getAttribute("data-in");
+  if (!kind) return;
+  var k = t.getAttribute("data-key");
+
+  if (kind === "price"){
+    var caret = t.selectionStart;
+    var before = t.value.slice(0, caret).replace(/\D/g,"").length;
+    var digits = t.value.replace(/\D/g,"").replace(/^0+/,"").slice(0,7);
+    drafts.price[k] = digits;
+    var f = fmtNum(digits);
+    t.value = f;
+    var pos = 0, seen = 0;
+    while (pos < f.length && seen < before){ if (/\d/.test(f.charAt(pos))) seen++; pos++; }
+    try { t.setSelectionRange(pos, pos); } catch(x){}
+    syncSellBtn(k);
+  } else if (kind === "name"){
+    drafts.name[k] = t.value;
+    syncNotifyBtn(k);
+  } else if (kind === "mobile"){
+    drafts.mobile[k] = t.value;
+    syncNotifyBtn(k);
+  }
+});
+
+document.addEventListener("focusout", function(e){
+  var t = e.target;
+  if (!t.getAttribute || t.getAttribute("data-in") !== "mobile") return;
+  var k = t.getAttribute("data-key");
+  var v = t.value.trim();
+  var h = $("pmh-" + k);
+  if (v && !mobileOk(v) && h){
+    h.className = "hint bad";
+    h.textContent = "Irish mobiles are 10 digits starting 08. UK mobiles start 0044.";
+  }
 });
 
 $("masthead").addEventListener("error", function(){ this.classList.add("gone"); });
+
+/* START */
+var wakeLock = null;
+function keepAwake(){
+  try {
+    if ("wakeLock" in navigator && !document.hidden){
+      navigator.wakeLock.request("screen").then(function(l){ wakeLock = l; }).catch(function(){});
+    }
+  } catch(x){}
+}
+
+function unlock(){
+  $("login").style.display = "none";
+  $("app").style.display   = "block";
+  renderAll();
+  load();
+  keepAwake();
+
+  setInterval(function(){
+    if (document.hidden || inflight > 0 || loadActive || confirmRun) return;
+    load();
+  }, POLL_MS);
+
+  document.addEventListener("visibilitychange", function(){
+    if (!document.hidden){ keepAwake(); if (!inflight) load(); }
+  });
+}
+
+try { if (sessionStorage.getItem("ca_ok") === "1") unlock(); } catch(x){}
 </script>
 
 </body>
