@@ -120,9 +120,12 @@
     .velocity-bar .vel-snooze:hover { background: rgba(245,158,11,0.32); }
 
     /* BODY */
-    .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1.25fr 0.6fr; }
-    .panel { display: flex; flex-direction: column; border-right: 2px solid var(--border); min-height: 0; }
-    .panel:last-child { border-right: none; }
+    .body { --c1: 1.35fr; --c2: 1.25fr; --c3: 0.6fr; flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(260px, var(--c1)) 6px minmax(300px, var(--c2)) 6px minmax(220px, var(--c3)); }
+    .col-handle { position: relative; cursor: col-resize; background: var(--border); touch-action: none; z-index: 5; transition: background 0.15s; }
+    .col-handle::after { content: ""; position: absolute; top: 0; bottom: 0; left: -4px; right: -4px; }
+    .col-handle:hover, .col-handle.dragging { background: var(--gold); }
+    body.col-resizing { cursor: col-resize; user-select: none; }
+    .panel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
     .panel-hdr { padding: 7px 12px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--s2); gap: 8px; }
     .panel-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-lt); white-space: nowrap; }
     .panel-sub   { font-size: 0.57rem; color: var(--muted); white-space: nowrap; }
@@ -336,6 +339,7 @@
       html, body { overflow: auto; }
       #app { height: auto; overflow: visible; }
       .body { grid-template-columns: 1fr; }
+      .col-handle { display: none; }
       .panel { border-right: none; border-bottom: 2px solid var(--border); max-height: 380px; }
       .ctrl-col { flex-direction: row; flex-wrap: wrap; }
       .ctrl-card { flex: 1 1 280px; }
@@ -467,6 +471,8 @@
       </div>
     </div>
 
+    <div class="col-handle" id="handle1" title="Drag to resize. Double click to reset."></div>
+
     <!-- MIDDLE: ITEMS -->
     <div class="panel">
       <div class="panel-hdr">
@@ -487,6 +493,8 @@
         <div class="empty">Loading...</div>
       </div>
     </div>
+
+    <div class="col-handle" id="handle2" title="Drag to resize. Double click to reset."></div>
 
     <!-- RIGHT: CONTROLS -->
     <div class="panel ctrl-col">
@@ -1563,6 +1571,69 @@ function toggleExpandLabel() {
     setInterval(loadSide, SIDE_MS);
     setInterval(refreshRecency, 30000);
   }
+</script>
+<script>
+// Resizable columns. Widths are stored as proportions, so they survive a window resize.
+(function () {
+  const KEY  = "mm_master_cols";
+  const body = document.querySelector(".body");
+  const MINS = [260, 300, 220];
+  if (!body) return;
+
+  function setCols(a, b, c) {
+    body.style.setProperty("--c1", a + "fr");
+    body.style.setProperty("--c2", b + "fr");
+    body.style.setProperty("--c3", c + "fr");
+  }
+  function resetCols() {
+    body.style.removeProperty("--c1");
+    body.style.removeProperty("--c2");
+    body.style.removeProperty("--c3");
+    try { localStorage.removeItem(KEY); } catch (e) {}
+  }
+  function panels() { return Array.from(body.querySelectorAll(":scope > .panel")); }
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (Array.isArray(saved) && saved.length === 3 && saved.every(n => n > 0)) setCols(saved[0], saved[1], saved[2]);
+  } catch (e) {}
+
+  function attach(handle, leftIdx) {
+    handle.addEventListener("dblclick", resetCols);
+    handle.addEventListener("pointerdown", function (ev) {
+      ev.preventDefault();
+      const start  = panels().map(p => p.getBoundingClientRect().width);
+      const startX = ev.clientX;
+      const total  = start[leftIdx] + start[leftIdx + 1];
+      handle.setPointerCapture(ev.pointerId);
+      handle.classList.add("dragging");
+      document.body.classList.add("col-resizing");
+
+      function move(e) {
+        let left = start[leftIdx] + (e.clientX - startX);
+        left = Math.max(MINS[leftIdx], Math.min(total - MINS[leftIdx + 1], left));
+        const w = start.slice();
+        w[leftIdx] = left;
+        w[leftIdx + 1] = total - left;
+        setCols(Math.round(w[0]), Math.round(w[1]), Math.round(w[2]));
+      }
+      function up() {
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", up);
+        handle.removeEventListener("pointercancel", up);
+        handle.classList.remove("dragging");
+        document.body.classList.remove("col-resizing");
+        const w = panels().map(p => Math.round(p.getBoundingClientRect().width));
+        try { localStorage.setItem(KEY, JSON.stringify(w)); } catch (e) {}
+      }
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", up);
+      handle.addEventListener("pointercancel", up);
+    });
+  }
+  attach(document.getElementById("handle1"), 0);
+  attach(document.getElementById("handle2"), 1);
+})();
 </script>
 </body>
 </html>
