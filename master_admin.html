@@ -463,6 +463,7 @@
         <input class="filter-input" id="fItem"   placeholder="Item (e.g. ITEM 01)" oninput="applyBidFilter()" />
         <input class="filter-input" id="fDesc"   placeholder="Description" oninput="applyBidFilter()" />
         <input class="filter-input" id="fBidder" placeholder="Bidder name" oninput="applyBidFilter()" />
+        <input class="filter-input" id="fMobile" placeholder="Mobile number" oninput="applyBidFilter()" />
         <label class="filter-toggle" id="fRecentLbl" title="Only bids placed in the last 15 minutes">
           <input type="checkbox" id="fRecent" onchange="applyBidFilter()" /> Last 15m
         </label>
@@ -986,6 +987,7 @@
     const itemQ   = (document.getElementById("fItem").value   || "").trim().toUpperCase();
     const descQ   = (document.getElementById("fDesc").value   || "").trim().toUpperCase();
     const bidderQ = (document.getElementById("fBidder").value || "").trim().toUpperCase();
+    const mobileQ = (document.getElementById("fMobile").value || "").replace(/\D/g, "");
     const recentOnly  = document.getElementById("fRecent").checked;
     const winningOnly = document.getElementById("fWinning").checked;
 
@@ -996,6 +998,7 @@
     if (itemQ)       list = list.filter(b => (b.item || "").toUpperCase().includes(itemQ));
     if (descQ)       list = list.filter(b => (b.desc || "").toUpperCase().includes(descQ));
     if (bidderQ)     list = list.filter(b => (b.name || "").toUpperCase().includes(bidderQ));
+    if (mobileQ)     list = list.filter(b => (b.mobile || "").replace(/\D/g, "").includes(mobileQ));
     if (recentOnly)  list = list.filter(isRecent);
     if (winningOnly) list = list.filter(b => b.bidId && winningIds.has(b.bidId));
 
