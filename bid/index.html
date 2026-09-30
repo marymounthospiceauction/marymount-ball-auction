@@ -543,6 +543,12 @@ We shall also inform you if you get outbid.
 
 Regards,
 Marymount Ball Committee`;
+    const NO_WHATSAPP_SUCCESS_MESSAGE = `Thank you for your bid.
+
+You opted out of WhatsApp notifications, so you will not receive a confirmation or an outbid alert. Please check the leading bids screen or page to see how your bid stands.
+
+Regards,
+Marymount Ball Committee`;
     const DEFAULT_CLOSED_MESSAGE = `The 2026 Marymount Ball auction is now closed.
 
 Thank you for all your support.
@@ -988,6 +994,7 @@ Marymount Ball Committee`;
 
       try {
         const cleanBidAmount = getCleanBidAmount();
+        const wantsWhatsApp = consentCheckboxEl.checked;
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
 
         const result = await apiRequest({
@@ -1011,7 +1018,7 @@ Marymount Ball Committee`;
           throw new Error(result.message || "Your bid could not be submitted.");
         }
 
-        showSuccessScreen(DEFAULT_SUCCESS_MESSAGE);
+        showSuccessScreen(wantsWhatsApp ? DEFAULT_SUCCESS_MESSAGE : NO_WHATSAPP_SUCCESS_MESSAGE);
       } catch (error) {
         if (isClosedMessage(error.message)) {
           showClosedScreen(DEFAULT_CLOSED_MESSAGE);
