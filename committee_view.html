@@ -267,6 +267,58 @@
     .status-icon-above  { color: #27ae60; transform: rotate(0deg);   display: inline-block; }
 
     .bid-amount { font-weight: bold; }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .filter-label {
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 2px solid #333;
+      border-radius: 999px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .filter-btn.active { background: #000; color: #bc8b41; border-color: #000; }
+    .filter-btn.active .status-colour-box { border-color: #bc8b41; }
+
+    .filter-reset {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 999px;
+      background: #bc8b41;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .filter-reset:disabled { opacity: 0.4; cursor: default; }
+
+    .filter-count { font-size: 0.8rem; }
+
+    .no-results td { padding: 18px; font-style: italic; }
   </style>
 </head>
 
@@ -328,6 +380,15 @@
       </div>
 
       <div class="table-heading">COMMITTEE VIEW</div>
+
+      <div class="filter-bar" id="filterBar">
+        <span class="filter-label">Filter by target:</span>
+        <button type="button" class="filter-btn" data-status="BELOW"><span class="status-colour-box status-colour-below"></span>Below</button>
+        <button type="button" class="filter-btn" data-status="ON TARGET"><span class="status-colour-box status-colour-on-target"></span>On target</button>
+        <button type="button" class="filter-btn" data-status="ABOVE"><span class="status-colour-box status-colour-above"></span>Above</button>
+        <button type="button" class="filter-reset" id="filterReset" disabled>Reset</button>
+        <span class="filter-count" id="filterCount"></span>
+      </div>
 
       <div class="table-container">
         <table id="bidsTable">
@@ -448,6 +509,80 @@
       return idx;
     }
 
+    // ---- Target status filter ----
+    // Selected statuses persist across the 5 second refresh. None selected = show all.
+    // Totals and the status summary above always cover every item, unfiltered.
+    const activeFilters = new Set();
+    let lastRows = [];
+    let lastIdx  = null;
+
+    function renderTable() {
+      if (!lastIdx) return;
+      const idx = lastIdx;
+      const filtering = activeFilters.size > 0;
+      const rows = filtering
+        ? lastRows.filter(r => activeFilters.has(String(r[idx.status] || "").toUpperCase().trim()))
+        : lastRows;
+
+      const tbody = document.querySelector("#bidsTable tbody");
+      let html = "";
+      let lastItem = null;
+      let stripe = 0;
+
+      rows.forEach(row => {
+        const itemKey = String(row[idx.item] || "").trim().toUpperCase();
+        if (itemKey !== lastItem) { stripe = 1 - stripe; lastItem = itemKey; }
+
+        const item    = String(row[idx.item] || "").trim();
+        const bid     = row[idx.currentBid];
+        const status  = String(row[idx.status] || "").trim();
+        const low     = row[idx.low];
+        const high    = row[idx.high];
+        const numBids = idx.numBids > -1 ? row[idx.numBids] : "";
+        const name    = idx.name > -1 ? String(row[idx.name] || "").trim() : "";
+        const joint   = idx.joint > -1 ? String(row[idx.joint] || "").trim() : "";
+        const isJoint = joint !== "";
+
+        const rowClass  = [stripe === 1 ? "alt-gold" : "", isJoint ? "has-joint" : ""].filter(Boolean).join(" ");
+        const statClass = statusClass(status);
+
+        html += `<tr class="${rowClass}">`;
+        html += `<td class="${statClass}">${statusIcon(status)}</td>`;
+        html += `<td class="col-item">${item}</td>`;
+        html += `<td class="bid-amount">${formatEuro(bid)}</td>`;
+        html += `<td>${name}</td>`;
+        html += `<td class="${isJoint ? "joint-flag" : ""}">${joint}</td>`;
+        html += `<td>${numBids !== "" && numBids != null ? numBids : ""}</td>`;
+        html += `<td style="background:#f1f1f1">${formatEuro(low)}</td>`;
+        html += `<td style="background:#f1f1f1">${formatEuro(high)}</td>`;
+        html += `</tr>`;
+      });
+
+      if (!rows.length) {
+        html = `<tr class="no-results"><td colspan="8">No items match the selected filter.</td></tr>`;
+      }
+      tbody.innerHTML = html;
+
+      document.querySelectorAll(".filter-btn").forEach(b =>
+        b.classList.toggle("active", activeFilters.has(b.dataset.status)));
+      document.getElementById("filterReset").disabled = !filtering;
+      document.getElementById("filterCount").textContent =
+        filtering ? `Showing ${rows.length} of ${lastRows.length} rows` : "";
+    }
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const s = btn.dataset.status;
+        if (activeFilters.has(s)) activeFilters.delete(s); else activeFilters.add(s);
+        renderTable();
+      });
+    });
+
+    document.getElementById("filterReset").addEventListener("click", () => {
+      activeFilters.clear();
+      renderTable();
+    });
+
     let loggedColumns = false;
 
     async function loadData() {
@@ -496,42 +631,9 @@
         document.getElementById("countOnTarget").textContent = statusCounts["ON TARGET"];
         document.getElementById("countAbove").textContent    = statusCounts["ABOVE"];
 
-        // Build table rows
-        const tbody = document.querySelector("#bidsTable tbody");
-        let html = "";
-        let lastItem = null;
-        let stripe = 0;
-
-        dataRows.forEach(row => {
-          const itemKey = String(row[idx.item] || "").trim().toUpperCase();
-          if (itemKey !== lastItem) { stripe = 1 - stripe; lastItem = itemKey; }
-
-          const item    = String(row[idx.item] || "").trim();
-          const bid     = row[idx.currentBid];
-          const status  = String(row[idx.status] || "").trim();
-          const low     = row[idx.low];
-          const high    = row[idx.high];
-          const numBids = idx.numBids > -1 ? row[idx.numBids] : "";
-          const name    = idx.name > -1 ? String(row[idx.name] || "").trim() : "";
-          const joint   = idx.joint > -1 ? String(row[idx.joint] || "").trim() : "";
-          const isJoint = joint !== "";
-
-          const rowClass  = [stripe === 1 ? "alt-gold" : "", isJoint ? "has-joint" : ""].filter(Boolean).join(" ");
-          const statClass = statusClass(status);
-
-          html += `<tr class="${rowClass}">`;
-          html += `<td class="${statClass}">${statusIcon(status)}</td>`;
-          html += `<td class="col-item">${item}</td>`;
-          html += `<td class="bid-amount">${formatEuro(bid)}</td>`;
-          html += `<td>${name}</td>`;
-          html += `<td class="${isJoint ? "joint-flag" : ""}">${joint}</td>`;
-          html += `<td>${numBids !== "" && numBids != null ? numBids : ""}</td>`;
-          html += `<td style="background:#f1f1f1">${formatEuro(low)}</td>`;
-          html += `<td style="background:#f1f1f1">${formatEuro(high)}</td>`;
-          html += `</tr>`;
-        });
-
-        tbody.innerHTML = html;
+        lastRows = dataRows;
+        lastIdx  = idx;
+        renderTable();
 
       } catch (err) {
         console.warn("COMMITTEE view: fetch skipped:", err.message);
