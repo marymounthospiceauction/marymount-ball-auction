@@ -126,6 +126,8 @@
     .col-handle:hover, .col-handle.dragging { background: var(--gold); }
     body.col-resizing { cursor: col-resize; user-select: none; }
     .panel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+    .panel-winners { background: var(--s4); box-shadow: inset 0 2px 0 var(--gold), inset -1px 0 0 var(--border), inset 1px 0 0 var(--border); }
+    .panel-winners .panel-hdr { background: linear-gradient(180deg, rgba(201,151,63,0.16), var(--s2)); }
     .panel-hdr { padding: 7px 12px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--s2); gap: 8px; }
     .panel-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-lt); white-space: nowrap; }
     .panel-sub   { font-size: 0.57rem; color: var(--muted); white-space: nowrap; }
@@ -141,7 +143,8 @@
     .filter-toggle.on { color: var(--gold-lt); font-weight: 700; }
 
     /* ALL BIDS TICKER */
-    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
+    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 92px 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
+    .t-mobile { font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ticker-row:last-child { border-bottom: none; }
     .ticker-row.flash { animation: flash 1.4s ease; }
     @keyframes flash { 0%,100%{background:transparent} 20%{background:rgba(74,222,128,0.15)} }
@@ -164,7 +167,7 @@
     .wa-fail    { color: var(--red); letter-spacing: 0; }
 
     /* ITEMS — COLLAPSIBLE, ONE ROW PER ITEM NUMBER */
-    .lb-item-group { border-bottom: 1px solid var(--b2); }
+    .lb-item-group { border-bottom: 1px solid var(--border); }
     .lb-item-group:last-child { border-bottom: none; }
     .lb-item-group.spotlight { animation: spot 2.6s ease; }
     @keyframes spot {
@@ -350,6 +353,7 @@
 
     @media (max-width: 560px) {
       .ticker-row { grid-template-columns: 14px 44px 52px minmax(0,1fr) 72px 30px; padding: 0 8px; }
+      .t-mobile { display: none; }
       .t-desc { display: none; }
       .t-increase { display: none; }
     }
@@ -474,7 +478,7 @@
     <div class="col-handle" id="handle1" title="Drag to resize. Double click to reset."></div>
 
     <!-- MIDDLE: ITEMS -->
-    <div class="panel">
+    <div class="panel panel-winners">
       <div class="panel-hdr">
         <div class="panel-title">🏆 Items &amp; winners</div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -1015,6 +1019,7 @@
         <div class="t-item">${escHtml(b.item) || "—"}</div>
         <div class="t-desc">${escHtml(b.desc)}</div>
         <div class="t-name">${escHtml(b.name) || "—"}</div>
+        <div class="t-mobile">${escHtml(b.mobile) || "—"}</div>
         <div class="t-amount">${euro(b.amount)}</div>
         <div class="t-increase">${b.increment > 0 ? "+" + euro(b.increment) : ""}</div>
         <div class="t-wa">${waCell(b)}</div>
