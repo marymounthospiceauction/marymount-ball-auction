@@ -139,12 +139,18 @@
     .filter-input::placeholder { color: var(--muted); }
     .filter-input:focus { border-color: var(--gold); }
     .filter-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.63rem; color: var(--muted); white-space: nowrap; cursor: pointer; user-select: none; }
+    .filter-reset { display: flex; align-items: center; gap: 4px; font-size: 0.63rem; font-weight: 700; color: var(--dim); white-space: nowrap; cursor: pointer; user-select: none; background: var(--s3); border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 9px; margin-left: auto; }
+    .filter-reset:hover { color: var(--white); border-color: var(--gold); }
     .filter-toggle input { accent-color: var(--gold); cursor: pointer; }
     .filter-toggle.on { color: var(--gold-lt); font-weight: 700; }
 
     /* ALL BIDS TICKER */
-    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 92px 96px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
+    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 92px 96px 40px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
     .t-mobile { font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-optin { display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; }
+    .t-optin.opt-yes     { color: var(--green); }
+    .t-optin.opt-no      { color: var(--red); }
+    .t-optin.opt-unknown { color: var(--muted); opacity: 0.5; }
     .ticker-row:last-child { border-bottom: none; }
     .ticker-row.flash { animation: flash 1.4s ease; }
     @keyframes flash { 0%,100%{background:transparent} 20%{background:rgba(74,222,128,0.15)} }
@@ -233,6 +239,16 @@
                    color: #fdba74; background: rgba(251,146,60,0.22); border: 0.5px solid #c2410c;
                    border-radius: 999px; padding: 2px 8px; cursor: pointer; }
     .joint-count.none { display: none; }
+    .target-counts { display: flex; gap: 6px; padding: 5px 12px; background: var(--s2); border-bottom: 0.5px solid var(--b2); flex-shrink: 0; }
+    .tc-item { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 6px; padding: 3px 4px; font-size: 0.62rem; font-weight: 800; cursor: pointer; border: 0.5px solid transparent; background: var(--s3); color: var(--dim); }
+    .tc-item .tc-n { font-size: 0.74rem; }
+    .tc-below  .tc-n { color: #fca5a5; }
+    .tc-target .tc-n { color: var(--amber); }
+    .tc-above  .tc-n { color: var(--green); }
+    .tc-item.active.tc-below  { background: rgba(239,68,68,0.16);  border-color: var(--red-bdr); }
+    .tc-item.active.tc-target { background: rgba(245,158,11,0.16); border-color: var(--amb-bdr); }
+    .tc-item.active.tc-above  { background: var(--grn-bg);         border-color: var(--grn-bdr); }
+    .tc-item:hover { color: var(--white); }
 
     .lb-item-bids { display: none; background: var(--s4); }
     .lb-item-group.open .lb-item-bids { display: block; }
@@ -354,6 +370,7 @@
     @media (max-width: 560px) {
       .ticker-row { grid-template-columns: 14px 44px 52px minmax(0,1fr) 72px 30px; padding: 0 8px; }
       .t-mobile { display: none; }
+      .t-optin { display: none; }
       .t-desc { display: none; }
       .t-increase { display: none; }
     }
@@ -470,6 +487,7 @@
         <label class="filter-toggle" id="fWinningLbl" title="Only bids that are currently winning their item">
           <input type="checkbox" id="fWinning" onchange="applyBidFilter()" /> Winning only
         </label>
+        <div class="filter-reset" onclick="resetBidFilters()" title="Clear every filter on this panel">↺ Reset</div>
       </div>
       <div class="panel-body" id="ticker">
         <div class="empty">Loading...</div>
@@ -490,10 +508,18 @@
       </div>
       <div class="filter-bar">
         <input class="filter-input" id="fLbSearch" placeholder="Search item or description" oninput="renderItems()" />
+        <select class="filter-input" id="fLbTarget" onchange="renderItems()" style="flex: 0 1 130px;">
+          <option value="">All targets</option>
+          <option value="BELOW">Below</option>
+          <option value="ON TARGET">On target</option>
+          <option value="ABOVE">Above</option>
+        </select>
         <label class="filter-toggle" title="Expand or collapse every item">
           <input type="checkbox" id="fLbExpand" onchange="toggleExpandLabel(); renderItems();" /> <span id="expandLabel">Expand all</span>
         </label>
+        <div class="filter-reset" onclick="resetItemFilters()" title="Clear every filter on this panel">↺ Reset</div>
       </div>
+      <div class="target-counts" id="targetCounts"></div>
       <div class="panel-body" id="leadingBids">
         <div class="empty">Loading...</div>
       </div>
@@ -968,6 +994,13 @@
      ══════════════════════════════════════════════════════════ */
 
   // WhatsApp delivery cell for one bid.
+  function optInCell(b) {
+    const v = String(b.optIn || "").trim().toUpperCase();
+    if (v === "YES") return `<span class="t-optin opt-yes" title="Opted in to WhatsApp updates">✓</span>`;
+    if (v === "NO")  return `<span class="t-optin opt-no" title="Opted out. Do not WhatsApp this bidder.">✕</span>`;
+    return `<span class="t-optin opt-unknown" title="No opt in value recorded">–</span>`;
+  }
+
   function waCell(b) {
     const err = String(b.waError || "").trim();
     if (err) return `<span class="wa-fail" title="${escAttr(err)}">✕</span>`;
@@ -981,6 +1014,12 @@
 
     if (b.waSent === true)  return `<span class="wa-sent" title="Sent, no delivery receipt yet">✓</span>`;
     return `<span class="wa-none" title="No confirmation sent for this bid">–</span>`;
+  }
+
+  function resetBidFilters() {
+    ["fItem", "fDesc", "fBidder", "fMobile"].forEach(id => document.getElementById(id).value = "");
+    ["fRecent", "fWinning"].forEach(id => document.getElementById(id).checked = false);
+    applyBidFilter();
   }
 
   function applyBidFilter(flashNewest) {
@@ -1023,6 +1062,7 @@
         <div class="t-desc">${escHtml(b.desc)}</div>
         <div class="t-name">${escHtml(b.name) || "—"}</div>
         <div class="t-mobile">${escHtml(b.mobile) || "—"}</div>
+        <div class="t-optin">${optInCell(b)}</div>
         <div class="t-amount">${euro(b.amount)}</div>
         <div class="t-increase">${b.increment > 0 ? "+" + euro(b.increment) : ""}</div>
         <div class="t-wa">${waCell(b)}</div>
@@ -1132,9 +1172,18 @@
     renderItems();
   }
 
+  function resetItemFilters() {
+    document.getElementById("fLbSearch").value = "";
+    document.getElementById("fLbTarget").value = "";
+    document.getElementById("fLbExpand").checked = false;
+    toggleExpandLabel();
+    renderItems();
+  }
+
   function renderItems() {
     const el = document.getElementById("leadingBids");
     const q  = (document.getElementById("fLbSearch").value || "").trim().toUpperCase();
+    const targetQ = document.getElementById("fLbTarget").value;
     const expandAll = document.getElementById("fLbExpand").checked;
 
     // Keep whatever the user had open across refreshes.
@@ -1155,6 +1204,20 @@
     jc.textContent = "⚠ " + jointMap.size + (jointMap.size === 1 ? " joint winner" : " joint winners");
     jc.classList.toggle("none", jointMap.size === 0);
 
+    // Counted across every item regardless of filtering or search, so the
+    // strip always shows the true split, not a count of what is on screen.
+    const counts = { BELOW: 0, "ON TARGET": 0, ABOVE: 0 };
+    allItems.forEach(it => { if (counts[it.status] !== undefined) counts[it.status]++; });
+    document.getElementById("targetCounts").innerHTML = [
+      ["BELOW",      "tc-below",  "Below"],
+      ["ON TARGET",  "tc-target", "On target"],
+      ["ABOVE",      "tc-above",  "Above"]
+    ].map(([val, cls, label]) => `
+      <div class="tc-item ${cls} ${targetQ === val ? "active" : ""}"
+           onclick="document.getElementById('fLbTarget').value = (document.getElementById('fLbTarget').value === '${val}' ? '' : '${val}'); renderItems();">
+        <span class="tc-n">${counts[val]}</span> ${label}
+      </div>`).join("");
+
     let list = allItems;
     if (q === "##JOINT") {
       list = list.filter(it => jointMap.has(it.itemNumber));
@@ -1163,9 +1226,12 @@
         (it.item || "").toUpperCase().includes(q) ||
         (it.description || "").toUpperCase().includes(q));
     }
+    if (targetQ) list = list.filter(it => it.status === targetQ);
 
     if (!list.length) {
-      el.innerHTML = `<div class="empty">${allItems.length ? "No items match that search." : "No items yet."}</div>`;
+      const msg = targetQ ? "No items are currently " + targetQ.toLowerCase() + "."
+                : allItems.length ? "No items match that search." : "No items yet.";
+      el.innerHTML = `<div class="empty">${msg}</div>`;
       return;
     }
 
