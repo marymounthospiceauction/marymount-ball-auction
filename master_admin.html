@@ -271,21 +271,29 @@
     /* CONTROLS COLUMN */
     .ctrl-col { display: flex; flex-direction: column; background: var(--s3); padding: 8px; gap: 8px; overflow-y: auto; }
     .ctrl-card {
+      --accent: var(--gold);
       background: var(--s2); border: 1px solid var(--border); border-radius: 9px;
-      padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto;
+      display: flex; flex-direction: column; flex: 0 0 auto; overflow: hidden;
       box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      border-left-width: 3px;
+      border-left-width: 3px; border-left-color: var(--accent);
     }
-    .ctrl-card.danger { background: var(--red-bg); border-color: var(--red-bdr); border-left-color: var(--red); margin-top: auto; }
-    .ctrl-card.ctrl-form   { border-left-color: var(--gold); }
-    .ctrl-card.ctrl-banner { border-left-color: var(--amber); }
-    .ctrl-card.ctrl-wa     { border-left-color: var(--blue); }
+    .ctrl-card.danger      { --accent: var(--red);   background: var(--red-bg); border-color: var(--red-bdr); margin-top: auto; }
+    .ctrl-card.ctrl-form   { --accent: var(--gold); }
+    .ctrl-card.ctrl-banner { --accent: var(--amber); }
+    .ctrl-card.ctrl-wa     { --accent: var(--blue); }
     .ctrl-title {
-      font-size: 0.68rem; font-weight: 800; color: var(--gold-lt); display: flex; align-items: center; gap: 6px;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      padding-bottom: 6px; border-bottom: 0.5px solid var(--border);
+      font-size: 0.86rem; font-weight: 800; color: var(--white); display: flex; align-items: center; gap: 9px;
+      letter-spacing: 0.01em;
+      padding: 10px 11px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 20%, transparent), transparent);
+      border-bottom: 1px solid var(--border);
     }
-    .ctrl-card.danger .ctrl-title { color: #fca5a5; border-bottom-color: var(--red-bdr); }
+    .ctrl-card.danger .ctrl-title { border-bottom-color: var(--red-bdr); }
+    .ctrl-icon {
+      width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+      background: color-mix(in srgb, var(--accent) 22%, var(--s3)); border: 1px solid var(--accent);
+    }
+    .ctrl-body { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 6px; }
 
     .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; width: fit-content; }
     .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -541,38 +549,46 @@
     <!-- RIGHT: CONTROLS -->
     <div class="panel ctrl-col">
       <div class="ctrl-card ctrl-form">
-        <div class="ctrl-title">📝 Bidding form</div>
-        <div class="pill pill-off" id="formPill"><span class="pill-dot"></span><span id="formPillLabel">Loading...</span></div>
-        <div class="btn-row">
-          <button class="btn btn-green"    id="btnOpenForm"  onclick="doFormAction('open')"  disabled>Open</button>
-          <button class="btn btn-red-soft" id="btnCloseForm" onclick="doFormAction('close')" disabled>Close</button>
+        <div class="ctrl-title"><span class="ctrl-icon">📝</span> Bidding form</div>
+        <div class="ctrl-body">
+          <div class="pill pill-off" id="formPill"><span class="pill-dot"></span><span id="formPillLabel">Loading...</span></div>
+          <div class="btn-row">
+            <button class="btn btn-green"    id="btnOpenForm"  onclick="doFormAction('open')"  disabled>Open</button>
+            <button class="btn btn-red-soft" id="btnCloseForm" onclick="doFormAction('close')" disabled>Close</button>
+          </div>
         </div>
       </div>
 
       <div class="ctrl-card ctrl-banner">
-        <div class="ctrl-title">🚨 Closing soon</div>
-        <div class="pill pill-off" id="bannerPill"><span class="pill-dot"></span><span id="bannerPillLabel">Loading...</span></div>
-        <div class="btn-row">
-          <button class="btn btn-gold"  id="btnBannerOn"  onclick="doBannerAction('on')"  disabled>Activate</button>
-          <button class="btn btn-ghost" id="btnBannerOff" onclick="doBannerAction('off')" disabled>Deactivate</button>
+        <div class="ctrl-title"><span class="ctrl-icon">🚨</span> Closing soon</div>
+        <div class="ctrl-body">
+          <div class="pill pill-off" id="bannerPill"><span class="pill-dot"></span><span id="bannerPillLabel">Loading...</span></div>
+          <div class="btn-row">
+            <button class="btn btn-gold"  id="btnBannerOn"  onclick="doBannerAction('on')"  disabled>Activate</button>
+            <button class="btn btn-ghost" id="btnBannerOff" onclick="doBannerAction('off')" disabled>Deactivate</button>
+          </div>
         </div>
       </div>
 
       <div class="ctrl-card ctrl-wa">
-        <div class="ctrl-title">💬 WhatsApp sending</div>
-        <div class="pill pill-off" id="waPill"><span class="pill-dot"></span><span id="waPillLabel">Loading...</span></div>
-        <div class="danger-warn" id="waWarn" style="display:none;">⚠️ Currently OFF. No bidder is getting confirmations, outbid alerts, or winner notices.</div>
-        <div class="btn-row">
-          <button class="btn btn-green"    id="btnWaOn"  onclick="doWhatsAppAction('on')"  disabled>Turn on</button>
-          <button class="btn btn-red-soft" id="btnWaOff" onclick="doWhatsAppAction('off')" disabled>Turn off</button>
+        <div class="ctrl-title"><span class="ctrl-icon">💬</span> WhatsApp sending</div>
+        <div class="ctrl-body">
+          <div class="pill pill-off" id="waPill"><span class="pill-dot"></span><span id="waPillLabel">Loading...</span></div>
+          <div class="danger-warn" id="waWarn" style="display:none;">⚠️ Currently OFF. No bidder is getting confirmations, outbid alerts, or winner notices.</div>
+          <div class="btn-row">
+            <button class="btn btn-green"    id="btnWaOn"  onclick="doWhatsAppAction('on')"  disabled>Turn on</button>
+            <button class="btn btn-red-soft" id="btnWaOff" onclick="doWhatsAppAction('off')" disabled>Turn off</button>
+          </div>
         </div>
       </div>
 
       <div class="ctrl-card danger">
-        <div class="ctrl-title">🔒 Close auction</div>
-        <div class="pill pill-off" id="auctionPill"><span class="pill-dot"></span><span id="auctionPillLabel">Loading...</span></div>
-        <div class="danger-warn">⚠️ Cannot be undone. Only when the chairman calls it.</div>
-        <button class="btn btn-red" id="btnCloseAuction" onclick="doCloseAuction()" disabled>Close the auction</button>
+        <div class="ctrl-title"><span class="ctrl-icon">🔒</span> Close auction</div>
+        <div class="ctrl-body">
+          <div class="pill pill-off" id="auctionPill"><span class="pill-dot"></span><span id="auctionPillLabel">Loading...</span></div>
+          <div class="danger-warn">⚠️ Cannot be undone. Only when the chairman calls it.</div>
+          <button class="btn btn-red" id="btnCloseAuction" onclick="doCloseAuction()" disabled>Close the auction</button>
+        </div>
       </div>
     </div>
 
