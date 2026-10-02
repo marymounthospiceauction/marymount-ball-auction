@@ -950,6 +950,16 @@
       checks.push({ level: "warn", label: "Message delivery", detail: failed + " message(s) failed to deliver. Almost always a wrong or non-WhatsApp mobile number. Filter ALL_BIDS on DELIVERY_STATUS = failed to see who." });
     }
 
+    // 4b. Messages Meta rejected outright, before any message ID was
+    // issued. Different pipe to the check above: that one only sees
+    // messages Meta accepted and then failed to deliver, so a bad
+    // template name or similar send-time rejection was invisible until
+    // this existed.
+    const stuck = waStats ? Number(waStats.stuckCount || 0) : 0;
+    if (waStats && stuck > 0) {
+      checks.push({ level: "fail", label: "Send failures", detail: stuck + " bid(s) never sent at all, rejected by Meta before delivery. Filter ALL_BIDS on WHATSAPP_LAST_ERROR for the reason, commonly a template name or parameter mismatch." });
+    }
+
     // 5. Control tab, which drives the form and every screen overlay
     if (state.formOpen === null) {
       checks.push({ level: "warn", label: "Screen controls", detail: "The CONTROL tab has not reported in. The form status and the big-screen overlays may not be under this panel's control." });
