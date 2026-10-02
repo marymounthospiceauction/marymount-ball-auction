@@ -547,6 +547,16 @@
         </div>
       </div>
 
+      <div class="ctrl-card">
+        <div class="ctrl-title">💬 WhatsApp sending</div>
+        <div class="pill pill-off" id="waPill"><span class="pill-dot"></span><span id="waPillLabel">Loading...</span></div>
+        <div class="danger-warn" id="waWarn" style="display:none;">⚠️ Currently OFF. No bidder is getting confirmations, outbid alerts, or winner notices.</div>
+        <div class="btn-row">
+          <button class="btn btn-green"    id="btnWaOn"  onclick="doWhatsAppAction('on')"  disabled>Turn on</button>
+          <button class="btn btn-red-soft" id="btnWaOff" onclick="doWhatsAppAction('off')" disabled>Turn off</button>
+        </div>
+      </div>
+
       <div class="ctrl-card danger">
         <div class="ctrl-title">🔒 Close auction</div>
         <div class="pill pill-off" id="auctionPill"><span class="pill-dot"></span><span id="auctionPillLabel">Loading...</span></div>
@@ -633,8 +643,8 @@
   /* ══════════════════════════════════════════════════════════
      STATE
      ══════════════════════════════════════════════════════════ */
-  let state = { formOpen: null, bannerActive: null, auctionClosed: null };
-  let busy  = { form: false, banner: false, auction: false };
+  let state = { formOpen: null, bannerActive: null, auctionClosed: null, waOn: null };
+  let busy  = { form: false, banner: false, auction: false, wa: false };
 
   const prev = {};
   let consecutiveFails = 0;
@@ -746,6 +756,8 @@
       if (d.whatsapp && d.whatsapp.ok !== false) {
         waStats = d.whatsapp;
         renderWa(d.whatsapp);
+        if (!busy.wa) state.waOn = d.whatsapp.waToggle === "ON";
+        renderStatus();
       }
 
       if (d.allBids && d.allBids.ok !== false) {
@@ -812,16 +824,20 @@
      CONTROLS
      ══════════════════════════════════════════════════════════ */
   function renderStatus() {
-    const { formOpen, bannerActive, auctionClosed } = state;
+    const { formOpen, bannerActive, auctionClosed, waOn } = state;
     const closed = auctionClosed === true;
     setPill("formPill",    "formPillLabel",    formOpen,      "Form is open",      "Form is closed",     "pill-open",   "pill-closed");
     setPill("bannerPill",  "bannerPillLabel",  bannerActive,  "Banner is active",  "Banner is off",      "pill-on",     "pill-off");
     setPill("auctionPill", "auctionPillLabel", auctionClosed, "Auction is closed", "Auction is running", "pill-closed", "pill-open");
+    setPill("waPill",      "waPillLabel",      waOn,          "Sending is on",     "Sending is off",     "pill-open",   "pill-closed");
     setBtn("btnOpenForm",     formOpen === false && !closed && !busy.form);
     setBtn("btnCloseForm",    formOpen === true  && !closed && !busy.form);
     setBtn("btnBannerOn",     bannerActive === false && !closed && !busy.banner);
     setBtn("btnBannerOff",    bannerActive === true  && !closed && !busy.banner);
+    setBtn("btnWaOn",         waOn === false && !busy.wa);
+    setBtn("btnWaOff",        waOn === true  && !busy.wa);
     setBtn("btnCloseAuction", !closed && !busy.auction);
+    document.getElementById("waWarn").style.display = (waOn === false) ? "block" : "none";
   }
 
   function setPill(pid, lid, val, tT, fT, tC, fC) {
@@ -1596,6 +1612,21 @@ function toggleExpandLabel() {
       toast(on ? "Banner is live." : "Banner deactivated.", on ? "warn" : "info");
     } catch (err) { toast("Failed: " + err.message, "error"); }
     finally { busy.banner = false; renderStatus(); }
+  }
+
+  async function doWhatsAppAction(dir) {
+    const on = dir === "on";
+    const msg = on
+      ? "Turn WhatsApp sending ON?\n\nBid confirmations, outbid alerts, and winner notices will start going out to guests again."
+      : "Turn WhatsApp sending OFF?\n\nNo guest will get a bid confirmation, outbid alert, or winner notice while this is off. Bidding itself keeps working, guests just won't be told about it.";
+    if (!confirm(msg)) return;
+    busy.wa = true; renderStatus();
+    try {
+      await api({ action: "setWhatsAppToggle", secret: ADMIN_SECRET, on });
+      state.waOn = on;
+      toast(on ? "WhatsApp sending is on." : "WhatsApp sending is off.", on ? "success" : "warn");
+    } catch (err) { toast("Failed: " + err.message, "error"); }
+    finally { busy.wa = false; renderStatus(); }
   }
 
   async function doCloseAuction() {
