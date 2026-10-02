@@ -474,10 +474,9 @@
         const cells = rows[r].map(norm);
         const descCols = [];
         cells.forEach((v, i) => { if (v.endsWith('ITEM DESCRIPTION')) descCols.push(i); });
-        if (descCols.length < 3) continue;
-
-        const descCol   = descCols[2];
-        const blockEnd  = cells.length;
+       if (descCols.length < 1) continue;
+    const descCol   = descCols[0];
+    const blockEnd  = descCols[1] ?? cells.length;
         let newBidCol = -1, bidCol = -1, liveCol = -1, soldCol = -1;
         for (let i = descCol + 1; i < blockEnd; i++) {
           if (cells[i] === 'NEW BID')      newBidCol = i;
