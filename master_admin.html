@@ -269,12 +269,23 @@
     .lb-cut     { font-size: 0.56rem; color: var(--gold); padding: 3px 10px 3px 12px; border-bottom: 0.5px dashed rgba(201,151,63,0.45); text-transform: uppercase; letter-spacing: 0.05em; background: rgba(201,151,63,0.05); }
 
     /* CONTROLS COLUMN */
-    .ctrl-col { display: flex; flex-direction: column; background: var(--s3); }
-    .ctrl-card { border-bottom: 1px solid var(--border); padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
-    .ctrl-card.danger { background: var(--red-bg); border-bottom-color: var(--red-bdr); margin-top: auto; }
-    .ctrl-card:last-child { border-bottom: none; }
-    .ctrl-title { font-size: 0.7rem; font-weight: 800; color: var(--gold-lt); display: flex; align-items: center; gap: 6px; }
-    .ctrl-card.danger .ctrl-title { color: #fca5a5; }
+    .ctrl-col { display: flex; flex-direction: column; background: var(--s3); padding: 8px; gap: 8px; overflow-y: auto; }
+    .ctrl-card {
+      background: var(--s2); border: 1px solid var(--border); border-radius: 9px;
+      padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      border-left-width: 3px;
+    }
+    .ctrl-card.danger { background: var(--red-bg); border-color: var(--red-bdr); border-left-color: var(--red); margin-top: auto; }
+    .ctrl-card.ctrl-form   { border-left-color: var(--gold); }
+    .ctrl-card.ctrl-banner { border-left-color: var(--amber); }
+    .ctrl-card.ctrl-wa     { border-left-color: var(--blue); }
+    .ctrl-title {
+      font-size: 0.68rem; font-weight: 800; color: var(--gold-lt); display: flex; align-items: center; gap: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding-bottom: 6px; border-bottom: 0.5px solid var(--border);
+    }
+    .ctrl-card.danger .ctrl-title { color: #fca5a5; border-bottom-color: var(--red-bdr); }
 
     .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; width: fit-content; }
     .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -529,7 +540,7 @@
 
     <!-- RIGHT: CONTROLS -->
     <div class="panel ctrl-col">
-      <div class="ctrl-card">
+      <div class="ctrl-card ctrl-form">
         <div class="ctrl-title">📝 Bidding form</div>
         <div class="pill pill-off" id="formPill"><span class="pill-dot"></span><span id="formPillLabel">Loading...</span></div>
         <div class="btn-row">
@@ -538,7 +549,7 @@
         </div>
       </div>
 
-      <div class="ctrl-card">
+      <div class="ctrl-card ctrl-banner">
         <div class="ctrl-title">🚨 Closing soon</div>
         <div class="pill pill-off" id="bannerPill"><span class="pill-dot"></span><span id="bannerPillLabel">Loading...</span></div>
         <div class="btn-row">
@@ -547,7 +558,7 @@
         </div>
       </div>
 
-      <div class="ctrl-card">
+      <div class="ctrl-card ctrl-wa">
         <div class="ctrl-title">💬 WhatsApp sending</div>
         <div class="pill pill-off" id="waPill"><span class="pill-dot"></span><span id="waPillLabel">Loading...</span></div>
         <div class="danger-warn" id="waWarn" style="display:none;">⚠️ Currently OFF. No bidder is getting confirmations, outbid alerts, or winner notices.</div>
