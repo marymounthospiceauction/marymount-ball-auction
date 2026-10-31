@@ -131,7 +131,7 @@
     .panel-hdr { padding: 7px 12px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--s2); gap: 8px; }
     .panel-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-lt); white-space: nowrap; }
     .panel-sub   { font-size: 0.57rem; color: var(--muted); white-space: nowrap; }
-    .panel-body  { flex: 1; overflow-y: auto; min-height: 0; }
+    .panel-body  { flex: 1; overflow-y: auto; overflow-x: auto; min-height: 0; }
 
     /* FILTER BAR */
     .filter-bar { display: flex; gap: 6px; padding: 6px 12px; background: var(--s2); border-bottom: 0.5px solid var(--b2); flex-shrink: 0; flex-wrap: wrap; }
@@ -145,9 +145,9 @@
     .filter-toggle.on { color: var(--gold-lt); font-weight: 700; }
 
     /* ALL BIDS TICKER */
-    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(0, 1fr) 92px 96px 40px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
+    .ticker-row { display: grid; grid-template-columns: 14px 46px 56px minmax(70px, 1fr) 92px 96px 40px 78px 56px 34px; align-items: center; border-bottom: 0.5px solid var(--b2); height: 32px; padding: 0 8px; gap: 6px; }
     .t-mobile { font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .t-optin { display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; }
+    .t-optin { display: flex; align-items: center; justify-content: center; font-size: 0.56rem; font-weight: 800; }
     .t-optin.opt-yes     { color: var(--green); }
     .t-optin.opt-no      { color: var(--red); }
     .t-optin.opt-unknown { color: var(--muted); opacity: 0.5; }
@@ -162,7 +162,7 @@
     .ticker-row.ignored .t-amount { text-decoration: line-through; }
     .t-time     { color: var(--gold-lt); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; }
     .t-item     { color: var(--gold-lt); font-weight: 800; font-size: 0.72rem; }
-    .t-desc     { color: var(--dim); font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .t-desc     { color: var(--white); font-size: 0.86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .t-name     { color: var(--muted); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .t-amount   { color: var(--green); font-weight: 800; font-size: 0.88rem; white-space: nowrap; text-align: right; }
     .t-increase { color: #6ee7a8; font-size: 0.7rem; font-weight: 700; white-space: nowrap; text-align: right; }
