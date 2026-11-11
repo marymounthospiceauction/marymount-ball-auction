@@ -768,6 +768,7 @@
     let closingFlashVisible = false;
     let soldOverlayTimer    = null;
     let lastSoldKey         = '';
+    let soldPrimed          = false;
     const BANNER_ON_MS  = 10_000;
     const BANNER_OFF_MS = 30_000;
     const SOLD_DURATION = 7_000;
@@ -838,7 +839,14 @@
 
       const soldItem  = ctrl['SOLDITEM']  || '';
       const soldPrice = ctrl['SOLDPRICE'] || '';
-      if (soldItem && soldPrice) showSoldOverlay(soldItem, soldPrice);
+      // First read: treat any sale already in CONTROL as seen, so a page load never replays it.
+      // Later reads: show only sales that appear or change while the page is open.
+      if (!soldPrimed) {
+        soldPrimed = true;
+        if (soldItem && soldPrice) lastSoldKey = `${soldItem}::${soldPrice}`;
+      } else if (soldItem && soldPrice) {
+        showSoldOverlay(soldItem, soldPrice);
+      }
     }
 
     /* ── CONFETTI ── */
