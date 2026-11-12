@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+<!--
+  LIVE BIDS CAROUSEL
+
+  Rows per page: add ?perPage=N to the end of the URL.
+    ?perPage=23   two pages for 45 items (default)
+    ?perPage=15   three pages
+    ?perPage=45   one page
+
+  Other settings (page timing, fade speed) are in the first lines of the script.
+-->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -450,23 +461,22 @@
   </div>
 
   <script>
+    /* CAROUSEL SETTINGS
+       PAGE_SIZE: rows per page, set with ?perPage=N in the URL (default 23).
+       PAGE_MS:   time each page stays on screen before the next one.
+       FADE_MS:   fade time between pages.
+       Items keep their sheet order. LIVE items stay in their normal position. */
+    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 23);
+    const PAGE_MS   = 15000;
+    const FADE_MS   = 300;
+
     /* CONFIG */
-    const sheetID   = '10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc';
+    const sheetID   ='10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc';
     const CTRL_SHEET = 'CONTROL';
     const CTRL_RANGE = 'A1:B10';
     // gid of the CONTROL tab on the DISPLAY spreadsheet. Leave '' to use gviz only.
     const CTRL_GID   = '752655290';
     const REFRESH_MS = 5000;
-
-    /* CAROUSEL CONFIG
-       PAGE_SIZE: rows shown on screen at once.
-       PAGE_MS:   time each page stays on screen before the next one.
-       Items keep their sheet order. LIVE items stay in their normal position. */
-    // Rows per page. Default 23 gives two pages for 45 items.
-    // Override per screen in the URL: ?perPage=15 (three pages) or ?perPage=45 (one page).
-    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 45);
-    const PAGE_MS   = 15000;
-    const FADE_MS   = 300;
 
     /* gviz live query against the DISPLAY tab. Used instead of the
        published /pub CSV endpoint, which sits behind Google's publish
