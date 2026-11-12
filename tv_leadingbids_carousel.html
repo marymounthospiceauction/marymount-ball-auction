@@ -464,7 +464,7 @@
        Items keep their sheet order. LIVE items stay in their normal position. */
     // Rows per page. Default 23 gives two pages for 45 items.
     // Override per screen in the URL: ?perPage=15 (three pages) or ?perPage=45 (one page).
-    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 23);
+    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 45);
     const PAGE_MS   = 15000;
     const FADE_MS   = 300;
 
