@@ -94,7 +94,7 @@
 
     .item-row {
       display: grid;
-      grid-template-columns: 1fr minmax(8ch, 12ch) max-content;
+      grid-template-columns: minmax(0, 1fr) minmax(7ch, 9ch) max-content;
       align-items: center;
       height: var(--rowH);
       background: rgba(0,0,0,0.9);
@@ -155,12 +155,15 @@
       line-height: 1.12;
     }
 
-    .item-label,
     .item-amount {
       font-size: clamp(14px, calc(var(--rowH) * 0.52), 32px);
     }
 
+    /* Label size is also tightened per page by fitLabels() so no text is cut off */
     .item-label {
+      display: block;
+      min-width: 0;
+      font-size: clamp(12px, calc(var(--rowH) * 0.4), 24px);
       padding: 0.16em 0.6em;
       text-transform: uppercase;
       overflow: hidden;
@@ -191,6 +194,25 @@
       text-align: center;
       color: var(--gold-soft);
       border-left: 1px solid #555;
+    }
+
+    /* PAGE INDICATOR, top left of the header */
+    .page-indicator {
+      position: absolute;
+      left: 0;
+      top: 0.5vh;
+      padding: 0.3vh 1.0vw;
+      border-radius: 0.4rem;
+      background: rgba(0,0,0,0.85);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-size: clamp(0.8rem, 1.1vw, 1.3rem);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 6px rgba(246,213,139,0.6);
+      z-index: 100;
+      pointer-events: none;
     }
 
     .footer {
@@ -404,6 +426,7 @@
     <div class="header">
       <div class="header-title">The Starry Night Ball</div>
       <img class="marymount-logo-top" src="/assets/Marymount%20Logo.png" alt="Marymount Logo" />
+      <div class="page-indicator" id="page-indicator">Page 1 of 1</div>
     </div>
 
     <div class="items-grid">
@@ -439,7 +462,9 @@
        PAGE_SIZE: rows shown on screen at once.
        PAGE_MS:   time each page stays on screen before the next one.
        Items keep their sheet order. LIVE items stay in their normal position. */
-    const PAGE_SIZE = 15;
+    // Rows per page. Default 23 gives two pages for 45 items.
+    // Override per screen in the URL: ?perPage=15 (three pages) or ?perPage=45 (one page).
+    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 23);
     const PAGE_MS   = 15000;
     const FADE_MS   = 300;
 
@@ -722,9 +747,30 @@
       leftCol.innerHTML  = page.slice(0, half).map(makeRow).join('');
       rightCol.innerHTML = page.slice(half).map(makeRow).join('');
 
-      requestAnimationFrame(() =>
-        applyAlignedRowHeights(page.length, half, page.length - half)
-      );
+      updatePageIndicator();
+      requestAnimationFrame(() => {
+        applyAlignedRowHeights(page.length, half, page.length - half);
+        fitLabels();
+      });
+    }
+
+    function updatePageIndicator() {
+      const total = pageCount(allRows.length);
+      document.getElementById('page-indicator').textContent =
+        `Page ${pageIndex + 1} of ${total}`;
+    }
+
+    // Shrinks label text, uniformly across the page, until no label is cut off.
+    function fitLabels() {
+      const labels = [...document.querySelectorAll('.item-label')];
+      if (!labels.length) return;
+      labels.forEach(l => { l.style.fontSize = ''; });
+      const fits = () => labels.every(l => l.scrollWidth <= l.clientWidth + 1);
+      let size = parseFloat(getComputedStyle(labels[0]).fontSize);
+      while (!fits() && size > 9) {
+        size -= 0.5;
+        labels.forEach(l => { l.style.fontSize = size + 'px'; });
+      }
     }
 
     // Fades the grid out, swaps to the next page, and fades back in.
@@ -907,7 +953,7 @@
     const reflow = () => {
       const lc = document.getElementById('column-left').children.length;
       const rc = document.getElementById('column-right').children.length;
-      if (lc && rc) requestAnimationFrame(() => applyAlignedRowHeights(lc+rc, lc, rc));
+      if (lc && rc) requestAnimationFrame(() => { applyAlignedRowHeights(lc+rc, lc, rc); fitLabels(); });
     };
     window.addEventListener('resize', reflow);
     window.addEventListener('orientationchange', reflow);
