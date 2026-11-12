@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Starry Night Ball: Live Bids (Carousel)</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --gold: #f6d58b;
+      --gold-soft: #f4d28a;
+      --black: #000000;
+      --offwhite: #ffffff;
+      --red: #ff3b30;
+      --safe-top: 1.2vh;
+      --safe-bottom: 7.5vh;
+      --safe-horiz: 3vw;
+      --footer-h: 9vh;
+      --rowH: 40px;
+      --row-gap: 0.2vh;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Calibri, Arial, sans-serif;
+      background: #000 url("/assets/tvbackground.png") center/cover no-repeat fixed;
+      color: var(--offwhite);
+      overflow: hidden;
+    }
+
+    .frame {
+      width: 100vw;
+      height: 100vh;
+      padding: var(--safe-top) var(--safe-horiz) calc(var(--safe-bottom) + var(--footer-h)) var(--safe-horiz);
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      box-sizing: border-box;
+    }
+
+    .header {
+      position: relative;
+      flex: 0 0 auto;
+      margin-bottom: 0.4vh;
+      text-align: center;
+    }
+
+    .header-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(2.6rem, 4.2vw, 5rem);
+      font-weight: 400;
+      color: #000;
+      text-shadow:
+        0 0 6px rgba(246,213,139,0.9),
+        0 0 12px rgba(246,213,139,0.7),
+        0 0 18px rgba(0,0,0,0.9);
+      letter-spacing: 0.04em;
+      line-height: 1.06;
+    }
+
+    .marymount-logo-top {
+      position: absolute;
+      right: 0;
+      top: 0;
+      max-height: 8.5vh;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.9));
+    }
+
+    .items-grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      gap: 1.1vw;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      margin-top: 0.2vh;
+      margin-bottom: 0.2vh;
+      overflow: hidden;
+    }
+
+    .column {
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--row-gap);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr minmax(8ch, 12ch) max-content;
+      align-items: center;
+      height: var(--rowH);
+      background: rgba(0,0,0,0.9);
+      border: 1px solid #3a3a3a;
+      box-shadow: 0 0 4px rgba(0,0,0,0.5);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* EMERALD GREEN HIGHLIGHT FOR LIVE ITEMS */
+    .item-row.is-live {
+      background: linear-gradient(90deg, rgba(15,75,28,0.95), rgba(25,110,42,0.95)) !important;
+      border: 1px solid #2ecc71 !important;
+      box-shadow: 0 0 12px rgba(46,204,113,0.6);
+    }
+
+    .item-row.is-live .item-amount {
+      color: #2ecc71 !important;
+      font-weight: 900;
+      text-shadow: 0 0 8px rgba(46,204,113,0.7);
+      border-left: 1px solid #2ecc71;
+    }
+
+    /* GREY OUT FOR SOLD ITEMS */
+    .item-row.is-sold {
+      background: rgba(60,60,60,0.92) !important;
+      border: 1px solid #888 !important;
+      box-shadow: none;
+    }
+
+    .item-row.is-sold .item-label,
+    .item-row.is-sold .item-label strong {
+      color: #aaa !important;
+    }
+
+    .item-row.is-sold .item-amount {
+      color: #ddd !important;
+      border-left: 1px solid #888;
+    }
+
+    .sold-tag {
+      display: inline-block;
+      margin-left: 0.5em;
+      padding: 0.05em 0.5em;
+      border-radius: 3px;
+      background: #888;
+      color: #fff;
+      font-size: 0.55em;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      vertical-align: middle;
+    }
+
+    .item-label,
+    .item-newbid,
+    .item-amount {
+      display: flex;
+      align-items: center;
+      line-height: 1.12;
+    }
+
+    .item-label,
+    .item-amount {
+      font-size: clamp(14px, calc(var(--rowH) * 0.52), 32px);
+    }
+
+    .item-label {
+      padding: 0.16em 0.6em;
+      text-transform: uppercase;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .item-label strong {
+      font-weight: 800;
+      color: var(--gold-soft);
+      letter-spacing: 0.02em;
+    }
+
+    .item-newbid {
+      justify-content: center;
+      text-align: center;
+      color: var(--red);
+      font-weight: 800;
+      font-size: clamp(12px, calc(var(--rowH) * 0.46), 28px);
+      letter-spacing: 0.02em;
+    }
+
+    .item-amount {
+      padding: 0.16em 1.0em;
+      font-weight: 800;
+      min-width: clamp(9ch, 11vw, 20vw);
+      justify-content: center;
+      text-align: center;
+      color: var(--gold-soft);
+      border-left: 1px solid #555;
+    }
+
+    .footer {
+      position: fixed;
+      left: var(--safe-horiz);
+      right: var(--safe-horiz);
+      bottom: var(--safe-bottom);
+      height: var(--footer-h);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: flex-end;
+      gap: 2vw;
+      z-index: 100;
+    }
+
+    .footer-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: center;
+      height: 100%;
+    }
+
+    /* ENHANCED LARGER & CRISP QR CODES */
+    .qr-img {
+      max-height: calc(var(--footer-h) * 1.25);
+      background: #ffffff;
+      padding: 0.5vh;
+      border-radius: 0.4rem;
+      box-shadow: 0 0 12px rgba(0,0,0,0.95);
+      margin-bottom: 0.4vh;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: pixelated;
+      shape-rendering: crispEdges;
+    }
+
+    .footer-block span {
+      font-size: clamp(0.85rem, 1.1vw, 1.3rem);
+      font-weight: 800;
+      color: #000000;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 4px rgba(255,255,255,0.9);
+      text-transform: uppercase;
+    }
+
+    .footer-sponsors {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .footer-sponsors img {
+      max-height: 85%;
+      max-width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
+    }
+
+    /* CLOSING SOON BANNER */
+    #closing-banner {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+      pointer-events: none;
+    }
+    #closing-banner.active { display: flex; }
+
+    .closing-inner {
+      background: linear-gradient(135deg, rgba(220,10,10,0.96), rgba(160,0,0,0.96));
+      border: 2px solid var(--gold);
+      border-radius: 0.8rem;
+      padding: 1.2rem 2.4rem;
+      font-family: Calibri, Arial, sans-serif;
+      font-size: clamp(1.4rem, 3.5vw, 4rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      white-space: nowrap;
+      box-shadow: 0 0 60px rgba(220,10,10,0.6), 0 0 20px rgba(0,0,0,0.9);
+      animation: banner-pulse 1.2s infinite alternate;
+    }
+
+    @keyframes banner-pulse {
+      0%   { transform: scale(1.00); }
+      100% { transform: scale(1.04); }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .closing-inner { animation: none; } }
+
+    /* AUCTION CLOSED BANNER */
+    #closed-banner {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2vh 2vw;
+      background: linear-gradient(90deg, rgba(10,60,20,0.97), rgba(20,90,35,0.97), rgba(10,60,20,0.97));
+      border-bottom: 2px solid #2ecc71;
+      z-index: 9100;
+    }
+    #closed-banner.active { display: flex; }
+
+    .closed-text {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: clamp(1rem, 2.5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #2ecc71;
+      text-shadow: 0 0 20px rgba(46,204,113,0.6);
+    }
+
+    /* SOLD OVERLAY */
+    #sold-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9500;
+      background: radial-gradient(ellipse at center, rgba(10,6,1,0.6), rgba(0,0,0,0.85));
+      pointer-events: none;
+    }
+    #sold-overlay.active { display: flex; }
+
+    .sold-card {
+      text-align: center;
+      animation: sold-drop 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+
+    @keyframes sold-drop {
+      0%   { transform: translateY(-60px) scale(0.85); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .sold-word {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(5rem, 14vw, 16rem);
+      color: var(--gold);
+      text-shadow:
+        0 0 30px rgba(245,200,66,1),
+        0 0 60px rgba(245,170,30,0.7),
+        0 0 100px rgba(245,140,10,0.4);
+      line-height: 0.9;
+    }
+
+    .sold-item-name {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: clamp(1rem, 2.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-top: 0.5rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    .sold-price {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: clamp(2rem, 6vw, 8rem);
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow:
+        0 0 20px rgba(245,200,66,0.9),
+        0 0 40px rgba(245,170,30,0.5);
+      margin-top: 0.3rem;
+    }
+
+    /* CONFETTI */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9400;
+      display: none;
+    }
+    #confetti-canvas.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- CLOSING SOON -->
+  <div id="closing-banner" role="status" aria-live="polite">
+    <div class="closing-inner">🚨 AUCTION CLOSING SOON — GET YOUR FINAL BIDS IN! 🚨</div>
+  </div>
+
+  <!-- AUCTION CLOSED -->
+  <div id="closed-banner" role="status" aria-live="polite">
+    <div class="closed-text">✅ AUCTION CLOSED — THANK YOU FOR YOUR SUPPORT</div>
+  </div>
+
+  <!-- SOLD -->
+  <canvas id="confetti-canvas"></canvas>
+  <div id="sold-overlay" role="status" aria-live="assertive">
+    <div class="sold-card">
+      <div class="sold-word">Sold!</div>
+      <div class="sold-item-name" id="sold-item-name"></div>
+      <div class="sold-price"     id="sold-price"></div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="header">
+      <div class="header-title">The Starry Night Ball</div>
+      <img class="marymount-logo-top" src="/assets/Marymount%20Logo.png" alt="Marymount Logo" />
+    </div>
+
+    <div class="items-grid">
+      <div class="column" id="column-left"></div>
+      <div class="column" id="column-right"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-block">
+      <img class="qr-img" src="/assets/marymountauction2026-qr.png" alt="QR Code to Bid" />
+      <span>Scan QR code to bid</span>
+    </div>
+    <div class="footer-sponsors">
+      <img src="/assets/Marymount%20Footer%20Sponsors.png" alt="Sponsors" />
+    </div>
+    <div class="footer-block">
+      <img class="qr-img" src="/assets/marymountauction2026-qr.png" alt="QR Code to Bid" />
+      <span>Scan QR code to bid</span>
+    </div>
+  </div>
+
+  <script>
+    /* CONFIG */
+    const sheetID   = '10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc';
+    const CTRL_SHEET = 'CONTROL';
+    const CTRL_RANGE = 'A1:B10';
+    // gid of the CONTROL tab on the DISPLAY spreadsheet. Leave '' to use gviz only.
+    const CTRL_GID   = '752655290';
+    const REFRESH_MS = 5000;
+
+    /* CAROUSEL CONFIG
+       PAGE_SIZE: rows shown on screen at once.
+       PAGE_MS:   time each page stays on screen before the next one.
+       Items keep their sheet order. LIVE items stay in their normal position. */
+    const PAGE_SIZE = 15;
+    const PAGE_MS   = 15000;
+    const FADE_MS   = 300;
+
+    /* gviz live query against the DISPLAY tab. Used instead of the
+       published /pub CSV endpoint, which sits behind Google's publish
+       cache and occasionally serves a short placeholder response.
+       Columns are located by header name, so a sheet change fails loudly
+       instead of silently reading the wrong data. */
+    const bidsGvizUrl = () =>
+      `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv` +
+      `&sheet=DISPLAY&cacheBust=${Date.now()}`;
+
+    const norm = s => String(s ?? '').replace(/ /g, ' ').trim().toUpperCase();
+
+    // Finds the header row, then the 3rd "ITEM DESCRIPTION" block (the one
+    // paired with NEW BID / LIVE STATUS / SOLD STATUS), then its columns.
+    // Returns null if the layout is not what is expected.
+    function locateBidColumns(rows) {
+      for (let r = 0; r < Math.min(rows.length, 10); r++) {
+        const cells = rows[r].map(norm);
+        const descCols = [];
+        cells.forEach((v, i) => { if (v.endsWith('ITEM DESCRIPTION')) descCols.push(i); });
+        if (descCols.length < 1) continue;
+
+        const descCol  = descCols[0];
+        const blockEnd = descCols[1] ?? cells.length;
+        let newBidCol = -1, bidCol = -1, liveCol = -1, soldCol = -1;
+        for (let i = descCol + 1; i < blockEnd; i++) {
+          if (cells[i] === 'NEW BID')     newBidCol = i;
+          if (cells[i] === 'LEADING BID') bidCol    = i;
+          if (cells[i] === 'LIVE STATUS') liveCol   = i;
+          if (cells[i] === 'SOLD STATUS') soldCol   = i;
+        }
+        if (bidCol === -1) continue;
+
+        return { headerRow: r, descCol, newBidCol, bidCol, liveCol, soldCol };
+      }
+      return null;
+    }
+
+    const ctrlGvizUrl = () =>
+      `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv` +
+      `&sheet=${encodeURIComponent(CTRL_SHEET)}&range=${CTRL_RANGE}` +
+      // headers=0 is required. Without it gviz merges the first rows into one label and drops them.
+      `&headers=0&cacheBust=${Date.now()}`;
+
+    const ctrlExportUrl = () =>
+      `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv` +
+      `&gid=${CTRL_GID}&range=${CTRL_RANGE}&cacheBust=${Date.now()}`;
+
+    /* CSV PARSER */
+    function parseCsv(text) {
+      const p = [[]];
+      let quote = false;
+      for (let c = 0; c < text.length; c++) {
+        const cc = text[c], nc = text[c + 1];
+        if (cc === '"') {
+          if (quote && nc === '"') { p[p.length - 1][p[p.length - 1].length - 1] += '"'; c++; }
+          else { quote = !quote; }
+        } else if (cc === ',' && !quote) {
+          p[p.length - 1].push('');
+        } else if ((cc === '\r' || cc === '\n') && !quote) {
+          if (cc === '\r' && nc === '\n') { c++; }
+          p.push([]);
+        } else {
+          if (!p[p.length - 1].length) p[p.length - 1].push('');
+          p[p.length - 1][p[p.length - 1].length - 1] += cc;
+        }
+      }
+      return p.filter(r => r.length > 0 && r.some(cell => cell.trim() !== ''));
+    }
+
+    // Fetches the DISPLAY tab via gviz, finds the block-3 columns by
+    // header name, and returns rows sliced to
+    // [description, newBid, leadingBid, liveStatus, soldStatus].
+    async function fetchBids() {
+      const res = await fetch(bidsGvizUrl(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const raw = await res.text();
+
+      const allRows = parseCsv(raw);
+      const cols = locateBidColumns(allRows);
+
+      if (!cols) {
+        console.error('BIDS: could not find the ITEM DESCRIPTION / LEADING BID headers.',
+          allRows.slice(0, 4));
+        return [];
+      }
+
+      return allRows.slice(cols.headerRow + 1).map(r => [
+        r[cols.descCol]   ?? '',
+        cols.newBidCol > -1 ? (r[cols.newBidCol] ?? '') : '',
+        r[cols.bidCol]     ?? '',
+        cols.liveCol > -1 ? (r[cols.liveCol] ?? '') : '',
+        cols.soldCol > -1 ? (r[cols.soldCol] ?? '') : ''
+      ]);
+    }
+
+    // CONTROL is a simple two-column KEY,VALUE sheet, parsed line by line.
+    function parseControlCsv(raw) {
+      return raw
+        .split(/\r\n|\r|\n/)
+        .map(line => line.trim())
+        .filter(line => line.length)
+        .map(line => {
+          const idx = line.indexOf(',');
+          let key = idx === -1 ? line : line.slice(0, idx);
+          let val = idx === -1 ? ''   : line.slice(idx + 1);
+          const unquote = c => {
+            c = c.trim();
+            if (c.startsWith('"') && c.endsWith('"')) c = c.slice(1, -1).replace(/""/g, '"');
+            return c;
+          };
+          return [unquote(key), unquote(val)];
+        });
+    }
+
+    async function fetchControlCsv(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const raw = await res.text();
+      return parseControlCsv(raw);
+    }
+
+    async function fetchControl() {
+      try {
+        const rows = await fetchControlCsv(ctrlGvizUrl());
+        if (rows.length) return rows;
+        console.warn('CONTROL: gviz returned no rows.');
+      } catch (e) {
+        console.warn('CONTROL: gviz failed:', e.message);
+      }
+
+      if (CTRL_GID !== '') {
+        try {
+          const rows = await fetchControlCsv(ctrlExportUrl());
+          if (rows.length) return rows;
+          console.error('CONTROL: export returned no rows.');
+        } catch (e) {
+          console.error('CONTROL: export failed:', e.message);
+        }
+      }
+
+      console.error(
+        'CONTROL UNREADABLE. Overlays are disabled. Check that the CONTROL tab ' +
+        'exists on the DISPLAY spreadsheet and that the sheet is published to web.'
+      );
+      return null;
+    }
+
+    /* HELPERS */
+    const euroFmt = new Intl.NumberFormat('en-IE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    const escapeHtml = s => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+    function formatEuro(v) {
+      if (v === null || v === undefined || v === '') return '€0';
+      const strVal = String(v).trim();
+
+      if (strVal.toUpperCase().includes('LIVE')) return escapeHtml(strVal);
+
+      const cleanNumStr = strVal.replace(/[^0-9.-]/g, '');
+      if (cleanNumStr === '' || isNaN(cleanNumStr)) return escapeHtml(strVal);
+
+      const n = Number(cleanNumStr);
+      return Number.isFinite(n) ? '€' + euroFmt.format(n) : escapeHtml(strVal);
+    }
+
+    function formatItemLabel(rawText) {
+      // Normalise non-breaking spaces and every dash variant to a plain hyphen
+      const src = String(rawText ?? '')
+        .replace(/ /g, ' ')
+        .replace(/[‐-―−]/g, '-')
+        .trim();
+
+      const m = src.match(/^ITEM\s*0*(\d+)\s*-?\s*(.*)$/i);
+
+      if (!m) return escapeHtml(src);
+
+      const num  = m[1].padStart(2, '0');
+      const rest = m[2].trim();
+      const head = 'ITEM ' + num;
+
+      return '<strong>' + escapeHtml(head) + '</strong>'
+           + (rest ? '&nbsp;- ' + escapeHtml(rest) : '');
+    }
+
+    /* ROW HEIGHT CALCULATION */
+    function applyAlignedRowHeights(totalRows, leftCount, rightCount) {
+      const itemsGrid = document.querySelector('.items-grid');
+      const leftCol   = document.getElementById('column-left');
+      const gridRect  = itemsGrid.getBoundingClientRect();
+      const availableH = gridRect.height;
+      const gapStr = getComputedStyle(leftCol).gap || '0px';
+      const gapPx  = parseFloat(gapStr.split(' ')[0]) || 0;
+      const leftGaps  = Math.max(0, (leftCount  - 1)) * gapPx;
+      const rightGaps = Math.max(0, (rightCount - 1)) * gapPx;
+      const leftRowH  = (availableH - leftGaps)  / Math.max(leftCount, 1);
+      const rightRowH = (availableH - rightGaps) / Math.max(rightCount, 1);
+      const sharedRowH = Math.floor(Math.max(20, Math.min(leftRowH, rightRowH)));
+      document.documentElement.style.setProperty('--rowH', sharedRowH + 'px');
+      document.querySelector('.items-grid').style.opacity = 1;
+    }
+
+    /* ROW RENDERING */
+    function makeRow(r) {
+      const rawName   = (r[0] ?? '').toString().trim();
+      const rawNewBid = (r[1] ?? '').toString().trim();
+      const rawLatest = (r[2] ?? '').toString().trim();
+      const rawLive   = (r[3] ?? '').toString().trim();
+      const rawSold   = (r[4] ?? '').toString().trim();
+
+      const item = formatItemLabel(rawName);
+
+      // Exact match only. "NOT LIVE" and "NOT SOLD" both contain their
+      // positive counterpart as a substring, so a /LIVE/ or /SOLD/ test would be wrong.
+      const isLive = rawLive.toUpperCase() === 'LIVE';
+      const isSold = rawSold.toUpperCase() === 'SOLD';
+
+      let latestDisplay;
+      let newBidDisplay = '';
+      let rowClass = '';
+
+      if (isSold) {
+        rowClass = 'is-sold';
+        const soldNum = Number(String(rawLatest).replace(/[^0-9.-]/g, ''));
+        latestDisplay = (!isNaN(soldNum) && soldNum > 0)
+          ? '€' + euroFmt.format(soldNum) + '<span class="sold-tag">SOLD</span>'
+          : '<span class="sold-tag">SOLD</span>';
+      } else if (isLive) {
+        rowClass = 'is-live';
+        latestDisplay = '*LIVE*';
+      } else {
+        const latestNum = Number(String(rawLatest).replace(/[^0-9.-]/g, ''));
+        latestDisplay = (rawLatest !== '' && !isNaN(latestNum) && latestNum > 0)
+          ? '€' + euroFmt.format(latestNum)
+          : '€0';
+
+        if (rawNewBid !== '') {
+          const bidNum = Number(String(rawNewBid).replace(/[^0-9.-]/g, ''));
+          newBidDisplay = (!isNaN(bidNum) && bidNum > 0)
+            ? '€' + euroFmt.format(bidNum)
+            : escapeHtml(rawNewBid);
+        }
+      }
+
+      return `
+        <div class="item-row ${rowClass}">
+          <div class="item-label">${item}</div>
+          <div class="item-newbid">${newBidDisplay}</div>
+          <div class="item-amount">${latestDisplay}</div>
+        </div>`;
+    }
+
+    /* CAROUSEL */
+    let allRows       = [];   // every valid row from the latest poll
+    let pageIndex     = 0;    // which page is on screen
+    let pageTimer     = null; // drives the 15 second cycle
+    let fadeTimer     = null; // swaps content while the grid is faded out
+
+    const pageCount = n => Math.max(1, Math.ceil(n / PAGE_SIZE));
+
+    // Draws the rows for the current page into the two columns.
+    function renderPage() {
+      const leftCol  = document.getElementById('column-left');
+      const rightCol = document.getElementById('column-right');
+
+      if (!allRows.length) {
+        leftCol.innerHTML  = '';
+        rightCol.innerHTML = '';
+        return;
+      }
+
+      const start = pageIndex * PAGE_SIZE;
+      const page  = allRows.slice(start, start + PAGE_SIZE);
+      const half  = Math.ceil(page.length / 2);
+
+      leftCol.innerHTML  = page.slice(0, half).map(makeRow).join('');
+      rightCol.innerHTML = page.slice(half).map(makeRow).join('');
+
+      requestAnimationFrame(() =>
+        applyAlignedRowHeights(page.length, half, page.length - half)
+      );
+    }
+
+    // Fades the grid out, swaps to the next page, and fades back in.
+    function flipToNextPage() {
+      const grid = document.querySelector('.items-grid');
+      const total = pageCount(allRows.length);
+      pageIndex = (pageIndex + 1) % total;
+
+      grid.style.opacity = 0;
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(renderPage, FADE_MS);
+    }
+
+    function startCycle() {
+      clearInterval(pageTimer);
+      pageTimer = setInterval(flipToNextPage, PAGE_MS);
+    }
+
+    function renderRows(rows) {
+      allRows = rows;
+      // The list can shrink between polls, so keep the index in range.
+      if (pageIndex >= pageCount(allRows.length)) pageIndex = 0;
+      renderPage();
+    }
+
+    /* CONTROL TAB */
+    let closingFlashTimer   = null;
+    let closingFlashVisible = false;
+    let soldOverlayTimer    = null;
+    let lastSoldKey         = '';
+    let soldPrimed          = false;
+    const BANNER_ON_MS  = 10_000;
+    const BANNER_OFF_MS = 30_000;
+    const SOLD_DURATION = 7_000;
+
+    function setClosingBanner(on) {
+      document.getElementById('closing-banner').classList.toggle('active', on);
+    }
+
+    function runClosingFlash(enable) {
+      if (!enable) {
+        clearTimeout(closingFlashTimer); closingFlashTimer = null;
+        setClosingBanner(false); closingFlashVisible = false; return;
+      }
+      if (closingFlashTimer) return;
+      const tick = () => {
+        closingFlashVisible = !closingFlashVisible;
+        setClosingBanner(closingFlashVisible);
+        closingFlashTimer = setTimeout(tick, closingFlashVisible ? BANNER_ON_MS : BANNER_OFF_MS);
+      };
+      closingFlashVisible = true; setClosingBanner(true);
+      closingFlashTimer = setTimeout(tick, BANNER_ON_MS);
+    }
+
+    function showSoldOverlay(item, price) {
+      const key = `${item}::${price}`;
+      if (key === lastSoldKey) return;
+      lastSoldKey = key;
+      document.getElementById('sold-item-name').textContent = item;
+      document.getElementById('sold-price').textContent     = formatEuro(price);
+      document.getElementById('sold-overlay').classList.add('active');
+      startConfetti();
+      clearTimeout(soldOverlayTimer);
+      soldOverlayTimer = setTimeout(() => {
+        document.getElementById('sold-overlay').classList.remove('active');
+        stopConfetti();
+      }, SOLD_DURATION);
+    }
+
+    // Keys are matched on letters and digits only, so CLOSING_SOON,
+    // 'Closing Soon' and 'CLOSING  SOON' all resolve to the same signal.
+    const ctrlKey = v => String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const isOn    = v => ['ON','TRUE','YES','1'].includes(String(v ?? '').toUpperCase().trim());
+
+    let ctrlLastState = '';
+
+    function applyControl(rows) {
+      const ctrl = {};
+      rows.forEach(r => {
+        const k = ctrlKey(r[0]);
+        if (k) ctrl[k] = String(r[1] ?? '').trim();
+      });
+
+      const closingSoon   = isOn(ctrl['CLOSINGSOON']);
+      const auctionClosed = isOn(ctrl['AUCTIONCLOSED']);
+
+      const state = JSON.stringify(ctrl);
+      if (state !== ctrlLastState) {
+        ctrlLastState = state;
+        console.log('CONTROL read:', ctrl,
+          '| closingSoon =', closingSoon, '| auctionClosed =', auctionClosed);
+      }
+
+      if (auctionClosed) {
+        runClosingFlash(false);
+        document.getElementById('closed-banner').classList.add('active');
+      } else {
+        document.getElementById('closed-banner').classList.remove('active');
+        runClosingFlash(closingSoon);
+      }
+
+      const soldItem  = ctrl['SOLDITEM']  || '';
+      const soldPrice = ctrl['SOLDPRICE'] || '';
+      // First read: treat any sale already in CONTROL as seen, so a page load never replays it.
+      // Later reads: show only sales that appear or change while the page is open.
+      if (!soldPrimed) {
+        soldPrimed = true;
+        if (soldItem && soldPrice) lastSoldKey = `${soldItem}::${soldPrice}`;
+      } else if (soldItem && soldPrice) {
+        showSoldOverlay(soldItem, soldPrice);
+      }
+    }
+
+    /* CONFETTI */
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx    = canvas.getContext('2d');
+    let cP = [], cRaf = null;
+    const CC = ['#f6d58b','#f5c842','#e8a820','#fff3b0','#c8832a','#ffffff','#ffe57a','#ffd700'];
+
+    function startConfetti() {
+      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+      cP = Array.from({ length: 200 }, () => ({
+        x: Math.random() * canvas.width, y: -10 - Math.random() * 180,
+        r: 3 + Math.random() * 5, color: CC[Math.floor(Math.random() * CC.length)],
+        vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 3.5,
+        rot: Math.random() * 360, rotV: (Math.random() - 0.5) * 6,
+        shape: Math.random() > 0.5 ? 'rect' : 'circle',
+        w: 6 + Math.random() * 8, h: 3 + Math.random() * 5,
+        alpha: 0.85 + Math.random() * 0.15
+      }));
+      canvas.classList.add('active');
+      cancelAnimationFrame(cRaf);
+      const frame = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        cP.forEach(p => {
+          ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+          ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+          p.shape === 'rect'
+            ? ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h)
+            : (ctx.beginPath(), ctx.arc(0,0,p.r,0,Math.PI*2), ctx.fill());
+          ctx.restore();
+          p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.vy += 0.04; p.alpha -= 0.003;
+        });
+        cP = cP.filter(p => p.alpha > 0 && p.y < canvas.height + 20);
+        cRaf = cP.length ? requestAnimationFrame(frame) : (stopConfetti(), null);
+      };
+      cRaf = requestAnimationFrame(frame);
+    }
+
+    function stopConfetti() {
+      cancelAnimationFrame(cRaf); ctx.clearRect(0,0,canvas.width,canvas.height);
+      canvas.classList.remove('active'); cP = [];
+    }
+
+    /* MAIN LOOP
+       A bad poll is skipped: the rows already on screen stay put and the
+       next poll tries again. The carousel keeps cycling regardless. */
+    async function loadData() {
+      try {
+        const [bidsRows, ctrlRows] = await Promise.all([
+          fetchBids(),
+          fetchControl()
+        ]);
+
+        const validBids = bidsRows.filter(r => r[0] && r[0].trim() !== '');
+
+        if (validBids.length) {
+          renderRows(validBids);
+        } else {
+          console.warn('BIDS: poll returned no usable rows, keeping last known values.');
+        }
+
+        if (ctrlRows && ctrlRows.length) applyControl(ctrlRows);
+
+      } catch(e) {
+        console.warn('Load skipped:', e.message);
+      }
+    }
+
+    const reflow = () => {
+      const lc = document.getElementById('column-left').children.length;
+      const rc = document.getElementById('column-right').children.length;
+      if (lc && rc) requestAnimationFrame(() => applyAlignedRowHeights(lc+rc, lc, rc));
+    };
+    window.addEventListener('resize', reflow);
+    window.addEventListener('orientationchange', reflow);
+    document.addEventListener('fullscreenchange', reflow);
+
+    loadData();
+    setInterval(loadData, REFRESH_MS);
+    startCycle();
+  </script>
+</body>
+</html>
