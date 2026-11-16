@@ -503,7 +503,7 @@
       <div class="stat-num" id="waOutbidsSent">—</div>
       <div class="stat-lbl">WhatsApp outbid alerts</div>
     </div>
-    <div class="stat-cell">
+    <div class="stat-cell clickable" onclick="openWinnersModal()" title="Winner, mobile, WhatsApp status, table and email for every item with a winner notice sent">
       <div class="stat-num" id="waWinnersSent">—</div>
       <div class="stat-lbl">WhatsApp winner notices</div>
     </div>
@@ -652,6 +652,20 @@
       <button class="modal-x" onclick="closeModal('inboxModal')">&times;</button>
     </div>
     <div class="modal-body" id="inboxBody"><div class="empty">Loading...</div></div>
+  </div>
+</div>
+
+<!-- WHATSAPP WINNERS MODAL -->
+<div class="modal-back" id="winnersModal" onclick="if(event.target===this) closeModal('winnersModal')">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">🏆 WhatsApp winner notices</div>
+        <div class="modal-sub" id="winnersModalSub">&nbsp;</div>
+      </div>
+      <button class="modal-x" onclick="closeModal('winnersModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="winnersBody"><div class="empty">Loading...</div></div>
   </div>
 </div>
 
@@ -1202,6 +1216,66 @@
       .sort((a, b) => (Number(b.amount) - Number(a.amount)) || (a.ts - b.ts));
   }
 
+  /* ══════════════════════════════════════════════════════════
+     WHATSAPP WINNERS MODAL
+     One row per winning bid that has had its winner notice sent
+     (b.waSent / b.waStatus, same fields the All Bids ticks use).
+     Table number and email are not yet part of the bid objects
+     getDashboard returns — computeAllBids_ in Code.gs needs a
+     TABLE_NUMBER and an email column added before these two
+     columns will show anything but a dash. Everything else here
+     (item, name, mobile, WhatsApp status) already works.
+     ══════════════════════════════════════════════════════════ */
+  function openWinnersModal() {
+    renderWinnersModal();
+    openModal("winnersModal");
+  }
+
+  function renderWinnersModal() {
+    const rows = [];
+    allItems.forEach(it => {
+      const winIds = new Set(it.winnerBidIds || []);
+      if (!winIds.size) return;
+      bidsForItem(it.itemNumber).forEach(b => {
+        if (winIds.has(b.bidId) && b.waSent) rows.push(b);
+      });
+    });
+
+    document.getElementById("winnersModalSub").textContent =
+      rows.length + (rows.length === 1 ? " winner notice sent" : " winner notices sent");
+
+    if (!rows.length) {
+      document.getElementById("winnersBody").innerHTML =
+        '<div class="empty">No winner notices have gone out yet.</div>';
+      return;
+    }
+
+    document.getElementById("winnersBody").innerHTML = `
+      <table class="pa-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Winner name</th>
+            <th>Mobile</th>
+            <th>WhatsApp status</th>
+            <th>Table</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(b => `
+            <tr>
+              <td>${escHtml(b.item)}${b.desc ? ` <span class="t-mobile">${escHtml(b.desc)}</span>` : ""}</td>
+              <td>${escHtml(b.name) || "—"}</td>
+              <td>${escHtml(b.mobile) || "—"}</td>
+              <td>${waCell(b)}</td>
+              <td class="${b.table ? "" : "pa-miss"}">${escHtml(b.table) || "missing"}</td>
+              <td class="${b.email ? "" : "pa-miss"}">${escHtml(b.email) || "missing"}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
   /**
    * Two situations on a multi winner lot that the chairman has to be told
    * about before the announcement, because the system will never tell the
@@ -1484,7 +1558,7 @@ function toggleExpandLabel() {
 
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    ["inboxModal", "healthModal", "chartModal", "accountantModal"].forEach(closeModal);
+    ["inboxModal", "healthModal", "chartModal", "accountantModal", "winnersModal"].forEach(closeModal);
   });
 
   function openHealth() { renderHealth(); openModal("healthModal"); }
@@ -1789,6 +1863,7 @@ function toggleExpandLabel() {
               <th class="pa-num">Winning price</th>
               <th>Winner name</th>
               <th>Mobile</th>
+              <th>Table</th>
               <th>Email</th>
               <th class="pa-paid">Paid</th>
               <th>Notes</th>
@@ -1801,6 +1876,7 @@ function toggleExpandLabel() {
                 <td class="pa-num">${euro(r.price)}</td>
                 <td class="${r.name ? "" : "pa-miss"}">${escHtml(r.name) || "missing"}</td>
                 <td class="${r.mobile ? "" : "pa-miss"}">${escHtml(r.mobile) || "missing"}</td>
+                <td>${escHtml(r.table) || "—"}</td>
                 <td>${escHtml(r.email)}</td>
                 <td class="pa-paid">&#9744;</td>
                 <td class="pa-notes"></td>
@@ -1810,7 +1886,7 @@ function toggleExpandLabel() {
             <tr>
               <td><b>Total</b></td>
               <td class="pa-num"><b>${euro(total)}</b></td>
-              <td colspan="5"></td>
+              <td colspan="6"></td>
             </tr>
           </tfoot>
         </table>
