@@ -230,23 +230,33 @@
 
     /* WHATSAPP WINNERS MODAL — a dark-themed table, distinct from
        .pa-table which is deliberately print-ready (black on white). */
-    .wn-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    .wn-table th { text-align: center; padding: 10px 14px; background: var(--s4); color: var(--gold-lt);
+    .wn-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 0.78rem; }
+    .wn-table th { text-align: center; padding: 8px 14px; background: var(--s4); color: var(--gold-lt);
                    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 800;
-                   border-bottom: 1px solid var(--border); white-space: nowrap; }
-    .wn-table td { padding: 10px 14px; border-bottom: 0.5px solid rgba(58,80,128,0.35); color: var(--white);
-                   vertical-align: middle; text-align: center; }
-    .wn-table td:first-child { text-align: left; }
-    .wn-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
-    .wn-table tbody tr:hover td { background: rgba(201,151,63,0.07); }
-    .wn-item  { font-weight: 800; color: var(--gold-lt); }
-    .wn-desc  { color: var(--dim); font-size: 0.72rem; margin-top: 1px; }
+                   white-space: nowrap; }
+    .wn-table th:first-child { border-radius: 8px 0 0 8px; text-align: left; }
+    .wn-table th:last-child  { border-radius: 0 8px 8px 0; }
+    /* Each row is its own card, with a coloured edge for where the win came from. */
+    .wn-table td { padding: 12px 14px; background: var(--s3); color: var(--white); vertical-align: middle;
+                   text-align: center; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .wn-table td:first-child { text-align: left; border-left: 4px solid var(--blue); border-radius: 8px 0 0 8px; }
+    .wn-table td:last-child  { border-right: 0.5px solid var(--border); border-radius: 0 8px 8px 0; }
+    .wn-table tr.wn-live td:first-child { border-left-color: var(--gold); }
+    .wn-table tbody tr:hover td { background: var(--s2); }
+    .wn-item  { display: block; font-weight: 800; color: var(--gold-lt); }
+    .wn-desc  { display: block; color: var(--dim); font-size: 0.72rem; margin-top: 2px; }
     .wn-mobile { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .wn-table .pa-miss { color: var(--muted); opacity: 0.6; font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; }
     .wn-pill  { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px;
                 background: rgba(201,151,63,0.16); color: var(--gold-lt); border: 0.5px solid var(--gold); }
+    .wn-src   { display: inline-block; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+                padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+    .wn-src.live   { background: rgba(201,151,63,0.16); color: var(--gold-lt); border: 0.5px solid var(--gold); }
+    .wn-src.silent { background: rgba(96,165,250,0.14); color: #93c5fd; border: 0.5px solid rgba(96,165,250,0.5); }
     .wn-status { font-size: 0.74rem; color: var(--dim); }
     .wn-status .wn-at { display: block; font-size: 0.64rem; color: var(--muted); margin-top: 2px; }
+    .wn-status.ok   { color: var(--green); }
+    .wn-status.warn { color: #fdba74; }
+    .wn-send { padding: 5px 14px; flex: 0 0 auto; }
 
     .lb-bid-row.tied { background: rgba(251,146,60,0.10); box-shadow: inset 3px 0 0 #c2410c; }
     .lb-bid-row.tied .lb-b-name { color: #fdba74; font-weight: 700; }
@@ -623,7 +633,7 @@
           <div class="pill pill-off" id="bannerPill"><span class="pill-dot"></span><span id="bannerPillLabel">Loading...</span></div>
           <div class="btn-row">
             <button class="btn btn-gold"  id="btnBannerOn"  onclick="doBannerAction('on')"  disabled>Activate</button>
-            <button class="btn btn-ghost" id="btnBannerOff" onclick="doBannerAction('off')" disabled>Deactivate</button>
+            <button class="btn btn-red-soft" id="btnBannerOff" onclick="doBannerAction('off')" disabled>Deactivate</button>
           </div>
         </div>
       </div>
@@ -677,13 +687,16 @@
 
 <!-- WHATSAPP WINNERS MODAL -->
 <div class="modal-back" id="winnersModal" onclick="if(event.target===this) closeModal('winnersModal')">
-  <div class="modal" style="max-width:900px;">
+  <div class="modal" style="max-width:1180px;">
     <div class="modal-hdr">
       <div>
         <div class="modal-title">🏆 WhatsApp winner notices</div>
         <div class="modal-sub" id="winnersModalSub">&nbsp;</div>
       </div>
-      <button class="modal-x" onclick="closeModal('winnersModal')">&times;</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-gold" id="btnSendAllWinners" style="flex:0 0 auto;padding:7px 16px;" onclick="sendWinnerNotices(null)" disabled>Send all unsent</button>
+        <button class="modal-x" onclick="closeModal('winnersModal')">&times;</button>
+      </div>
     </div>
     <div class="modal-body" id="winnersBody"><div class="empty">Loading...</div></div>
   </div>
@@ -866,7 +879,7 @@
      ══════════════════════════════════════════════════════════ */
   async function loadDashboard() {
     try {
-      const r = await api({ action: "getDashboard" });
+      const r = await api({ action: "getDashboard", secret: ADMIN_SECRET });
       const d = r.data || {};
 
       if (d.control && d.control.ok) {
@@ -905,6 +918,7 @@
         detectSpotlight();
         renderItems();
         applyBidFilter(false);   // the winning-only filter depends on winningIds
+        if (document.getElementById("winnersModal").classList.contains("show")) renderWinnersModal();
       }
 
       document.getElementById("syncLabel").textContent = "Synced " + new Date().toLocaleTimeString("en-IE");
@@ -924,7 +938,7 @@
 
   async function loadSide() {
     try {
-      const r = await api({ action: "getInbox", limit: 30 });
+      const r = await api({ action: "getInbox", limit: 30, secret: ADMIN_SECRET });
       inboxData = r.data || { messages: [], count: 0 };
       bump("inboxCount", inboxData.count || 0);
       const note = document.getElementById("inboxNote");
@@ -935,7 +949,7 @@
     }
 
     try {
-      const r = await api({ action: "getPollerStatus" });
+      const r = await api({ action: "getPollerStatus", secret: ADMIN_SECRET });
       pollerInfo = r.data || null;
     } catch (err) {
       pollerInfo = null;
@@ -1251,6 +1265,21 @@
     openModal("winnersModal");
   }
 
+  // Why a winner can or cannot be sent a notice right now. Mirrors the
+  // tests the poller and queueWinnerNotices_ apply, so the button is only
+  // offered where a send will actually happen.
+  function winnerState(b) {
+    if (b.winnerSent) {
+      const st = String(b.winnerStatus || "").toLowerCase();
+      const word = st === "read" ? "Read" : st === "delivered" ? "Delivered" : st === "failed" ? "Failed" : "Sent";
+      return { word, cls: st === "failed" ? "warn" : "ok", can: false, at: b.winnerAt };
+    }
+    if (b.winnerQueued)                         return { word: "Queued", cls: "", can: false };
+    if (b.optIn !== "YES" && b.optIn !== "TRUE") return { word: "No consent", cls: "warn", can: false };
+    if (!b.mobile)                              return { word: "No mobile", cls: "warn", can: false };
+    return { word: "Not sent", cls: "", can: true };
+  }
+
   function renderWinnersModal() {
     const rows = [];
     const auctionClosed = state.auctionClosed === true;
@@ -1262,18 +1291,22 @@
       const winIds = new Set(it.winnerBidIds || []);
       if (!winIds.size) return;
       bidsForItem(it.itemNumber).forEach(b => {
-        if (winIds.has(b.bidId) && b.waSent) rows.push(b);
+        if (winIds.has(b.bidId)) rows.push(b);
       });
     });
 
+    const notified = rows.filter(b => b.winnerSent).length;
+    const sendable = rows.filter(b => winnerState(b).can);
     document.getElementById("winnersModalSub").textContent =
-      rows.length + (rows.length === 1 ? " winner notice sent" : " winner notices sent");
+      rows.length + (rows.length === 1 ? " winner" : " winners") + " · " + notified + " notified";
+
+    const allBtn = document.getElementById("btnSendAllWinners");
+    allBtn.disabled = !sendable.length || winnersBusy;
+    allBtn.textContent = sendable.length ? "Send all unsent (" + sendable.length + ")" : "Send all unsent";
 
     if (!rows.length) {
       document.getElementById("winnersBody").innerHTML =
-        `<div class="empty">${auctionClosed
-          ? "No winner notices have gone out yet."
-          : "Nothing to show yet. Items appear here once marked sold, or once the auction is closed."}</div>`;
+        '<div class="empty">Nothing to show yet. Items appear here once marked sold, or once the auction is closed.</div>';
       return;
     }
 
@@ -1282,33 +1315,69 @@
         <thead>
           <tr>
             <th>Item</th>
+            <th>Source</th>
             <th>Winner name</th>
             <th>Mobile</th>
             <th>WhatsApp status</th>
             <th>Table</th>
             <th>Email</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           ${rows.map(b => {
-            const status = String(b.waStatus || "").toLowerCase();
-            const statusWord = status === "read"      ? "Read"
-                              : status === "delivered" ? "Delivered"
-                              : status === "sent"       ? "Sent"
-                              : b.waSent ? "Sent" : "—";
-            const atHtml = b.waStatusAt
-              ? `<span class="wn-at">${timeOf(b.waStatusAt)}</span>` : "";
+            const ws = winnerState(b);
+            const live = b.source === "LIVE";
+            const atHtml = ws.at ? `<span class="wn-at">${timeOf(ws.at)}</span>` : "";
             return `
-            <tr>
+            <tr class="${live ? "wn-live" : "wn-silent"}">
               <td><span class="wn-item">${escHtml(b.item)}</span>${b.desc ? `<span class="wn-desc">${escHtml(b.desc)}</span>` : ""}</td>
+              <td><span class="wn-src ${live ? "live" : "silent"}">${live ? "Live auction" : "Silent auction"}</span></td>
               <td>${escHtml(b.name) || "—"}</td>
               <td class="wn-mobile">${escHtml(b.mobile) || "—"}</td>
-              <td><span class="wn-status">${statusWord}${atHtml}</span></td>
+              <td><span class="wn-status ${ws.cls}">${ws.word}${atHtml}</span></td>
               <td>${b.table ? `<span class="wn-pill">${escHtml(b.table)}</span>` : ""}</td>
               <td>${escHtml(b.email)}</td>
+              <td>${ws.can ? `<button class="btn btn-gold wn-send" ${winnersBusy ? "disabled" : ""} onclick="sendWinnerNotices(['${escAttr(b.bidId)}'])">Send</button>` : ""}</td>
             </tr>`; }).join("")}
         </tbody>
       </table>`;
+  }
+
+  let winnersBusy = false;
+
+  // bidIds null means every winner currently showing a Send button.
+  async function sendWinnerNotices(bidIds) {
+    const ids = bidIds || allItems.flatMap(it => {
+      if (state.auctionClosed !== true && !it.isSold) return [];
+      const win = new Set(it.winnerBidIds || []);
+      return bidsForItem(it.itemNumber).filter(b => win.has(b.bidId) && winnerState(b).can).map(b => b.bidId);
+    });
+    if (!ids.length) return;
+
+    let msg = "Send the winner WhatsApp to " + ids.length + (ids.length === 1 ? " winner" : " winners") +
+              "?\n\nThis messages real guests telling them they have won. It cannot be recalled." +
+              "\n\nThe message goes out within about a minute.";
+    if (state.waOn === false) msg += "\n\nWhatsApp sending is currently OFF. These will be queued but nothing will send until you turn it on.";
+    if (!confirm(msg)) return;
+
+    winnersBusy = true; renderWinnersModal();
+    try {
+      const r = await api({ action: "queueWinnerNotices", secret: ADMIN_SECRET, bidIds: ids });
+      const d = r.data || {};
+      const skipped = (d.results || []).filter(x => x.outcome !== "queued");
+      if (skipped.length) {
+        toast(d.queued + " queued. " + skipped.length + " skipped: " +
+              skipped.slice(0, 3).map(x => x.outcome).join(", ") + (skipped.length > 3 ? "…" : ""), "warn");
+      } else {
+        toast(d.queued + (d.queued === 1 ? " winner notice queued." : " winner notices queued."), "success");
+      }
+      await loadDashboard();
+    } catch (err) {
+      toast("Failed: " + err.message, "error");
+    } finally {
+      winnersBusy = false; renderWinnersModal();
+    }
   }
 
   /**
