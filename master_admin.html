@@ -257,6 +257,9 @@
     .wn-status.ok   { color: var(--green); }
     .wn-status.warn { color: #fdba74; }
     .wn-send { padding: 5px 14px; flex: 0 0 auto; }
+    .wn-amt  { font-weight: 800; color: var(--green); white-space: nowrap; }
+    .wn-filter { display: flex; gap: 18px; padding: 2px 4px 8px; }
+    .wn-filter .filter-toggle { font-size: 0.72rem; }
 
     .lb-bid-row.tied { background: rgba(251,146,60,0.10); box-shadow: inset 3px 0 0 #c2410c; }
     .lb-bid-row.tied .lb-b-name { color: #fdba74; font-weight: 700; }
@@ -1280,7 +1283,12 @@
     return { word: "Not sent", cls: "", can: true };
   }
 
-  function renderWinnersModal() {
+  let winnersFilter = "all";   // all | sent | unsent
+
+  function setWinnersFilter(v) { winnersFilter = v; renderWinnersModal(); }
+
+  // Every winner currently eligible to appear, before the Sent/Unsent filter.
+  function winnerRowsAll() {
     const rows = [];
     const auctionClosed = state.auctionClosed === true;
     allItems.forEach(it => {
@@ -1294,29 +1302,65 @@
         if (winIds.has(b.bidId)) rows.push(b);
       });
     });
+    return rows;
+  }
 
-    const notified = rows.filter(b => b.winnerSent).length;
+  function winnerRowsShown() {
+    return winnerRowsAll().filter(b =>
+      winnersFilter === "sent" ? b.winnerSent : winnersFilter === "unsent" ? !b.winnerSent : true);
+  }
+
+  function bidPlacedText(b) {
+    const e = realEpoch(b.ts);
+    if (isNaN(e)) return b.time || "";
+    const d = new Date(e);
+    return d.toLocaleDateString("en-IE", { day: "numeric", month: "short" }) + " " +
+           d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  }
+
+  function renderWinnersModal() {
+    const all      = winnerRowsAll();
+    const rows     = winnerRowsShown();
+    const notified = all.filter(b => b.winnerSent).length;
     const sendable = rows.filter(b => winnerState(b).can);
     document.getElementById("winnersModalSub").textContent =
-      rows.length + (rows.length === 1 ? " winner" : " winners") + " · " + notified + " notified";
+      all.length + (all.length === 1 ? " winner" : " winners") + " · " + notified + " notified";
 
     const allBtn = document.getElementById("btnSendAllWinners");
     allBtn.disabled = !sendable.length || winnersBusy;
     allBtn.textContent = sendable.length ? "Send all unsent (" + sendable.length + ")" : "Send all unsent";
 
-    if (!rows.length) {
+    const opt = (v, label, n) => `
+      <label class="filter-toggle ${winnersFilter === v ? "on" : ""}">
+        <input type="radio" name="wnFilter" ${winnersFilter === v ? "checked" : ""} onchange="setWinnersFilter('${v}')" />
+        ${label} (${n})
+      </label>`;
+    const filterBar = `
+      <div class="wn-filter">
+        ${opt("all",    "All",    all.length)}
+        ${opt("sent",   "Sent",   notified)}
+        ${opt("unsent", "Unsent", all.length - notified)}
+      </div>`;
+
+    if (!all.length) {
       document.getElementById("winnersBody").innerHTML =
         '<div class="empty">Nothing to show yet. Items appear here once marked sold, or once the auction is closed.</div>';
       return;
     }
-
-    document.getElementById("winnersBody").innerHTML = `
+    if (!rows.length) {
+      document.getElementById("winnersBody").innerHTML = filterBar +
+        '<div class="empty">No winners match this filter.</div>';
+      return;
+    }
+    document.getElementById("winnersBody").innerHTML = filterBar + `
       <table class="wn-table">
         <thead>
           <tr>
             <th>Item</th>
             <th>Source</th>
             <th>Winner name</th>
+            <th>Winning bid</th>
+            <th>Bid placed</th>
             <th>Mobile</th>
             <th>WhatsApp status</th>
             <th>Table</th>
@@ -1334,6 +1378,8 @@
               <td><span class="wn-item">${escHtml(b.item)}</span>${b.desc ? `<span class="wn-desc">${escHtml(b.desc)}</span>` : ""}</td>
               <td><span class="wn-src ${live ? "live" : "silent"}">${live ? "Live auction" : "Silent auction"}</span></td>
               <td>${escHtml(b.name) || "—"}</td>
+              <td class="wn-amt">${euro(b.amount)}</td>
+              <td class="wn-mobile">${escHtml(bidPlacedText(b))}</td>
               <td class="wn-mobile">${escHtml(b.mobile) || "—"}</td>
               <td><span class="wn-status ${ws.cls}">${ws.word}${atHtml}</span></td>
               <td>${b.table ? `<span class="wn-pill">${escHtml(b.table)}</span>` : ""}</td>
@@ -1348,11 +1394,7 @@
 
   // bidIds null means every winner currently showing a Send button.
   async function sendWinnerNotices(bidIds) {
-    const ids = bidIds || allItems.flatMap(it => {
-      if (state.auctionClosed !== true && !it.isSold) return [];
-      const win = new Set(it.winnerBidIds || []);
-      return bidsForItem(it.itemNumber).filter(b => win.has(b.bidId) && winnerState(b).can).map(b => b.bidId);
-    });
+    const ids = bidIds || winnerRowsShown().filter(b => winnerState(b).can).map(b => b.bidId);
     if (!ids.length) return;
 
     let msg = "Send the winner WhatsApp to " + ids.length + (ids.length === 1 ? " winner" : " winners") +
