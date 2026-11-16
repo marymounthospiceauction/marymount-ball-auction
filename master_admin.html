@@ -228,6 +228,24 @@
     .lb-joint b   { color: #fff; font-weight: 800; }
     .lb-joint + .lb-target { border-top: none; }
 
+    /* WHATSAPP WINNERS MODAL — a dark-themed table, distinct from
+       .pa-table which is deliberately print-ready (black on white). */
+    .wn-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .wn-table th { text-align: left; padding: 10px 14px; background: var(--s4); color: var(--gold-lt);
+                   font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 800;
+                   border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .wn-table td { padding: 10px 14px; border-bottom: 0.5px solid rgba(58,80,128,0.35); color: var(--white);
+                   vertical-align: middle; }
+    .wn-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
+    .wn-table tbody tr:hover td { background: rgba(201,151,63,0.07); }
+    .wn-item  { font-weight: 800; color: var(--gold-lt); }
+    .wn-desc  { color: var(--dim); font-size: 0.72rem; margin-top: 1px; }
+    .wn-mobile { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .wn-table .pa-miss { color: var(--muted); opacity: 0.6; font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; }
+    .wn-pill  { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+                background: rgba(201,151,63,0.16); color: var(--gold-lt); border: 0.5px solid var(--gold); }
+    .wn-at    { display: block; font-size: 0.64rem; color: var(--muted); margin-top: 2px; }
+
     .lb-bid-row.tied { background: rgba(251,146,60,0.10); box-shadow: inset 3px 0 0 #c2410c; }
     .lb-bid-row.tied .lb-b-name { color: #fdba74; font-weight: 700; }
     .tiedtag { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
@@ -1233,7 +1251,12 @@
 
   function renderWinnersModal() {
     const rows = [];
+    const auctionClosed = state.auctionClosed === true;
     allItems.forEach(it => {
+      // Before the auction closes, a winner is only shown here once the
+      // item itself is marked sold. Once the auction is closed, every
+      // item's winner is fair game regardless of its sold flag.
+      if (!auctionClosed && !it.isSold) return;
       const winIds = new Set(it.winnerBidIds || []);
       if (!winIds.size) return;
       bidsForItem(it.itemNumber).forEach(b => {
@@ -1246,32 +1269,43 @@
 
     if (!rows.length) {
       document.getElementById("winnersBody").innerHTML =
-        '<div class="empty">No winner notices have gone out yet.</div>';
+        `<div class="empty">${auctionClosed
+          ? "No winner notices have gone out yet."
+          : "Nothing to show yet. Items appear here once marked sold, or once the auction is closed."}</div>`;
       return;
     }
 
     document.getElementById("winnersBody").innerHTML = `
-      <table class="pa-table">
+      <table class="wn-table">
         <thead>
           <tr>
             <th>Item</th>
             <th>Winner name</th>
             <th>Mobile</th>
-            <th>WhatsApp status</th>
+            <th>WhatsApp</th>
+            <th>Delivered / read</th>
             <th>Table</th>
             <th>Email</th>
           </tr>
         </thead>
         <tbody>
-          ${rows.map(b => `
+          ${rows.map(b => {
+            const status = String(b.waStatus || "").toLowerCase();
+            const atLabel = status === "read"      ? "Read at"
+                          : status === "delivered" ? "Delivered at"
+                          : status === "sent"       ? "Sent at"
+                          : "";
+            const atHtml = atLabel && b.waStatusAt
+              ? `<span class="wn-at">${atLabel} ${timeOf(b.waStatusAt)}</span>` : "";
+            return `
             <tr>
-              <td>${escHtml(b.item)}${b.desc ? ` <span class="t-mobile">${escHtml(b.desc)}</span>` : ""}</td>
+              <td><span class="wn-item">${escHtml(b.item)}</span>${b.desc ? `<span class="wn-desc">${escHtml(b.desc)}</span>` : ""}</td>
               <td>${escHtml(b.name) || "—"}</td>
-              <td>${escHtml(b.mobile) || "—"}</td>
-              <td>${waCell(b)}</td>
-              <td class="${b.table ? "" : "pa-miss"}">${escHtml(b.table) || "missing"}</td>
+              <td class="wn-mobile">${escHtml(b.mobile) || "—"}</td>
+              <td>${waCell(b)}${atHtml}</td>
+              <td>${b.table ? `<span class="wn-pill">${escHtml(b.table)}</span>` : '<span class="pa-miss">missing</span>'}</td>
               <td class="${b.email ? "" : "pa-miss"}">${escHtml(b.email) || "missing"}</td>
-            </tr>`).join("")}
+            </tr>`; }).join("")}
         </tbody>
       </table>`;
   }
