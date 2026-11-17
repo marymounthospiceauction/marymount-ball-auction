@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   LIVE BIDS CAROUSEL
-  Change LINE 469
+
   Rows per page: add ?perPage=N to the end of the URL.
     ?perPage=23   two pages for 45 items (default)
     ?perPage=15   three pages
@@ -105,7 +105,7 @@
 
     .item-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(7ch, 9ch) max-content;
+      grid-template-columns: minmax(0, 1fr) calc(var(--rowH) * 2.2) max-content;
       align-items: center;
       height: var(--rowH);
       background: rgba(0,0,0,0.9);
@@ -193,7 +193,8 @@
       text-align: center;
       color: var(--red);
       font-weight: 800;
-      font-size: clamp(12px, calc(var(--rowH) * 0.46), 28px);
+      font-size: clamp(11px, calc(var(--rowH) * 0.34), 20px);
+      white-space: nowrap;
       letter-spacing: 0.02em;
     }
 
@@ -240,6 +241,7 @@
     }
 
     .footer-block {
+      margin-bottom: 1.5vh;
       display: flex;
       flex-direction: column;
       align-items: center;
