@@ -437,7 +437,7 @@
               <div id="itemCardName" class="item-card-name"></div>
               <div class="item-card-grid">
                 <div class="item-card-column">
-                  <div class="item-card-column-label">Current Leading Bid</div>
+                  <div id="itemCardBidLabel" class="item-card-column-label">Current Leading Bid</div>
                   <div id="itemCardBid" class="item-card-column-value item-card-bid"></div>
                 </div>
               </div>
@@ -534,7 +534,19 @@ Marymount Ball Committee</div>
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
     const LEADING_BIDS_URL = "https://marymountauction2026.ie/";
-    const MOBILE_ERROR_MESSAGE = "Irish: 08xxxxxxxx (10 digits), 00353xxxxxxxxx or +353xxxxxxxxx (12-14 digits). UK: 0044xxxxxxxxxx (14 digits) or +44xxxxxxxxxx (12 digits).";
+    // Same wording as MOBILE_FORMAT_MESSAGE in the Apps Script. It must
+    // contain "mobile" so errors from either side land under the mobile field.
+    const MOBILE_ERROR_MESSAGE = "Please check your mobile number. Use an Irish number like 087 123 4567 or +353 87 123 4567, or a UK number like +44 7911 123456.";
+
+    // Shown when a bid was sent but no clear answer came back, so it may or
+    // may not have been saved. Must not contain "closed" or "mobile".
+    const BID_UNCONFIRMED_MESSAGE = "We could not confirm your bid. Please check the leading bids before trying again, or ask at the auction desk.";
+    const CONNECTION_MESSAGE = "We could not connect. Please check your signal and refresh the page.";
+
+    // Longer than the server's 20 second wait for the bid lock plus its own work.
+    const REQUEST_TIMEOUT_MS = 45000;
+    // After this long, the Submit button tells the guest to keep waiting.
+    const SLOW_SUBMIT_MS = 6000;
     const DEFAULT_SUCCESS_MESSAGE = `Thank you for your bid.
 
 If you entered your correct phone number, you will shortly receive a WhatsApp message with confirmation of your bid.
@@ -655,7 +667,10 @@ Marymount Ball Committee`;
         option.value = row.item;
         option.textContent = row.item;
         option.dataset.itemNumber = row.itemNumber || "";
-        
+        // The SETTINGS row of this lot, sent back with the bid so ITEM 04
+        // and ITEM 07, which have several lots, resolve to the right one.
+        option.dataset.rowId = row.rowId || "";
+
         option.dataset.currentLeadingBid = row.minimumBid || 0;
         option.dataset.winnerCount = row.winnerCount || 1;
 
@@ -693,7 +708,11 @@ Marymount Ball Committee`;
           document.getElementById("itemCardMode").style.display = "block";
           document.getElementById("itemCardLabel").textContent = itemLabel;
           document.getElementById("itemCardName").textContent = description;
-          document.getElementById("itemCardBid").textContent = formatEuro(leadingBid);
+          const winnerCount = Number(selected.dataset.winnerCount || 1);
+          document.getElementById("itemCardBidLabel").textContent =
+            winnerCount > 1 ? "Minimum To Win (Top " + winnerCount + ")" : "Current Leading Bid";
+          document.getElementById("itemCardBid").textContent =
+            leadingBid > 0 ? formatEuro(leadingBid) : (winnerCount > 1 ? "Any bid" : "No bids yet");
           
           itemEl.dataset.currentLeadingBid = leadingBid;
           itemEl.dataset.winnerCount = selected.dataset.winnerCount || 1;
@@ -853,26 +872,46 @@ Marymount Ball Committee`;
       return true;
     }
 
-   async function apiRequest(payload) {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
+    /**
+     * Calls the Apps Script. Only a JSON reply from the script counts as
+     * an answer.
+     *
+     * Google returns an HTML error page, sometimes with status 200, when
+     * the script fails or is overloaded. The old version treated that as
+     * a successful bid, so a guest could see "Bid Received" for a bid
+     * that was never saved. Now a bid with no clear answer, a dropped
+     * connection or a timeout tells the guest to check before bidding
+     * again, because the bid may or may not have landed.
+     */
+    async function apiRequest(payload) {
+      const isBid = payload.action === "submitBid";
+      const failMessage = isBid ? BID_UNCONFIRMED_MESSAGE : CONNECTION_MESSAGE;
 
-      const text = await res.text();
-      let json;
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : null;
 
+      let text;
       try {
-        json = JSON.parse(text);
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+          signal: controller ? controller.signal : undefined
+        });
+        text = await res.text();
       } catch (e) {
-        if (res.ok && payload.action === "submitBid") {
-          return { ok: true, message: "Bid received" };
-        }
-        throw new Error("Could not connect to the server. Please try again.");
+        throw new Error(failMessage);
+      } finally {
+        if (timer) clearTimeout(timer);
       }
 
-      return json;
+      try {
+        const json = JSON.parse(text);
+        if (!json || typeof json.ok !== "boolean") throw new Error("no ok field");
+        return json;
+      } catch (e) {
+        throw new Error(failMessage);
+      }
     }
 
     async function loadItemsAndPrefill() {
@@ -894,6 +933,8 @@ Marymount Ball Committee`;
       const prefill = data.prefill || {};
 
       buildItemDropdown(items, prefill.item || "", prefill.itemNumber || "");
+
+      if (data.notice) showError(itemErrorEl, data.notice);
 
       // option.selected above does not fire onchange, so the card and the
       // minimum bid would both be missing for anyone arriving on an
@@ -992,16 +1033,24 @@ Marymount Ball Committee`;
       submitBtnEl.disabled = true;
       submitBtnEl.textContent = "Submitting...";
 
+      // A busy moment can take several seconds. Tell the guest to wait
+      // rather than leave or tap again.
+      const slowTimer = setTimeout(() => {
+        submitBtnEl.textContent = "Still sending, please keep this page open...";
+      }, SLOW_SUBMIT_MS);
+
       try {
         const cleanBidAmount = getCleanBidAmount();
         const wantsWhatsApp = consentCheckboxEl.checked;
         const cleanMobileNumber = normalizeMobileNumber(mobileNumberEl.value);
+        const selectedOption = itemEl.options[itemEl.selectedIndex];
 
         const result = await apiRequest({
           action: "submitBid",
           token: tokenEl.value,
           item: itemEl.value,
           itemNumber: itemNumberEl.value,
+          rowId: selectedOption ? (selectedOption.dataset.rowId || "") : "",
           bidAmount: cleanBidAmount,
           yourName: yourNameEl.value,
           mobileNumber: cleanMobileNumber,
@@ -1036,6 +1085,7 @@ Marymount Ball Committee`;
 
         showBidError(error.message || "Your bid could not be submitted.");
       } finally {
+        clearTimeout(slowTimer);
         submitBtnEl.disabled = false;
         submitBtnEl.textContent = "Submit Bid";
       }
