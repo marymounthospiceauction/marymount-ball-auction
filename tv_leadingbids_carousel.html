@@ -3,7 +3,8 @@
   LIVE BIDS CAROUSEL
 
   Rows per page: add ?perPage=N to the end of the URL.
-    ?perPage=23   two pages for 45 items (default)
+    ?perPage=24   two pages for 47 items (default)
+    ?perPage=23   two pages for 45 items
     ?perPage=15   three pages
     ?perPage=45   one page
 
@@ -464,11 +465,11 @@
 
   <script>
     /* CAROUSEL SETTINGS
-       PAGE_SIZE: rows per page, set with ?perPage=N in the URL (default 23).
+       PAGE_SIZE: rows per page, set with ?perPage=N in the URL (default 24, two pages for 47 items).
        PAGE_MS:   time each page stays on screen before the next one.
        FADE_MS:   fade time between pages.
        Items keep their sheet order. LIVE items stay in their normal position. */
-    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 23);
+    const PAGE_SIZE = Math.max(1, parseInt(new URLSearchParams(location.search).get('perPage'), 10) || 24);
     const PAGE_MS   = 15000;
     const FADE_MS   = 300;
 
