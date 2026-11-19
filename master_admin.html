@@ -1902,10 +1902,9 @@ function toggleExpandLabel() {
                       " · 10 minute buckets";
 
     stats.innerHTML = `
-      <div class="cs-cell"><div class="cs-num">${data.total}</div><div class="cs-lbl">Bids with a time</div></div>
-      <div class="cs-cell"><div class="cs-num">${busiest.count}</div><div class="cs-lbl">Busiest 10 min</div></div>
-      <div class="cs-cell"><div class="cs-num">${timeOf(new Date(busiest.t).toISOString())}</div><div class="cs-lbl">Busiest window</div></div>
-      <div class="cs-cell"><div class="cs-num">${data.minCount}</div><div class="cs-lbl">Most in one minute (${timeOf(new Date(data.minAt).toISOString())})</div></div>`;
+      <div class="cs-cell"><div class="cs-num">${data.total}</div><div class="cs-lbl">Total bids</div></div>
+      <div class="cs-cell"><div class="cs-num">${busiest.count}</div><div class="cs-lbl">Busiest 10 min (${timeOf(new Date(busiest.t).toISOString())} to ${timeOf(new Date(busiest.t + 600000).toISOString())})</div></div>
+            <div class="cs-cell"><div class="cs-num">${data.minCount}</div><div class="cs-lbl">Most in one minute (${timeOf(new Date(data.minAt).toISOString())})</div></div>`;
   }
 
   window.addEventListener("resize", () => {
