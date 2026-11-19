@@ -1774,7 +1774,13 @@ function toggleExpandLabel() {
     let run = 0;
     buckets.forEach(b => { run += b.count; b.cum = run; });
 
-    return { buckets: buckets, first: stamps[0], last: stamps[stamps.length - 1], total: stamps.length };
+    // Busiest single minute, from real timestamps only.
+    const perMin = {};
+    stamps.forEach(s => { const m = Math.floor(s / 60000); perMin[m] = (perMin[m] || 0) + 1; });
+    let minCount = 0, minAt = stamps[0];
+    Object.keys(perMin).forEach(k => { if (perMin[k] > minCount) { minCount = perMin[k]; minAt = Number(k) * 60000; } });
+
+    return { buckets: buckets, first: stamps[0], last: stamps[stamps.length - 1], total: stamps.length, minCount: minCount, minAt: minAt };
   }
 
   function drawChart() {
@@ -1890,7 +1896,6 @@ function toggleExpandLabel() {
     // Summary
     const spanMs  = data.last - data.first;
     const busiest = b.reduce((m, x) => (x.count > m.count ? x : m), b[0]);
-    const perHour = spanMs > 0 ? (data.total / (spanMs / 3600000)) : data.total;
 
     sub.textContent = "First bid " + timeOf(new Date(data.first).toISOString()) +
                       " · latest " + timeOf(new Date(data.last).toISOString()) +
@@ -1900,7 +1905,7 @@ function toggleExpandLabel() {
       <div class="cs-cell"><div class="cs-num">${data.total}</div><div class="cs-lbl">Bids with a time</div></div>
       <div class="cs-cell"><div class="cs-num">${busiest.count}</div><div class="cs-lbl">Busiest 10 min</div></div>
       <div class="cs-cell"><div class="cs-num">${timeOf(new Date(busiest.t).toISOString())}</div><div class="cs-lbl">Busiest window</div></div>
-      <div class="cs-cell"><div class="cs-num">${perHour.toFixed(0)}</div><div class="cs-lbl">Bids per hour</div></div>`;
+      <div class="cs-cell"><div class="cs-num">${data.minCount}</div><div class="cs-lbl">Most in one minute (${timeOf(new Date(data.minAt).toISOString())})</div></div>`;
   }
 
   window.addEventListener("resize", () => {
