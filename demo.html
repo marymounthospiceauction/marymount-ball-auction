@@ -157,7 +157,12 @@
 
     /* Every item row is the same height. Long names are cut with an
        ellipsis; the detail panel shows the full name. */
-    tr.item-row td { height: 58px; padding: 0 0.5em; white-space: nowrap; overflow: hidden; }
+    /* Each item is two rows: a full-width name row, then Details and the leading bid. */
+    tr.item-head td { border-top: 3px solid #bc8b41; padding: 0.5em 0.6em 0.3em; text-align: left; white-space: normal; font-size: 0.8rem; line-height: 1.3; font-weight: bold; cursor: pointer; }
+    tr.item-body td { height: 34px; padding: 0.3em 0.6em 0.5em; vertical-align: middle; cursor: pointer; }
+    tr.item-body td:nth-child(1) { text-align: left; }
+    tr.item-body td:nth-child(2) { text-align: right; font-weight: 800; }
+    tr.alt:not(.is-live):not(.is-sold) td { background: #f7f1e3; }
     tr.item-row td .cell { display: flex; align-items: center; height: 100%; min-width: 0; }
     tr.item-row td .label { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: normal; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     tr.item-row .toggle { flex: 0 0 auto; }
@@ -179,7 +184,7 @@
       vertical-align: middle;
       font-family: inherit;
     }
-    tr.item-row.open .toggle { background: #bc8b41; color: #000; }
+    tr.item-body.open .toggle { background: #bc8b41; color: #000; }
 
     /* LIVE item styling */
     tr.is-live td { background-color: #0f2a1a; color: #4ade80; }
@@ -252,7 +257,7 @@
     </div>
 
     <div class="table-container">
-      <table id="bidsTable"><colgroup><col><col style="width:96px"></colgroup>
+      <table id="bidsTable"><colgroup><col><col style="width:120px"></colgroup>
         <thead>
           <tr>
             <th>Item Description</th>
@@ -556,9 +561,11 @@
     function applyFilter() {
       const tbody = document.querySelector('#bidsTable tbody');
       let visible = 0;
-      tbody.querySelectorAll('tr.item-row[data-item]').forEach(row => {
+      tbody.querySelectorAll('tr.item-head[data-item]').forEach(row => {
         const num = Number(row.dataset.item);
         const ok = matchesFilter(num, row.textContent);
+        const bodyRow = tbody.querySelector('tr.item-body[data-item="' + num + '"]');
+        if (bodyRow) bodyRow.classList.toggle('filtered-out', !ok);
         row.classList.toggle('filtered-out', !ok);
         const detail = tbody.querySelector('tr.detail-row[data-detail="' + num + '"]');
         if (detail) detail.classList.toggle('filtered-out', !ok);
@@ -612,7 +619,7 @@
         const isLive  = liveVal === 'LIVE';
         const isSold  = soldVal === 'SOLD';
 
-        let rowClass = 'item-row';
+        let rowClass = (count % 2) ? ' alt' : '';
         let priceCell;
 
         if (isSold) {
@@ -634,8 +641,9 @@
           ? '<span class="toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Details') + '</span>'
           : '';
 
-        html += '<tr class="' + rowClass + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '>'
-             +    '<td><div class="cell"><span class="label">' + formatItemLabel(label) + '</span>' + toggle + '</div></td>'
+        html += '<tr class="item-head' + rowClass + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '><td colspan="2">' + formatItemLabel(label) + '</td></tr>'
+             + '<tr class="item-body' + rowClass + (open ? ' open' : '') + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '>'
+             +    '<td>' + toggle + '</td>'
              +    '<td>' + priceCell + '</td>'
              +  '</tr>';
         if (hasDetail) html += detailRow(num, open);
@@ -653,7 +661,9 @@
 
     // One handler on the table body, so it survives the 5 second rebuilds.
     document.querySelector('#bidsTable tbody').addEventListener('click', e => {
-      const row = e.target.closest('tr.item-row[data-item]');
+      const clicked = e.target.closest('tr[data-item]');
+      if (!clicked) return;
+      const row = document.querySelector('tr.item-body[data-item="' + clicked.dataset.item + '"]');
       if (!row) return;
       const num = Number(row.dataset.item);
       const detail = document.querySelector('tr.detail-row[data-detail="' + num + '"]');
