@@ -157,9 +157,9 @@
 
     /* Every item row is the same height. Long names are cut with an
        ellipsis; the detail panel shows the full name. */
-    tr.item-row td { height: 46px; padding: 0 0.5em; white-space: nowrap; overflow: hidden; }
+    tr.item-row td { height: 58px; padding: 0 0.5em; white-space: nowrap; overflow: hidden; }
     tr.item-row td .cell { display: flex; align-items: center; height: 100%; min-width: 0; }
-    tr.item-row td .label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    tr.item-row td .label { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: normal; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     tr.item-row .toggle { flex: 0 0 auto; }
 
     tr.item-row { cursor: pointer; }
@@ -252,7 +252,7 @@
     </div>
 
     <div class="table-container">
-      <table id="bidsTable"><colgroup><col><col style="width:124px"></colgroup>
+      <table id="bidsTable"><colgroup><col><col style="width:96px"></colgroup>
         <thead>
           <tr>
             <th>Item Description</th>
