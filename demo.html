@@ -158,7 +158,7 @@
     /* Every item row is the same height. Long names are cut with an
        ellipsis; the detail panel shows the full name. */
     /* Each item is two rows: a full-width name row, then Details and the leading bid. */
-    tr.item-head td { border-top: 3px solid #bc8b41; padding: 0.5em 0.6em 0.3em; text-align: left; white-space: normal; font-size: 0.8rem; line-height: 1.3; font-weight: bold; cursor: pointer; }
+    tr.item-head td { border-top: 3px solid #bc8b41; height: 34px; padding: 0 0.6em; vertical-align: middle; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
     tr.item-body td { height: 34px; padding: 0.3em 0.6em 0.5em; vertical-align: middle; cursor: pointer; }
     tr.item-body td:nth-child(1) { text-align: left; }
     tr.item-body td:nth-child(2) { text-align: right; font-weight: 800; }
