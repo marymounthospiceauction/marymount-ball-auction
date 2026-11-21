@@ -27,20 +27,20 @@
       width: 100%;
       max-width: 600px;
       display: block;
-      margin: 10px auto 20px auto;
+      margin: 8px auto 8px auto;
       border-radius: 6px;
     }
 
     .button-section {
       display: flex;
       justify-content: center;
-      padding: 20px 0;
+      padding: 8px 0 4px;
       width: 100%;
     }
     .button-container {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
       width: 100%;
       max-width: 360px;
       align-items: center;
@@ -67,6 +67,7 @@
     .custom-button .emoji { margin-right: 8px; font-size: 1.2em; }
 
     @media (max-width: 480px) {
+      .header-image img { max-width: 78%; }
       .custom-button { max-width: 90%; font-size: 16px; padding: 12px; }
       .button-container { max-width: 90%; }
     }
@@ -85,7 +86,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 12px 12px 20px;
       width: 100%;
     }
     .table-heading {
@@ -95,6 +96,13 @@
       margin-bottom: 4px;
       text-align: center;
     }
+    .updated {
+      font-size: 0.75rem;
+      color: #6b5a3a;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+    .updated.stale { color: #8a2b20; font-weight: bold; }
     .table-hint {
       font-size: 0.8rem;
       color: #6b5a3a;
@@ -161,20 +169,33 @@
 
     /* Each item is two rows: a full-width name row, then Details and the leading bid.
        The name row is one line; long names end in an ellipsis. */
-    tr.item-head td { border-top: 3px solid #bc8b41; height: 34px; padding: 0 0.6em; vertical-align: middle; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-    tr.item-body td { height: 34px; padding: 0.3em 0.6em 0.5em; vertical-align: middle; cursor: pointer; }
+    /* No lines inside an item: only the gold rule separates items. */
+    tbody td { border: none; }
+    tr.item-head td { border-top: 3px solid #bc8b41; height: 34px; padding: 6px 0.7em 0; vertical-align: middle; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+    tr.item-head:first-child td { border-top: none; }
+    /* An open item shows its full name, so cut-off names can be read. */
+    tr.item-head.open td { white-space: normal; overflow: visible; }
+    tr.item-body td { padding: 2px 0.7em 8px; vertical-align: bottom; cursor: pointer; }
     tr.item-body td:nth-child(1) { text-align: left; }
-    tr.item-body td:nth-child(2) { text-align: right; font-weight: 800; }
+    tr.item-body td:nth-child(2) { text-align: right; }
+    .bid-lbl { display: block; font-size: 0.6rem; font-weight: bold; color: #6b5a3a; letter-spacing: 0.06em; text-transform: uppercase; }
+    .bid-amt { display: inline-block; font-size: 1.15rem; font-weight: 800; color: #000; padding: 0 4px; border-radius: 4px; }
+    .bid-none { font-size: 0.85rem; font-weight: bold; color: #6b5a3a; }
+    /* Brief gold flash when an item's leading bid changes. */
+    @keyframes bump { 0% { background: #bc8b41; } 100% { background: transparent; } }
+    .bid-amt.bumped { animation: bump 2.5s ease-out; }
     tr.alt:not(.is-live):not(.is-sold) td { background: #f7f1e3; }
 
     .toggle {
-      display: inline-block;
-      padding: 0.15em 0.6em;
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 0 14px;
       border: 1px solid #bc8b41;
       border-radius: 4px;
       background: #fff;
       color: #6b5a3a;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: bold;
       cursor: pointer;
       vertical-align: middle;
@@ -185,6 +206,8 @@
     /* LIVE item styling */
     tr.is-live td { background-color: #0f2a1a; color: #4ade80; }
     tr.is-live td:nth-child(2) { font-weight: 800; }
+    tr.is-live .bid-lbl, tr.is-live .bid-amt { color: #4ade80; }
+    tr.is-sold .bid-lbl, tr.is-sold .bid-amt { color: #555; }
 
     /* SOLD item styling */
     tr.is-sold td { background-color: #e2e2e2; color: #555; }
@@ -207,6 +230,7 @@
     tr.detail-row td { background: #fbf7ee; border-top: none; padding: 0.6em 0.8em 0.8em; }
     .detail ul { margin: 0 0 0.4em 1.1em; padding: 0; text-align: left; }
     .detail li { margin: 0.2em 0; line-height: 1.4; font-size: 0.75rem; }
+    .detail .min-bid { font-size: 0.75rem; font-weight: bold; margin: 0 0 0.4em; text-align: left; }
     .detail .donor { font-size: 0.7rem; color: #6b5a3a; text-align: left; font-style: italic; }
   </style>
 </head>
@@ -234,6 +258,7 @@
 
   <div class="table-section">
     <div class="table-heading">LEADING BIDS</div>
+    <div class="updated" id="updated">Loading…</div>
     <div class="table-hint">Tap any item to see what it includes.</div>
 
     <div class="filter-box">
@@ -241,13 +266,7 @@
     </div>
 
     <div class="table-container">
-      <table id="bidsTable"><colgroup><col><col style="width:120px"></colgroup>
-        <thead>
-          <tr>
-            <th>Item Description</th>
-            <th>Leading Bid</th>
-          </tr>
-        </thead>
+      <table id="bidsTable"><colgroup><col><col style="width:130px"></colgroup>
         <tbody></tbody>
       </table>
     </div>
@@ -459,6 +478,9 @@
     // Both survive the 5 second refresh, which rebuilds the table.
     const openItems = new Set();
     let filterText = '';
+    // Last amount seen per item, to flash amounts that change.
+    const lastAmounts = new Map();
+    let lastOk = 0;
 
     function parseCsv(text) {
       const rows = []; let row = ['']; let quote = false;
@@ -535,9 +557,10 @@
       return isNaN(n) ? escHtml(v) : '€' + n.toLocaleString('en-IE');
     }
 
-    function detailRow(num, open) {
+    function detailRow(num, open, minLine) {
       const d = DETAILS[num];
-      const body = '<ul>' + d.l.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul>'
+      const body = (minLine ? '<div class="min-bid">' + escHtml(minLine) + '</div>' : '')
+                 + '<ul>' + d.l.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul>'
                  + (d.d ? '<div class="donor">Donated by ' + escHtml(d.d) + '</div>' : '');
       return '<tr class="detail-row' + (open ? '' : ' hidden') + '" data-detail="' + num + '">'
            + '<td colspan="2"><div class="detail">' + body + '</div></td></tr>';
@@ -626,18 +649,30 @@
 
         let rowClass = (count % 2) ? ' alt' : '';
         let priceCell;
+        let minLine = '';
+        const num = itemNum(label);
+        const amount = Number(String(raw).replace(/[^0-9.-]/g, '')) || 0;
+
+        // Flash the amount if it changed since the last poll.
+        const prev = num !== null ? lastAmounts.get(num) : undefined;
+        const bumped = prev !== undefined && prev !== amount;
+        if (num !== null) lastAmounts.set(num, amount);
+        const amtClass = 'bid-amt' + (bumped ? ' bumped' : '');
 
         if (isSold) {
           rowClass += ' is-sold';
-          priceCell = formatEuro(raw) + '<span class="sold-tag">SOLD</span>';
+          priceCell = '<span class="bid-lbl">Sold for</span><span class="' + amtClass + '">' + formatEuro(raw) + '</span><span class="sold-tag">SOLD</span>';
         } else if (isLive) {
           rowClass += ' is-live';
-          priceCell = '🟢 LIVE';
+          priceCell = '<span class="bid-lbl">Live auction</span><span class="bid-amt">🟢 LIVE</span>';
+        } else if (amount > 0) {
+          priceCell = '<span class="bid-lbl">Leading bid</span><span class="' + amtClass + '">' + formatEuro(raw) + '</span>';
+          minLine = 'To take the lead, bid more than ' + formatEuro(raw) + '.';
         } else {
-          priceCell = formatEuro(raw);
+          priceCell = '<span class="bid-lbl">Leading bid</span><span class="bid-none">No bids yet</span>';
+          minLine = 'No bids yet. Be the first to bid.';
         }
 
-        const num = itemNum(label);
         const hasDetail = num !== null && DETAILS[num];
         const open = hasDetail && openItems.has(num);
 
@@ -645,12 +680,12 @@
           ? '<span class="toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Details') + '</span>'
           : '';
 
-        html += '<tr class="item-head' + rowClass + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '><td colspan="2">' + formatItemLabel(label) + '</td></tr>'
+        html += '<tr class="item-head' + rowClass + (open ? ' open' : '') + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '><td colspan="2">' + formatItemLabel(label) + '</td></tr>'
              + '<tr class="item-body' + rowClass + (open ? ' open' : '') + '"' + (hasDetail ? ' data-item="' + num + '"' : '') + '>'
              +    '<td>' + toggle + '</td>'
              +    '<td>' + priceCell + '</td>'
              +  '</tr>';
-        if (hasDetail) html += detailRow(num, open);
+        if (hasDetail) html += detailRow(num, open, minLine);
         count++;
       }
 
@@ -661,7 +696,21 @@
 
       document.querySelector('#bidsTable tbody').innerHTML = html;
       applyFilter();
+      lastOk = Date.now();
+      showUpdated();
     }
+
+    // "Updated 22:41:05" under the heading. Turns red if no fresh data
+    // has arrived for 30 seconds, so bidders know the figures may be old.
+    function showUpdated() {
+      const el = document.getElementById('updated');
+      if (!lastOk) return;
+      const t = new Date(lastOk).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const stale = Date.now() - lastOk > 30000;
+      el.textContent = stale ? 'Last updated ' + t + '. Connection lost, figures may be out of date.' : 'Updated ' + t;
+      el.classList.toggle('stale', stale);
+    }
+    setInterval(showUpdated, 5000);
 
     // One handler on the table body, so it survives the 5 second rebuilds.
     document.querySelector('#bidsTable tbody').addEventListener('click', e => {
@@ -674,6 +723,8 @@
       const nowOpen = !openItems.has(num);
       if (nowOpen) openItems.add(num); else openItems.delete(num);
       row.classList.toggle('open', nowOpen);
+      const head = document.querySelector('tr.item-head[data-item="' + num + '"]');
+      if (head) head.classList.toggle('open', nowOpen);
       if (detail) detail.classList.toggle('hidden', !nowOpen);
       const t = row.querySelector('.toggle');
       if (t) { t.textContent = nowOpen ? 'Hide' : 'Details'; t.setAttribute('aria-expanded', nowOpen); }
