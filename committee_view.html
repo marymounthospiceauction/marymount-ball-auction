@@ -19,6 +19,20 @@
     body { overflow-x: auto; }
     * { box-sizing: border-box; }
 
+    [hidden] { display: none !important; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     #loginScreen {
       position: fixed;
       inset: 0;
@@ -53,6 +67,7 @@
     }
 
     .login-label {
+      display: block;
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
@@ -84,7 +99,7 @@
     .login-error {
       margin-top: 6px;
       font-size: 0.8rem;
-      color: red;
+      color: #a31515;
       min-height: 16px;
       text-align: left;
     }
@@ -136,6 +151,16 @@
 
     .auction-total-value {
       font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    .last-updated {
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    .last-updated.stale {
+      color: #a31515;
       font-weight: bold;
     }
 
@@ -206,7 +231,7 @@
     thead th {
       background: black;
       color: #bc8b41;
-      padding: 8px;
+      padding: 4px 8px;
       border: 1px solid #ddd;
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -216,11 +241,38 @@
 
     thead th.col-item { text-align: left; }
 
+    .sort-btn {
+      background: none;
+      border: none;
+      padding: 6px 4px;
+      min-height: 36px;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #bc8b41;
+      cursor: pointer;
+      text-align: inherit;
+      white-space: nowrap;
+    }
+
+    .sort-btn:focus-visible {
+      outline: 2px solid #bc8b41;
+      outline-offset: 2px;
+    }
+
+    .sort-ind {
+      display: inline-block;
+      min-width: 0.9em;
+      margin-left: 2px;
+      font-size: 0.7em;
+    }
+
     tbody td {
       border: 1px solid #ccc;
       padding: 6px 8px;
       white-space: nowrap;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       text-align: center;
     }
 
@@ -243,12 +295,6 @@
       background-color: #fde3c2 !important;
     }
 
-    tr.is-sold td {
-      background-color: #d0d0d0 !important;
-      color: #666 !important;
-      font-style: italic;
-    }
-
     tbody tr.alt-gold td:not(.status-below):not(.status-on-target):not(.status-above) {
       background-color: #f5ebd0;
     }
@@ -263,8 +309,16 @@
     }
 
     .status-icon-below  { color: #c0392b; transform: rotate(180deg); display: inline-block; }
-    .status-icon-target { color: #e67e22; transform: rotate(90deg);  display: inline-block; }
-    .status-icon-above  { color: #27ae60; transform: rotate(0deg);   display: inline-block; }
+    .status-icon-target { color: #9a4f00; transform: rotate(90deg);  display: inline-block; }
+    .status-icon-above  { color: #17663a; transform: rotate(0deg);   display: inline-block; }
+
+    .status-word {
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
 
     .bid-amount { font-weight: bold; }
 
@@ -288,7 +342,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
+      min-height: 44px;
+      padding: 8px 14px;
       border: 2px solid #333;
       border-radius: 999px;
       background: #fff;
@@ -303,7 +358,8 @@
     .filter-btn.active .status-colour-box { border-color: #bc8b41; }
 
     .filter-reset {
-      padding: 6px 12px;
+      min-height: 44px;
+      padding: 8px 14px;
       border: none;
       border-radius: 999px;
       background: #bc8b41;
@@ -318,7 +374,26 @@
 
     .filter-count { font-size: 0.8rem; }
 
+    .resort-btn {
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 2px solid #a31515;
+      border-radius: 999px;
+      background: #fff;
+      color: #a31515;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
     .no-results td { padding: 18px; font-style: italic; }
+
+    @media (max-width: 600px) {
+      .header-image img { margin: 6px auto 10px auto; }
+      .table-section { padding: 10px; }
+    }
   </style>
 </head>
 
@@ -329,10 +404,10 @@
       <div class="login-title">Committee Login</div>
       <div class="login-subtitle">Enter the password to view the dashboard.</div>
       <form id="loginForm">
-        <label class="login-label">Password</label>
-        <input type="password" id="passwordInput" class="login-input" required />
+        <label class="login-label" for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" class="login-input" autocomplete="current-password" required />
         <button class="login-button">Unlock</button>
-        <div id="loginError" class="login-error"></div>
+        <div id="loginError" class="login-error" aria-live="polite"></div>
       </form>
     </div>
   </div>
@@ -353,8 +428,9 @@
 
       <div class="summary-row">
         <div>
-          <div class="auction-total-label">AUCTION TOTAL</div>
-          <div class="auction-total-value" id="auctionTotal">€0</div>
+          <div class="auction-total-label">Total of leading bids</div>
+          <div class="auction-total-value" id="auctionTotal">…</div>
+          <div class="last-updated" id="lastUpdated" aria-live="polite">Loading…</div>
         </div>
         <div class="status-summary-wrapper">
           <div class="status-summary-title">STATUS SUMMARY</div>
@@ -382,29 +458,33 @@
       <div class="table-heading">COMMITTEE VIEW</div>
 
       <div class="filter-bar" id="filterBar">
-        <span class="filter-label">Filter by target:</span>
-        <button type="button" class="filter-btn" data-status="BELOW"><span class="status-colour-box status-colour-below"></span>Below</button>
-        <button type="button" class="filter-btn" data-status="ON TARGET"><span class="status-colour-box status-colour-on-target"></span>On target</button>
-        <button type="button" class="filter-btn" data-status="ABOVE"><span class="status-colour-box status-colour-above"></span>Above</button>
+        <span class="filter-label">Show items:</span>
+        <button type="button" class="filter-btn" data-status="BELOW" aria-pressed="false"><span class="status-colour-box status-colour-below"></span>Below</button>
+        <button type="button" class="filter-btn" data-status="ON TARGET" aria-pressed="false"><span class="status-colour-box status-colour-on-target"></span>On target</button>
+        <button type="button" class="filter-btn" data-status="ABOVE" aria-pressed="false"><span class="status-colour-box status-colour-above"></span>Above</button>
         <button type="button" class="filter-reset" id="filterReset" disabled>Reset</button>
         <span class="filter-count" id="filterCount"></span>
+        <button type="button" class="resort-btn" id="resortBtn" hidden>Bids changed. Tap to re-sort</button>
       </div>
 
       <div class="table-container">
         <table id="bidsTable">
+          <caption class="sr-only">Bids by item. Tap a column heading to sort.</caption>
           <thead>
             <tr>
-              <th style="width:40px;"></th>
-              <th class="col-item">Item</th>
-              <th>Leading Bid</th>
-              <th>Winner</th>
-              <th>Joint</th>
-              <th>Bids</th>
-              <th>Low Target</th>
-              <th>High Target</th>
+              <th><button type="button" class="sort-btn" data-sort="status">Status<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th class="col-item"><button type="button" class="sort-btn" data-sort="item">Item<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="bid">Leading Bid<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="name">Winner<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="joint">Joint<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="numBids">Bids<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="low">Low Target<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th><button type="button" class="sort-btn" data-sort="high">High Target<span class="sort-ind" aria-hidden="true"></span></button></th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            <tr class="no-results"><td colspan="8">Loading bids…</td></tr>
+          </tbody>
         </table>
       </div>
 
@@ -419,7 +499,11 @@
     const SHEET_ID   = "10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc"; // DISPLAY spreadsheet
     const SHEET_TAB  = "COMMITTEE";
     const REFRESH_MS = 5000;
+    const FAILS_BEFORE_WARNING = 3;
     /* ============================================================ */
+
+    let unlocked = false;
+    let pollTimer = null;
 
     document.getElementById("loginForm").addEventListener("submit", e => {
       e.preventDefault();
@@ -447,11 +531,14 @@
       return "€" + Number(v).toLocaleString("en-IE", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
 
+    const STATUS_RANK  = { "BELOW": 0, "ON TARGET": 1, "ABOVE": 2 };
+    const STATUS_LABEL = { "BELOW": "Below", "ON TARGET": "On target", "ABOVE": "Above" };
+
     function statusIcon(s) {
       const val = String(s || "").toUpperCase().trim();
-      if (val === "BELOW")     return '<span class="status-icon status-icon-below">▲</span>';
-      if (val === "ABOVE")     return '<span class="status-icon status-icon-above">▲</span>';
-      if (val === "ON TARGET") return '<span class="status-icon status-icon-target">▲</span>';
+      if (val === "BELOW")     return '<span class="status-icon status-icon-below" aria-hidden="true">▲</span>';
+      if (val === "ABOVE")     return '<span class="status-icon status-icon-above" aria-hidden="true">▲</span>';
+      if (val === "ON TARGET") return '<span class="status-icon status-icon-target" aria-hidden="true">▲</span>';
       return "";
     }
 
@@ -463,7 +550,18 @@
       return "";
     }
 
-    const norm = s => String(s ?? "").replace(/\u00A0/g, " ").trim().toUpperCase();
+    const norm = s => String(s ?? "").replace(/ /g, " ").trim().toUpperCase();
+
+    // Text and number readers for cells. Blank cells come back as null.
+    function cellText(v) {
+      return String(v ?? "").replace(/ /g, " ").trim();
+    }
+
+    function cellNum(v) {
+      if (v === null || v === undefined || v === "") return null;
+      const n = typeof v === "number" ? v : Number(String(v).replace(/[^\d.-]/g, ""));
+      return Number.isFinite(n) ? n : null;
+    }
 
     // Locates every column by its header text rather than a fixed position.
     // COMMITTEE!A1 is itself an IMPORTRANGE of LEADING_BIDS row 5 onward, so
@@ -509,45 +607,150 @@
       return idx;
     }
 
+    // ---- Sorting ----
+    // Tap a heading once for its default direction, again to reverse, a third
+    // time to return to sheet order. Blank values always sort to the bottom.
+    // Ties fall back to item order.
+    const SORTERS = {
+      status:  { dir0: 1,  get: (r, x) => { const k = cellText(r[x.status]).toUpperCase(); return Object.prototype.hasOwnProperty.call(STATUS_RANK, k) ? STATUS_RANK[k] : null; } },
+      item:    { dir0: 1,  get: (r, x) => cellText(r[x.item]) || null },
+      bid:     { dir0: -1, get: (r, x) => cellNum(r[x.currentBid]) },
+      name:    { dir0: 1,  get: (r, x) => (x.name > -1 ? cellText(r[x.name]) : "") || null },
+      joint:   { dir0: 1,  get: (r, x) => (x.joint > -1 && cellText(r[x.joint]) ? 0 : 1) },
+      numBids: { dir0: -1, get: (r, x) => (x.numBids > -1 ? cellNum(r[x.numBids]) : null) },
+      low:     { dir0: -1, get: (r, x) => cellNum(r[x.low]) },
+      high:    { dir0: -1, get: (r, x) => cellNum(r[x.high]) },
+    };
+
+    let sortKey = null;   // null means sheet order
+    let sortDir = 0;      // 1 ascending, -1 descending
+    let heldKeys = null;  // item order held while the sort is active
+    let orderChanged = false;
+
+    const itemKey = (r) => cellText(r[lastIdx.item]).toUpperCase();
+
+    function sortRows(rows, x) {
+      const get = SORTERS[sortKey].get;
+      const decorated = rows.map((r, i) => ({ r, i, v: get(r, x) }));
+      decorated.sort((p, q) => {
+        if (p.v === null || q.v === null) {
+          if (p.v === null && q.v === null) return p.i - q.i;
+          return p.v === null ? 1 : -1;
+        }
+        let c = typeof p.v === "string"
+          ? p.v.localeCompare(q.v, undefined, { numeric: true, sensitivity: "base" }) * sortDir
+          : (p.v - q.v) * sortDir;
+        if (c === 0) {
+          c = cellText(p.r[x.item]).localeCompare(cellText(q.r[x.item]), undefined, { numeric: true });
+        }
+        return c || p.i - q.i;
+      });
+      return decorated.map(d => d.r);
+    }
+
+    // While a sort is active, the order is held so rows do not jump on each
+    // refresh. Values update in place. When the live order differs from the
+    // held order, the re-sort button appears.
+    function orderRows(rows, x) {
+      if (!sortKey) {
+        heldKeys = null;
+        orderChanged = false;
+        return rows;
+      }
+      if (!heldKeys) {
+        const live = sortRows(rows, x);
+        heldKeys = live.map(itemKey);
+        orderChanged = false;
+        return live;
+      }
+      const byKey = new Map(rows.map(r => [itemKey(r), r]));
+      const heldSet = new Set(heldKeys);
+      const heldPresent = heldKeys.filter(k => byKey.has(k));
+      const held = heldPresent.map(k => byKey.get(k));
+      const fresh = rows.filter(r => !heldSet.has(itemKey(r)));
+
+      const live = sortRows(rows, x).map(itemKey).filter(k => heldSet.has(k));
+      orderChanged = live.join("|") !== heldPresent.join("|");
+
+      return held.concat(fresh);
+    }
+
+    function updateSortHeaders() {
+      document.querySelectorAll(".sort-btn").forEach(btn => {
+        const th = btn.closest("th");
+        const ind = btn.querySelector(".sort-ind");
+        const key = btn.dataset.sort;
+        if (key === sortKey) {
+          th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending");
+          ind.textContent = sortDir === 1 ? "▲" : "▼";
+        } else {
+          th.setAttribute("aria-sort", "none");
+          ind.textContent = "";
+        }
+      });
+    }
+
+    document.querySelectorAll(".sort-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        const d0 = SORTERS[key].dir0;
+        if (sortKey !== key) {
+          sortKey = key;
+          sortDir = d0;
+        } else if (sortDir === d0) {
+          sortDir = -d0;
+        } else {
+          sortKey = null;
+          sortDir = 0;
+        }
+        heldKeys = null;
+        renderTable();
+      });
+    });
+
+    document.getElementById("resortBtn").addEventListener("click", () => {
+      heldKeys = null;
+      renderTable();
+    });
+
     // ---- Target status filter ----
-    // Selected statuses persist across the 5 second refresh. None selected = show all.
+    // Selected statuses persist across the refresh. None selected = show all.
     // Totals and the status summary above always cover every item, unfiltered.
     const activeFilters = new Set();
     let lastRows = [];
     let lastIdx  = null;
 
     function renderTable() {
+      updateSortHeaders();
       if (!lastIdx) return;
       const idx = lastIdx;
       const filtering = activeFilters.size > 0;
+
+      const ordered = orderRows(lastRows, idx);
       const rows = filtering
-        ? lastRows.filter(r => activeFilters.has(String(r[idx.status] || "").toUpperCase().trim()))
-        : lastRows;
+        ? ordered.filter(r => activeFilters.has(norm(r[idx.status])))
+        : ordered;
 
       const tbody = document.querySelector("#bidsTable tbody");
       let html = "";
-      let lastItem = null;
-      let stripe = 0;
 
-      rows.forEach(row => {
-        const itemKey = String(row[idx.item] || "").trim().toUpperCase();
-        if (itemKey !== lastItem) { stripe = 1 - stripe; lastItem = itemKey; }
-
-        const item    = String(row[idx.item] || "").trim();
+      rows.forEach((row, i) => {
+        const item    = cellText(row[idx.item]);
         const bid     = row[idx.currentBid];
-        const status  = String(row[idx.status] || "").trim();
+        const status  = cellText(row[idx.status]);
         const low     = row[idx.low];
         const high    = row[idx.high];
         const numBids = idx.numBids > -1 ? row[idx.numBids] : "";
-        const name    = idx.name > -1 ? String(row[idx.name] || "").trim() : "";
-        const joint   = idx.joint > -1 ? String(row[idx.joint] || "").trim() : "";
+        const name    = idx.name > -1 ? cellText(row[idx.name]) : "";
+        const joint   = idx.joint > -1 ? cellText(row[idx.joint]) : "";
         const isJoint = joint !== "";
+        const label   = STATUS_LABEL[norm(status)] || "";
 
-        const rowClass  = [stripe === 1 ? "alt-gold" : "", isJoint ? "has-joint" : ""].filter(Boolean).join(" ");
+        const rowClass  = [i % 2 === 0 ? "alt-gold" : "", isJoint ? "has-joint" : ""].filter(Boolean).join(" ");
         const statClass = statusClass(status);
 
         html += `<tr class="${rowClass}">`;
-        html += `<td class="${statClass}">${statusIcon(status)}</td>`;
+        html += `<td class="${statClass}">${statusIcon(status)}<span class="status-word">${label}</span></td>`;
         html += `<td class="col-item">${item}</td>`;
         html += `<td class="bid-amount">${formatEuro(bid)}</td>`;
         html += `<td>${name}</td>`;
@@ -563,11 +766,15 @@
       }
       tbody.innerHTML = html;
 
-      document.querySelectorAll(".filter-btn").forEach(b =>
-        b.classList.toggle("active", activeFilters.has(b.dataset.status)));
+      document.querySelectorAll(".filter-btn").forEach(b => {
+        const on = activeFilters.has(b.dataset.status);
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
       document.getElementById("filterReset").disabled = !filtering;
       document.getElementById("filterCount").textContent =
         filtering ? `Showing ${rows.length} of ${lastRows.length} rows` : "";
+      document.getElementById("resortBtn").hidden = !(sortKey && orderChanged);
     }
 
     document.querySelectorAll(".filter-btn").forEach(btn => {
@@ -583,7 +790,26 @@
       renderTable();
     });
 
+    // ---- Freshness ----
     let loggedColumns = false;
+    let failCount = 0;
+    let lastOkTime = null;
+
+    const clock = d => d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" });
+
+    function showUpdated() {
+      const el = document.getElementById("lastUpdated");
+      el.textContent = "Updated " + clock(lastOkTime);
+      el.classList.remove("stale");
+    }
+
+    function showStale() {
+      const el = document.getElementById("lastUpdated");
+      el.textContent = lastOkTime
+        ? `Connection problem. Last update ${clock(lastOkTime)}. Retrying.`
+        : "Cannot load bids yet. Retrying.";
+      el.classList.add("stale");
+    }
 
     async function loadData() {
       try {
@@ -595,7 +821,7 @@
         const json = JSON.parse(text.slice(start, end + 1));
 
         const idx = locateColumns(json.table.cols);
-        if (!idx) return; // keep whatever was last shown rather than blank the dashboard
+        if (!idx) throw new Error("Column headings changed");
 
         if (!loggedColumns) {
           console.log("COMMITTEE view columns:", idx);
@@ -612,12 +838,12 @@
         // Track best bid per item for totals (multi-slot items like ITEM 07)
         const itemBest = new Map();
         dataRows.forEach(row => {
-          const itemKey   = String(row[idx.item] || "").trim().toUpperCase();
+          const itemKeyVal = String(row[idx.item] || "").trim().toUpperCase();
           const bidNum    = Number(String(row[idx.currentBid] || "").replace(/[^\d.-]/g, "")) || 0;
           const statusVal = String(row[idx.status] || "").toUpperCase().trim();
-          const existing  = itemBest.get(itemKey);
+          const existing  = itemBest.get(itemKeyVal);
           if (!existing || bidNum > existing.bid) {
-            itemBest.set(itemKey, { bid: bidNum, status: statusVal });
+            itemBest.set(itemKeyVal, { bid: bidNum, status: statusVal });
           }
         });
 
@@ -635,16 +861,44 @@
         lastIdx  = idx;
         renderTable();
 
+        failCount = 0;
+        lastOkTime = new Date();
+        showUpdated();
+
       } catch (err) {
+        failCount++;
         console.warn("COMMITTEE view: fetch skipped:", err.message);
-        // Leave whatever is already on screen alone rather than blank a
-        // working dashboard over one bad poll.
+        // Keep whatever is on screen. Warn only after several failed polls,
+        // so one bad poll does not alarm anyone.
+        if (failCount >= FAILS_BEFORE_WARNING) showStale();
       }
     }
 
+    // ---- Polling: pauses when the tab is hidden, resumes on return ----
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(loadData, REFRESH_MS);
+    }
+
+    function stopPolling() {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (!unlocked) return;
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        loadData();
+        startPolling();
+      }
+    });
+
     function startData() {
+      unlocked = true;
       loadData();
-      setInterval(loadData, REFRESH_MS);
+      startPolling();
     }
   </script>
 
