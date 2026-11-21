@@ -390,6 +390,21 @@
 
     .no-results td { padding: 18px; font-style: italic; }
 
+    tfoot .total-row td {
+      background: #000;
+      color: #bc8b41;
+      font-weight: bold;
+      font-size: 0.9rem;
+      border: 1px solid #000;
+      text-align: right;
+    }
+
+    tfoot .total-row td:first-child {
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
     @media (max-width: 600px) {
       .header-image img { margin: 6px auto 10px auto; }
       .table-section { padding: 10px; }
@@ -485,6 +500,13 @@
           <tbody>
             <tr class="no-results"><td colspan="8">Loading bids…</td></tr>
           </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2" id="totalLabel">Total</td>
+              <td class="bid-amount" id="tableTotal">…</td>
+              <td colspan="5"></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
@@ -774,6 +796,14 @@
       document.getElementById("filterReset").disabled = !filtering;
       document.getElementById("filterCount").textContent =
         filtering ? `Showing ${rows.length} of ${lastRows.length} rows` : "";
+      // Footer total. Unfiltered it is the full total. Filtered it is the
+      // subtotal of the rows on screen, which follow the sort order.
+      const subtotal = rows.reduce((sum, row) => sum + (cellNum(row[idx.currentBid]) ?? 0), 0);
+      document.getElementById("tableTotal").textContent = formatEuro(subtotal);
+      document.getElementById("totalLabel").textContent = filtering
+        ? `Subtotal, ${rows.length} of ${lastRows.length} items`
+        : "Total";
+
       document.getElementById("resortBtn").hidden = !(sortKey && orderChanged);
     }
 
