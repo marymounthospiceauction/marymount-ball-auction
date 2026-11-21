@@ -394,9 +394,16 @@
       background: #000;
       color: #bc8b41;
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 1.05rem;
       border: 1px solid #000;
-      text-align: right;
+      text-align: center;
+      white-space: normal;
+      padding: 8px;
+    }
+
+    tfoot .total-row-pct td {
+      font-size: 0.9rem;
+      padding-top: 0;
     }
 
     tfoot .total-row td:first-child {
@@ -504,7 +511,16 @@
             <tr class="total-row">
               <td colspan="2" id="totalLabel">Total</td>
               <td class="bid-amount" id="tableTotal">…</td>
-              <td colspan="5"></td>
+              <td colspan="3"></td>
+              <td id="lowTotal">…</td>
+              <td id="highTotal">…</td>
+            </tr>
+            <tr class="total-row total-row-pct">
+              <td colspan="2">Bids as % of target</td>
+              <td></td>
+              <td colspan="3"></td>
+              <td id="lowPct">…</td>
+              <td id="highPct">…</td>
             </tr>
           </tfoot>
         </table>
@@ -796,10 +812,21 @@
       document.getElementById("filterReset").disabled = !filtering;
       document.getElementById("filterCount").textContent =
         filtering ? `Showing ${rows.length} of ${lastRows.length} rows` : "";
-      // Footer total. Unfiltered it is the full total. Filtered it is the
-      // subtotal of the rows on screen, which follow the sort order.
-      const subtotal = rows.reduce((sum, row) => sum + (cellNum(row[idx.currentBid]) ?? 0), 0);
-      document.getElementById("tableTotal").textContent = formatEuro(subtotal);
+      // Footer totals. Unfiltered they are full totals. Filtered they are
+      // subtotals of the rows on screen. Items with no bid yet count as
+      // zero in the bid total but their targets still count, so the
+      // percentages start low and rise as bids come in.
+      const sumOf = fn => rows.reduce((s, row) => s + (fn(row) ?? 0), 0);
+      const bidSum  = sumOf(row => cellNum(row[idx.currentBid]));
+      const lowSum  = sumOf(row => cellNum(row[idx.low]));
+      const highSum = sumOf(row => cellNum(row[idx.high]));
+      const pct = (part, whole) => whole > 0 ? `${Math.round(part / whole * 100)}%` : "n/a";
+
+      document.getElementById("tableTotal").textContent = formatEuro(bidSum);
+      document.getElementById("lowTotal").textContent   = formatEuro(lowSum);
+      document.getElementById("highTotal").textContent  = formatEuro(highSum);
+      document.getElementById("lowPct").textContent     = pct(bidSum, lowSum);
+      document.getElementById("highPct").textContent    = pct(bidSum, highSum);
       document.getElementById("totalLabel").textContent = filtering
         ? `Subtotal, ${rows.length} of ${lastRows.length} items`
         : "Total";
