@@ -154,6 +154,12 @@
       font-weight: bold;
     }
 
+    .auction-sub {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
     .last-updated {
       font-size: 0.75rem;
       margin-top: 4px;
@@ -438,10 +444,6 @@
       padding: 8px;
     }
 
-    tfoot .total-row-pct td {
-      font-size: 0.9rem;
-      padding-top: 0;
-    }
 
     tfoot .total-row td:first-child {
       text-align: left;
@@ -489,15 +491,19 @@
       .resort-btn { font-size: 0.7rem; padding: 8px 12px; }
 
       /* Table: smaller type and tighter cells */
-      thead th { font-size: 0.65rem; padding: 4px 2px; }
-      .sort-btn { font-size: 0.65rem; padding: 4px 2px; }
+      thead th { font-size: 0.65rem; padding: 4px 2px; white-space: normal; }
+      .sort-btn { font-size: 0.65rem; padding: 4px 2px; white-space: normal; }
+      thead th:first-child,
+      tbody td:first-child { width: 36px; }
       .sort-ind { margin-left: 0; }
       tbody td { font-size: 0.75rem; padding: 6px 3px; }
       .col-split { display: none; }
       .col-combined { display: table-cell; }
-      tbody td.col-item { max-width: none; }
+      tbody td.col-item { max-width: none; width: 34%; }
+      tbody td { white-space: normal; }
+      tbody td.bid-amount,
+      tbody td.target-cell { white-space: nowrap; }
       tfoot .total-row td { font-size: 0.8rem; padding: 6px 3px; }
-      tfoot .total-row-pct td { font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -535,6 +541,7 @@
         <div>
           <div class="auction-total-label">Total of leading bids</div>
           <div class="auction-total-value" id="auctionTotal">…</div>
+          <div class="auction-sub" id="bidCountTotal">…</div>
           <div class="last-updated" id="lastUpdated" aria-live="polite">Loading…</div>
         </div>
         <div class="status-summary-wrapper">
@@ -607,14 +614,6 @@
               <td class="col-split" id="lowTotal">…</td>
               <td class="col-split" id="highTotal">…</td>
               <td class="col-combined target-cell"><span id="lowTotalC">…</span><span id="highTotalC">…</span></td>
-            </tr>
-            <tr class="total-row total-row-pct">
-              <td colspan="2">Bids as % of target</td>
-              <td></td>
-              <td colspan="2"></td>
-              <td class="col-split" id="lowPct">…</td>
-              <td class="col-split" id="highPct">…</td>
-              <td class="col-combined target-cell"><span id="lowPctC">…</span><span id="highPctC">…</span></td>
             </tr>
           </tfoot>
         </table>
@@ -914,25 +913,18 @@
       // Footer totals. Unfiltered they are full totals. Filtered they are
       // subtotals of the rows on screen. Items with no bid yet count as
       // zero in the bid total but their targets still count, so the
-      // percentages start low and rise as bids come in.
+      // totals rise as bids come in.
       const sumOf = fn => rows.reduce((s, row) => s + (fn(row) ?? 0), 0);
       const bidSum  = sumOf(row => cellNum(row[idx.currentBid]));
       const lowSum  = sumOf(row => cellNum(row[idx.low]));
       const highSum = sumOf(row => cellNum(row[idx.high]));
-      const pct = (part, whole) => whole > 0 ? `${Math.round(part / whole * 100)}%` : "n/a";
 
       const setText = (id, text) => { document.getElementById(id).textContent = text; };
-      const lowPctText  = pct(bidSum, lowSum);
-      const highPctText = pct(bidSum, highSum);
       setText("tableTotal", formatEuro(bidSum));
       setText("lowTotal", formatEuro(lowSum));
       setText("lowTotalC", formatEuro(lowSum));
       setText("highTotal", formatEuro(highSum));
       setText("highTotalC", formatEuro(highSum));
-      setText("lowPct", lowPctText);
-      setText("lowPctC", lowPctText);
-      setText("highPct", highPctText);
-      setText("highPctC", highPctText);
       document.getElementById("totalLabel").textContent = narrowed
         ? `Subtotal, ${rows.length} of ${lastRows.length} items`
         : "Total";
@@ -1026,6 +1018,14 @@
         document.getElementById("countBelow").textContent    = statusCounts["BELOW"];
         document.getElementById("countOnTarget").textContent = statusCounts["ON TARGET"];
         document.getElementById("countAbove").textContent    = statusCounts["ABOVE"];
+
+        // Whole-auction bid count for the top of the page. Unfiltered, always.
+        let bidCount = 0;
+        dataRows.forEach(row => {
+          bidCount += (idx.numBids > -1 ? cellNum(row[idx.numBids]) : 0) ?? 0;
+        });
+        document.getElementById("bidCountTotal").textContent =
+          `${bidCount.toLocaleString("en-IE")} bids in total`;
 
         lastRows = dataRows;
         lastIdx  = idx;
