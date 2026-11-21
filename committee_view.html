@@ -370,6 +370,24 @@
 
     .filter-count { font-size: 0.8rem; }
 
+    .filter-status-group,
+    .filter-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Desktop shows the split Low and High columns. Phones swap them for one combined cell. */
+    .col-combined { display: none; }
+
+    .target-low,
+    .target-high,
+    .target-cell { background: #f1f1f1; }
+
+    .target-cell span { display: block; }
+
     .search-bar {
       display: flex;
       justify-content: center;
@@ -449,18 +467,24 @@
       }
       .status-summary-title { text-align: center; }
 
-      /* Status filter: three buttons on one row */
-      .filter-bar { gap: 6px; }
+      /* Status filter: three equal buttons on one row, Reset and count underneath */
+      .filter-bar { gap: 8px; }
       .filter-label { flex-basis: 100%; text-align: center; }
+      .filter-status-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        gap: 6px;
+      }
       .filter-btn {
-        flex: 1 1 0;
-        min-width: 0;
         justify-content: center;
-        gap: 4px;
+        min-width: 0;
         padding: 8px 4px;
+        gap: 4px;
         font-size: 0.7rem;
         white-space: nowrap;
       }
+      .filter-actions { width: 100%; }
       .filter-reset,
       .resort-btn { font-size: 0.7rem; padding: 8px 12px; }
 
@@ -468,7 +492,9 @@
       thead th { font-size: 0.65rem; padding: 4px 2px; }
       .sort-btn { font-size: 0.65rem; padding: 4px 2px; }
       .sort-ind { margin-left: 0; }
-      tbody td { font-size: 0.8rem; padding: 6px 3px; }
+      tbody td { font-size: 0.75rem; padding: 6px 3px; }
+      .col-split { display: none; }
+      .col-combined { display: table-cell; }
       tbody td.col-item { max-width: none; }
       tfoot .total-row td { font-size: 0.8rem; padding: 6px 3px; }
       tfoot .total-row-pct td { font-size: 0.7rem; }
@@ -543,12 +569,16 @@
 
       <div class="filter-bar" id="filterBar">
         <span class="filter-label">Show items:</span>
-        <button type="button" class="filter-btn" data-status="BELOW" aria-pressed="false"><span class="status-colour-box status-colour-below"></span>Below</button>
-        <button type="button" class="filter-btn" data-status="ON TARGET" aria-pressed="false"><span class="status-colour-box status-colour-on-target"></span>On target</button>
-        <button type="button" class="filter-btn" data-status="ABOVE" aria-pressed="false"><span class="status-colour-box status-colour-above"></span>Above</button>
-        <button type="button" class="filter-reset" id="filterReset" disabled>Reset</button>
-        <span class="filter-count" id="filterCount"></span>
-        <button type="button" class="resort-btn" id="resortBtn" hidden>Bids changed. Tap to re-sort</button>
+        <div class="filter-status-group">
+          <button type="button" class="filter-btn" data-status="BELOW" aria-pressed="false"><span class="status-colour-box status-colour-below"></span>Below</button>
+          <button type="button" class="filter-btn" data-status="ON TARGET" aria-pressed="false"><span class="status-colour-box status-colour-on-target"></span>On target</button>
+          <button type="button" class="filter-btn" data-status="ABOVE" aria-pressed="false"><span class="status-colour-box status-colour-above"></span>Above</button>
+        </div>
+        <div class="filter-actions">
+          <button type="button" class="filter-reset" id="filterReset" disabled>Reset</button>
+          <span class="filter-count" id="filterCount"></span>
+          <button type="button" class="resort-btn" id="resortBtn" hidden>Bids changed. Tap to sort again</button>
+        </div>
       </div>
 
       <div class="table-container">
@@ -561,8 +591,9 @@
               <th><button type="button" class="sort-btn" data-sort="bid">Leading Bid<span class="sort-ind" aria-hidden="true"></span></button></th>
               <th><button type="button" class="sort-btn" data-sort="name">Winner<span class="sort-ind" aria-hidden="true"></span></button></th>
               <th><button type="button" class="sort-btn" data-sort="numBids">Bids<span class="sort-ind" aria-hidden="true"></span></button></th>
-              <th><button type="button" class="sort-btn" data-sort="low">Low Target<span class="sort-ind" aria-hidden="true"></span></button></th>
-              <th><button type="button" class="sort-btn" data-sort="high">High Target<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th class="col-split"><button type="button" class="sort-btn" data-sort="low">Low Target<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th class="col-split"><button type="button" class="sort-btn" data-sort="high">High Target<span class="sort-ind" aria-hidden="true"></span></button></th>
+              <th class="col-combined"><button type="button" class="sort-btn" data-sort="low">Low / High<span class="sort-ind" aria-hidden="true"></span></button></th>
             </tr>
           </thead>
           <tbody>
@@ -573,15 +604,17 @@
               <td colspan="2" id="totalLabel">Total</td>
               <td class="bid-amount" id="tableTotal">…</td>
               <td colspan="2"></td>
-              <td id="lowTotal">…</td>
-              <td id="highTotal">…</td>
+              <td class="col-split" id="lowTotal">…</td>
+              <td class="col-split" id="highTotal">…</td>
+              <td class="col-combined target-cell"><span id="lowTotalC">…</span><span id="highTotalC">…</span></td>
             </tr>
             <tr class="total-row total-row-pct">
               <td colspan="2">Bids as % of target</td>
               <td></td>
               <td colspan="2"></td>
-              <td id="lowPct">…</td>
-              <td id="highPct">…</td>
+              <td class="col-split" id="lowPct">…</td>
+              <td class="col-split" id="highPct">…</td>
+              <td class="col-combined target-cell"><span id="lowPctC">…</span><span id="highPctC">…</span></td>
             </tr>
           </tfoot>
         </table>
@@ -858,13 +891,15 @@
         html += `<td class="bid-amount">${formatEuro(bid)}</td>`;
         html += `<td>${name}</td>`;
         html += `<td>${numBids !== "" && numBids != null ? numBids : ""}</td>`;
-        html += `<td style="background:#f1f1f1">${formatEuro(low)}</td>`;
-        html += `<td style="background:#f1f1f1">${formatEuro(high)}</td>`;
+        html += `<td class="col-split target-low">${formatEuro(low)}</td>`;
+        html += `<td class="col-split target-high">${formatEuro(high)}</td>`;
+        html += `<td class="col-combined target-cell"><span>${formatEuro(low)}</span><span>${formatEuro(high)}</span></td>`;
         html += `</tr>`;
       });
 
       if (!rows.length) {
-        html = `<tr class="no-results"><td colspan="7">No items match. Try another search or clear the filters.</td></tr>`;
+        const span = window.matchMedia('(max-width: 600px)').matches ? 6 : 7;
+        html = `<tr class="no-results"><td colspan="${span}">No items match. Try another search or clear the filters.</td></tr>`;
       }
       tbody.innerHTML = html;
 
@@ -886,11 +921,18 @@
       const highSum = sumOf(row => cellNum(row[idx.high]));
       const pct = (part, whole) => whole > 0 ? `${Math.round(part / whole * 100)}%` : "n/a";
 
-      document.getElementById("tableTotal").textContent = formatEuro(bidSum);
-      document.getElementById("lowTotal").textContent   = formatEuro(lowSum);
-      document.getElementById("highTotal").textContent  = formatEuro(highSum);
-      document.getElementById("lowPct").textContent     = pct(bidSum, lowSum);
-      document.getElementById("highPct").textContent    = pct(bidSum, highSum);
+      const setText = (id, text) => { document.getElementById(id).textContent = text; };
+      const lowPctText  = pct(bidSum, lowSum);
+      const highPctText = pct(bidSum, highSum);
+      setText("tableTotal", formatEuro(bidSum));
+      setText("lowTotal", formatEuro(lowSum));
+      setText("lowTotalC", formatEuro(lowSum));
+      setText("highTotal", formatEuro(highSum));
+      setText("highTotalC", formatEuro(highSum));
+      setText("lowPct", lowPctText);
+      setText("lowPctC", lowPctText);
+      setText("highPct", highPctText);
+      setText("highPctC", highPctText);
       document.getElementById("totalLabel").textContent = narrowed
         ? `Subtotal, ${rows.length} of ${lastRows.length} items`
         : "Total";
