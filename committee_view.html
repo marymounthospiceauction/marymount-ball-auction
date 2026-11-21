@@ -303,12 +303,17 @@
     .status-icon-target { color: #9a4f00; transform: rotate(90deg);  display: inline-block; }
     .status-icon-above  { color: #17663a; transform: rotate(0deg);   display: inline-block; }
 
+    /* Status shows as the icon only. The word stays in the markup for screen readers. */
     .status-word {
-      font-size: 0.75rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-left: 4px;
-      vertical-align: middle;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .bid-amount { font-weight: bold; }
@@ -458,19 +463,6 @@
       }
       .filter-reset,
       .resort-btn { font-size: 0.7rem; padding: 8px 12px; }
-
-      /* Status column: icon only, word kept for screen readers */
-      .status-word {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
 
       /* Table: smaller type and tighter cells */
       thead th { font-size: 0.65rem; padding: 4px 2px; }
