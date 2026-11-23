@@ -391,8 +391,10 @@ h2.sect{margin:18px 2px 8px;font-size:.76rem;font-weight:800;letter-spacing:.13e
 "use strict";
 
 /* CONFIG */
-var PASSWORD     = "Brendan2026";
-var ADMIN_SECRET = "mh_control_#2026#";
+/* No secret is stored in this file. It is public on GitHub Pages.
+   Brendan types the admin secret once; it is checked against the
+   server and then kept on his phone only. */
+var ADMIN_SECRET = "";
 var SCRIPT_URL   = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
 var POLL_MS      = 10000;
 
@@ -533,7 +535,11 @@ function api(payload){
     var j;
     try { j = JSON.parse(t); }
     catch(e){ throw new Error("The server sent something unreadable. Check the deployment URL."); }
-    if (!j.ok) throw new Error(j.message || "The request was refused.");
+    if (!j.ok){
+      // A rotated secret: forget the stored one so the next reload asks again.
+      if (j.message === "Unauthorized"){ try { localStorage.removeItem("ca_secret"); } catch(x){} }
+      throw new Error(j.message || "The request was refused.");
+    }
     return j;
   })
   .catch(function(e){
@@ -1072,13 +1078,22 @@ function notify(k, settingsRow, itemNumber){
 /* EVENTS */
 $("loginForm").addEventListener("submit", function(e){
   e.preventDefault();
-  if ($("pw").value === PASSWORD){
-    try { sessionStorage.setItem("ca_ok", "1"); } catch(x){}
+  var typed = $("pw").value.trim();
+  if (!typed) return;
+  $("loginMsg").textContent = "Checking...";
+  // getPollerStatus needs the admin secret and returns no guest data,
+  // so it is a safe way to test the typed value against the server.
+  api({ action:"getPollerStatus", secret:typed }).then(function(){
+    ADMIN_SECRET = typed;
+    try { localStorage.setItem("ca_secret", typed); } catch(x){}
+    $("loginMsg").textContent = "";
     unlock();
-  } else {
-    $("loginMsg").textContent = "That password is not right.";
+  }, function(err){
+    $("loginMsg").textContent = /unauthori/i.test(err.message)
+      ? "That password is not right."
+      : "Could not check the password. " + err.message;
     $("pw").select();
-  }
+  });
 });
 
 $("refresh").addEventListener("click", function(){ load(true); });
@@ -1187,7 +1202,10 @@ function unlock(){
   });
 }
 
-try { if (sessionStorage.getItem("ca_ok") === "1") unlock(); } catch(x){}
+try {
+  var savedSecret = localStorage.getItem("ca_secret");
+  if (savedSecret) { ADMIN_SECRET = savedSecret; unlock(); }
+} catch(x){}
 </script>
 
 </body>
