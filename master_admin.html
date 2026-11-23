@@ -768,8 +768,10 @@
   /* ══════════════════════════════════════════════════════════
      CONFIG
      ══════════════════════════════════════════════════════════ */
-  const PASSWORD     = "master2026";          // CHANGE BEFORE EVENT NIGHT
-  const ADMIN_SECRET = "mh_control_#2026#";   // must match ADMIN_SECRET in Script Properties
+  // No secret is stored in this file. It is public on GitHub Pages.
+  // The admin secret is typed at login, checked against the server,
+  // then kept on this device only.
+  let ADMIN_SECRET = "";
   const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycby1YsQ-4o26Krk7zWMn7hVuQLnvAVhTTygVo6nbqIKnExx0yGvQqsiyE1lr8mbWC7rnKg/exec";
 
   const DASH_MS      = 12000;                 // bids, items, controls
@@ -804,14 +806,29 @@
   /* ══════════════════════════════════════════════════════════
      LOGIN
      ══════════════════════════════════════════════════════════ */
-  document.getElementById("loginForm").addEventListener("submit", e => {
+  function showApp() {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    init();
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", async e => {
     e.preventDefault();
-    if (document.getElementById("pwInput").value === PASSWORD) {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("app").style.display = "flex";
-      init();
-    } else {
-      document.getElementById("loginError").textContent = "Incorrect password.";
+    const typed = document.getElementById("pwInput").value.trim();
+    const errEl = document.getElementById("loginError");
+    if (!typed) return;
+    errEl.textContent = "Checking...";
+    try {
+      // getPollerStatus needs the admin secret and returns no guest data.
+      await api({ action: "getPollerStatus", secret: typed });
+      ADMIN_SECRET = typed;
+      try { localStorage.setItem("ma_secret", typed); } catch (x) {}
+      errEl.textContent = "";
+      showApp();
+    } catch (err) {
+      errEl.textContent = /unauthori/i.test(err.message)
+        ? "Incorrect password."
+        : "Could not check the password. " + err.message;
     }
   });
 
@@ -859,7 +876,11 @@
     });
     const text = await res.text();
     let json; try { json = JSON.parse(text); } catch { throw new Error("Server error."); }
-    if (!json.ok) throw new Error(json.message || "Unknown error.");
+    if (!json.ok) {
+      // A rotated secret: forget the stored one so the next reload asks again.
+      if (json.message === "Unauthorized") { try { localStorage.removeItem("ma_secret"); } catch (x) {} }
+      throw new Error(json.message || "Unknown error.");
+    }
     return json;
   }
 
@@ -2136,6 +2157,12 @@ function toggleExpandLabel() {
   attach(document.getElementById("handle1"), 0);
   attach(document.getElementById("handle2"), 1);
 })();
+
+  // Returning on the same device: skip the login screen.
+  try {
+    const saved = localStorage.getItem("ma_secret");
+    if (saved) { ADMIN_SECRET = saved; showApp(); }
+  } catch (x) {}
 </script>
 </body>
 </html>
