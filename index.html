@@ -230,7 +230,6 @@
     tr.detail-row td { background: #fbf7ee; border-top: none; padding: 0.6em 0.8em 0.8em; }
     .detail ul { margin: 0 0 0.4em 1.1em; padding: 0; text-align: left; }
     .detail li { margin: 0.2em 0; line-height: 1.4; font-size: 0.75rem; }
-    .detail .min-bid { font-size: 0.75rem; font-weight: bold; margin: 0 0 0.4em; text-align: left; }
     .detail .donor { font-size: 0.7rem; color: #6b5a3a; text-align: left; font-style: italic; }
   </style>
 </head>
@@ -558,10 +557,9 @@
       return isNaN(n) ? escHtml(v) : '€' + n.toLocaleString('en-IE');
     }
 
-    function detailRow(num, open, minLine) {
+    function detailRow(num, open) {
       const d = DETAILS[num];
-      const body = (minLine ? '<div class="min-bid">' + escHtml(minLine) + '</div>' : '')
-                 + '<ul>' + d.l.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul>'
+      const body = '<ul>' + d.l.map(x => '<li>' + escHtml(x) + '</li>').join('') + '</ul>'
                  + (d.d ? '<div class="donor">Donated by ' + escHtml(d.d) + '</div>' : '');
       return '<tr class="detail-row' + (open ? '' : ' hidden') + '" data-detail="' + num + '">'
            + '<td colspan="2"><div class="detail">' + body + '</div></td></tr>';
@@ -650,7 +648,6 @@
 
         let rowClass = (count % 2) ? ' alt' : '';
         let priceCell;
-        let minLine = '';
         const num = itemNum(label);
         const amount = Number(String(raw).replace(/[^0-9.-]/g, '')) || 0;
 
@@ -668,10 +665,8 @@
           priceCell = '<span class="bid-lbl">Live auction</span><span class="bid-amt">🟢 LIVE</span>';
         } else if (amount > 0) {
           priceCell = '<span class="bid-lbl">Leading bid</span><span class="' + amtClass + '">' + formatEuro(raw) + '</span>';
-          minLine = 'To take the lead, bid more than ' + formatEuro(raw) + '.';
         } else {
           priceCell = '<span class="bid-lbl">Leading bid</span><span class="bid-none">No bids yet</span>';
-          minLine = 'No bids yet. Be the first to bid.';
         }
 
         const hasDetail = num !== null && DETAILS[num];
@@ -686,7 +681,7 @@
              +    '<td>' + toggle + '</td>'
              +    '<td>' + priceCell + '</td>'
              +  '</tr>';
-        if (hasDetail) html += detailRow(num, open, minLine);
+        if (hasDetail) html += detailRow(num, open);
         count++;
       }
 
