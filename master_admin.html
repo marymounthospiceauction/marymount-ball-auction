@@ -384,6 +384,25 @@
     .btn-red      { background: #dc2626; color: #fff; width: 100%; padding: 8px; font-size: 0.7rem; }
     .danger-warn  { font-size: 0.56rem; color: #fca5a5; line-height: 1.35; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 5px; padding: 5px 7px; }
 
+    /* BID FORM OPENS AT (display sheet CONTROL!B6) */
+    .opens-bar { display: none; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+                 padding: 8px 16px; flex-shrink: 0; border-bottom: 2px solid var(--gold);
+                 background: linear-gradient(90deg, rgba(201,151,63,0.10), rgba(201,151,63,0.28), rgba(201,151,63,0.10)); }
+    .opens-bar.show { display: flex; }
+    .opens-lbl  { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold-lt); }
+    .opens-time { font-size: clamp(1.6rem, 2.8vw, 2.4rem); font-weight: 800; color: var(--white); font-variant-numeric: tabular-nums; font-family: Georgia, serif; line-height: 1; }
+    .opens-cd   { font-size: 0.86rem; font-weight: 800; color: var(--amber); font-variant-numeric: tabular-nums;
+                  background: rgba(245,158,11,0.14); border: 1px solid var(--amb-bdr); border-radius: 999px; padding: 3px 12px; }
+    .opens-bar.is-due .opens-cd { color: #fca5a5; background: rgba(239,68,68,0.16); border-color: var(--red-bdr); animation: blink 1.4s infinite; }
+    .opens-bar.is-open { background: var(--grn-bg); border-bottom-color: var(--grn-bdr); padding: 4px 16px; }
+    .opens-bar.is-open .opens-lbl  { color: #86efac; }
+    .opens-bar.is-open .opens-time { font-size: 1.1rem; color: var(--green); }
+    .opens-bar.is-open .opens-cd   { display: none; }
+    .opens-bar.is-bad { background: var(--red-bg); border-bottom-color: var(--red-bdr); }
+    .opens-bar.is-bad .opens-time { font-size: 1rem; color: #fca5a5; font-family: inherit; }
+    .form-opens { font-size: 0.68rem; color: var(--dim); }
+    .form-opens b { color: var(--gold-lt); font-size: 0.8rem; }
+
     .closed-banner { display: none; background: var(--red); color: #fff; text-align: center; padding: 5px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
     .empty { padding: 20px 14px; font-size: 0.7rem; color: var(--muted); text-align: center; }
 
@@ -512,6 +531,12 @@
     </div>
   </div>
 
+  <div class="opens-bar" id="opensBar" title="From the display sheet, CONTROL tab, cell B6">
+    <span class="opens-lbl" id="opensLbl">Bid form opens at</span>
+    <span class="opens-time" id="opensTime">—</span>
+    <span class="opens-cd" id="opensCd"></span>
+  </div>
+
   <div class="closed-banner" id="closedBanner">🔒 Auction closed — form and screens updated</div>
 
   <!-- STATS STRIP -->
@@ -623,6 +648,7 @@
         <div class="ctrl-title"><span class="ctrl-icon">📝</span> Bidding form</div>
         <div class="ctrl-body">
           <div class="pill pill-off" id="formPill"><span class="pill-dot"></span><span id="formPillLabel">Loading...</span></div>
+          <div class="form-opens">Opens at <b id="formOpensAt">—</b></div>
           <div class="btn-row">
             <button class="btn btn-green"    id="btnOpenForm"  onclick="doFormAction('open')"  disabled>Open</button>
             <button class="btn btn-red-soft" id="btnCloseForm" onclick="doFormAction('close')" disabled>Close</button>
@@ -2064,7 +2090,105 @@ function toggleExpandLabel() {
       </div>`;
   }
 
+  /* ══════════════════════════════════════════════════════════
+     BID FORM OPENS AT
+     Same source and the same rules as the opening gate in index.html:
+     display sheet, CONTROL tab (gid 752655290), A6:B6. A6 must read
+     BID FORM OPENS AT, B6 must be a date. B6 empty means no gate, so
+     the public page is open. Unlike index.html there is no fallback
+     time here: if the read fails, this panel says so in red.
+     Read only. Opening the page does not open the form: the Open
+     button still does that.
+     ══════════════════════════════════════════════════════════ */
+  const CONTROL_URL =
+    "https://docs.google.com/spreadsheets/d/10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc/gviz/tq" +
+    "?tqx=out:json&gid=752655290&range=A6:B6&headers=0";
+
+  // loaded: a read has succeeded. date: null means B6 is empty (no gate).
+  let opensAt = { loaded: false, date: null, error: "" };
+
+  function formatOpens(d) {
+    return d.toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) +
+           " at " + d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  async function loadOpensAt() {
+    try {
+      const res = await fetch(CONTROL_URL + "&cb=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const txt  = await res.text();
+      const json = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
+      const row  = json.table && json.table.rows && json.table.rows[0];
+      const label = row && row.c[0] ? String(row.c[0].v || "").trim().toUpperCase() : "";
+      if (label !== "BID FORM OPENS AT") throw new Error("CONTROL!A6 reads \"" + label + "\"");
+      const cell = row.c[1];
+      let date = null;
+      if (cell && cell.v != null && cell.v !== "") {
+        const m = String(cell.v).match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+)(?:,(\d+))?)?\)/);
+        if (!m) throw new Error("CONTROL!B6 is not a date");
+        date = new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+      }
+      opensAt = { loaded: true, date, error: "" };
+    } catch (err) {
+      opensAt.error = err.message;     // keep the last good value, flag the failure
+    }
+    renderOpensAt();
+  }
+
+  function renderOpensAt() {
+    const bar  = document.getElementById("opensBar");
+    const lbl  = document.getElementById("opensLbl");
+    const tm   = document.getElementById("opensTime");
+    const cd   = document.getElementById("opensCd");
+    const card = document.getElementById("formOpensAt");
+
+    bar.classList.remove("is-open", "is-due", "is-bad");
+
+    if (opensAt.error && !opensAt.loaded) {
+      card.textContent = "Unknown";
+      if (state.auctionClosed === true) { bar.classList.remove("show"); return; }
+      bar.classList.add("show", "is-bad");
+      lbl.textContent = "Bid form opens at";
+      tm.textContent  = "Could not read: " + opensAt.error;
+      cd.textContent  = "";
+      return;
+    }
+    if (!opensAt.loaded) return;
+
+    const d      = opensAt.date;
+    const isOpen = !d || Date.now() >= d.getTime();
+    card.textContent = d ? formatOpens(d) : "No time set";
+
+    if (state.auctionClosed === true) { bar.classList.remove("show"); return; }
+    bar.classList.add("show");
+    if (opensAt.error) bar.title = "Last read failed (" + opensAt.error + "). Showing last known value.";
+    else bar.title = "From the display sheet, CONTROL tab, cell B6";
+
+    if (!isOpen) {
+      lbl.textContent = "Bidding opens";
+      tm.textContent  = formatOpens(d);
+      const s = Math.floor((d.getTime() - Date.now()) / 1000);
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      if (h >= 24) { cd.textContent = "in " + Math.floor(h / 24) + "d " + (h % 24) + "h " + m + "m"; return; }
+      cd.textContent = "in " + (h ? h + "h " : "") + String(m).padStart(h ? 2 : 1, "0") + "m " + String(sec).padStart(2, "0") + "s";
+      return;
+    }
+
+    // Public page is past its gate.
+    lbl.textContent = d ? "Bidding opened" : "No opening time in B6";
+    tm.textContent  = d ? formatOpens(d) : "Public page is open";
+    if (state.formOpen === false) {
+      // Bid button is showing on index.html but the form will refuse bids.
+      bar.classList.add("is-due");
+      cd.textContent = "Page open, form still closed";
+    } else {
+      bar.classList.add("is-open");
+      cd.textContent = "";
+    }
+  }
+
   function tick() {
+    renderOpensAt();
     const n = new Date();
     document.getElementById("clockTime").textContent =
       n.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
@@ -2089,9 +2213,11 @@ function toggleExpandLabel() {
 
     loadDashboard();
     loadSide();
+    loadOpensAt();
 
     setInterval(loadDashboard, DASH_MS);
     setInterval(loadSide, SIDE_MS);
+    setInterval(loadOpensAt, SIDE_MS);
     setInterval(refreshRecency, 30000);
   }
 </script>
