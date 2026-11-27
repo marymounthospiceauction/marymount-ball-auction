@@ -256,10 +256,11 @@
 
     /* ── CLOSING SOON BANNER ── */
     #closing-banner {
+      /* Same red alert as before, anchored to the top so the rows stay visible */
       position: fixed;
-      inset: 0;
+      top: 0.6vh; left: 0; right: 0;
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       z-index: 9000;
       pointer-events: none;
@@ -279,6 +280,7 @@
       color: #fff;
       white-space: nowrap;
       box-shadow: 0 0 60px rgba(220,10,10,0.6), 0 0 20px rgba(0,0,0,0.9);
+      transform-origin: top center;
       animation: banner-pulse 1.2s infinite alternate;
     }
 
@@ -775,8 +777,21 @@
     const BANNER_OFF_MS = 30_000;
     const SOLD_DURATION = 7_000;
 
+    // Shows or hides the red alert. While it shows, the rows move down by
+    // however much the alert reaches past the header, so no item is covered.
     function setClosingBanner(on) {
-      document.getElementById('closing-banner').classList.toggle('active', on);
+      const banner = document.getElementById('closing-banner');
+      const frame  = document.querySelector('.frame');
+      banner.classList.toggle('active', on);
+      frame.style.paddingTop = '';
+      if (on) {
+        const inner     = banner.querySelector('.closing-inner');
+        const alertBottom = banner.getBoundingClientRect().top + inner.offsetHeight * 1.04 + 6;
+        const rowsTop   = document.querySelector('.items-grid').getBoundingClientRect().top;
+        const extra     = Math.max(0, Math.ceil(alertBottom - rowsTop));
+        if (extra) frame.style.paddingTop = `calc(var(--safe-top) + ${extra}px)`;
+      }
+      reflow();
     }
 
     function runClosingFlash(enable) {
