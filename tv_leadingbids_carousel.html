@@ -281,9 +281,18 @@
       pointer-events: none;
     }
 
+    /* The sponsors strip sits with its bottom edge on the thin gold line of
+       the frame in tvbackground.png. That line is at y 746.5 of the 1344 x 768
+       image, i.e. 362.5 image px below its centre. The background is
+       centre/cover, so the image scale is max(100vw/1344, 100vh/768) and the
+       line is 362.5 scaled px below the middle of the screen. */
     .footer-sponsors img {
-      max-height: 85%;
-      max-width: 100%;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(50vh - 362.5 * max(100vw / 1344, 100vh / 768));
+      max-height: 12.9vh;
+      max-width: 52vw;
       object-fit: contain;
       filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
     }
