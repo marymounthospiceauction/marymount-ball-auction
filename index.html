@@ -231,9 +231,28 @@
     .detail ul { margin: 0 0 0.4em 1.1em; padding: 0; text-align: left; }
     .detail li { margin: 0.2em 0; line-height: 1.4; font-size: 0.75rem; }
     .detail .donor { font-size: 0.7rem; color: #6b5a3a; text-align: left; font-style: italic; }
+
+    /* Opening gate: until BID FORM OPENS AT (CONTROL!B6) the items and their
+       details show, but the bid button, bid amounts and update time do not. */
+    body.gated .bid-button, body.gated #updated { display: none; }
+    body:not(.gated) .opening-notice { display: none; }
+    .opening-notice {
+      max-width: 520px;
+      margin: 8px auto 4px;
+      padding: 22px 18px;
+      background: #fff;
+      border: 2px solid #bc8b41;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    @media (max-width: 480px) { .opening-notice { max-width: 90%; } }
+    .opening-notice .on-title { font-size: 1.3rem; font-weight: bold; color: #000; margin-bottom: 8px; }
+    .opening-notice .on-when { font-size: 1.15rem; font-weight: 800; color: #6b5a3a; }
+    .opening-notice .on-sub { font-size: 0.85rem; color: #6b5a3a; margin-top: 10px; }
   </style>
 </head>
-<body>
+<body class="gated">
 
   <div class="header-image">
     <img src="/assets/Marymount%20Header.png"
@@ -243,7 +262,7 @@
   <div class="button-section">
     <div class="button-container">
 
-      <a href="https://marymountauction2026.ie/bid" class="custom-button" target="_blank">
+      <a href="https://marymountauction2026.ie/bid" class="custom-button bid-button" target="_blank">
         <span class="emoji">📝</span> Place an Auction Bid
       </a>
 
@@ -255,8 +274,14 @@
     </div>
   </div>
 
+  <div class="opening-notice" id="openingNotice">
+    <div class="on-title">Bidding opens</div>
+    <div class="on-when" id="openingWhen">Fri 4 Dec 2026 at 18:30</div>
+    <div class="on-sub">Browse the items below.</div>
+  </div>
+
   <div class="table-section">
-    <div class="table-heading">LEADING BIDS</div>
+    <div class="table-heading" id="tableHeading">AUCTION ITEMS</div>
     <div class="updated" id="updated">Loading…</div>
     <div class="table-hint">Tap any item to see what it includes.</div>
 
@@ -470,7 +495,8 @@
       'https://docs.google.com/spreadsheets/d/10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc/gviz/tq'
       + '?tqx=out:csv&sheet=DISPLAY';
 
-    const REFRESH_MS = 5000;
+    const REFRESH_MS = 5000;          // once bidding is open
+    const GATED_REFRESH_MS = 60000;   // before opening: item list only
     const BLOCK = 1;
 
     // Item numbers the viewer has expanded, and the current filter text.
@@ -654,11 +680,13 @@
 
         // Flash the amount if it changed since the last poll.
         const prev = num !== null ? lastAmounts.get(num) : undefined;
-        const bumped = prev !== undefined && prev !== amount;
+        const bumped = opened && prev !== undefined && prev !== amount;
         if (num !== null) lastAmounts.set(num, amount);
         const amtClass = 'bid-amt' + (bumped ? ' bumped' : '');
 
-        if (isSold) {
+        if (!opened) {
+          priceCell = '';               // no amounts before opening
+        } else if (isSold) {
           rowClass += ' is-sold';
           priceCell = '<span class="bid-lbl">Sold for</span><span class="' + amtClass + '">' + formatEuro(raw) + '</span><span class="sold-tag">SOLD</span>';
         } else if (isLive) {
@@ -732,9 +760,81 @@
       applyFilter();
     });
 
-    showMessage('Loading bids…');
+    /* ────────────────────────────────────────────────────────────
+       OPENING GATE. Reads CONTROL!B6 (BID FORM OPENS AT) on the
+       display sheet. Until that time only the notice shows and the
+       bids table is not polled.
+       Uses gid, not the tab name: gviz falls back to the first sheet
+       (DISPLAY) when a tab name is wrong. headers=0 stops gviz eating
+       the row as a header. out:json gives "Date(y,m,d,h,mi,s)",
+       month zero based, which parses the same on every browser.
+       Time is read in the viewer's device time zone (Ireland).
+       ──────────────────────────────────────────────────────────── */
+    const CONTROL_URL =
+      'https://docs.google.com/spreadsheets/d/10AMh0CR18jXCpLnjq0JccpzttTEnc8Idb_caiu_EMMc/gviz/tq'
+      + '?tqx=out:json&gid=752655290&range=A6:B6&headers=0';
+    // Used only if CONTROL cannot be read. Keep in step with CONTROL!B6.
+    const FALLBACK_OPENS = new Date(2026, 11, 4, 18, 30, 0);
+    const GATE_CHECK_MS = 60000;
+
+    let opensAt = FALLBACK_OPENS;
+    let opened = false;
+    let gateTimer = null, tickTimer = null;
+
+    function formatOpens(d) {
+      return d.toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+           + ' at ' + d.toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function readOpensAt() {
+      try {
+        const res = await fetch(CONTROL_URL + '&cb=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const txt = await res.text();
+        const json = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+        const row = json.table && json.table.rows && json.table.rows[0];
+        const label = row && row.c[0] ? norm(row.c[0].v) : '';
+        if (label !== 'BID FORM OPENS AT') throw new Error('CONTROL!A6 is "' + label + '"');
+        const cell = row.c[1];
+        if (!cell || cell.v == null || cell.v === '') {
+          opensAt = null;               // B6 cleared: no gate
+        } else {
+          const m = String(cell.v).match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+)(?:,(\d+))?)?\)/);
+          if (!m) throw new Error('CONTROL!B6 is not a date: ' + cell.v);
+          opensAt = new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+        }
+      } catch (err) {
+        console.warn('Opening time read failed, using last known value:', err.message);
+      }
+      checkGate();
+    }
+
+    function checkGate() {
+      if (opened) return;
+      if (opensAt && Date.now() < opensAt.getTime()) {
+        document.getElementById('openingWhen').textContent = formatOpens(opensAt);
+        return;
+      }
+      opened = true;
+      clearInterval(gateTimer);
+      clearInterval(tickTimer);
+      clearInterval(gatedPoll);
+      document.body.classList.remove('gated');
+      document.getElementById('tableHeading').textContent = 'LEADING BIDS';
+      lastAmounts.clear();              // no flashes on the first open render
+      loadData();
+      setInterval(loadData, REFRESH_MS);
+    }
+
+    // Item list shows before opening, refreshed once a minute.
+    showMessage('Loading items…');
     loadData();
-    setInterval(loadData, REFRESH_MS);
+    const gatedPoll = setInterval(() => { if (!opened) loadData(); }, GATED_REFRESH_MS);
+
+    document.getElementById('openingWhen').textContent = formatOpens(FALLBACK_OPENS);
+    readOpensAt();
+    gateTimer = setInterval(readOpensAt, GATE_CHECK_MS);  // picks up edits to B6
+    tickTimer = setInterval(checkGate, 1000);             // opens on the second
   </script>
 
 </body>
