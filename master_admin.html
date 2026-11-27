@@ -319,26 +319,37 @@
     /* ACCOUNTANT PRINTOUT. The preview and the printed page are the same
        markup: #printArea is always white with black text. */
     #printArea { background: #fff; color: #000; padding: 14px 16px; font-family: Calibri, Arial, sans-serif; }
-    .pa-title { font-family: Georgia, serif; font-size: 16pt; font-weight: 700; margin-bottom: 2px; }
-    .pa-sub   { font-size: 9pt; color: #444; margin-bottom: 10px; }
-    .pa-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-    .pa-table th, .pa-table td { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: middle; color: #000; }
-    .pa-table th { background: #e8e8e8; font-weight: 700; }
-    .pa-table thead { display: table-header-group; }
-    .pa-table tr { page-break-inside: avoid; }
+    .pa-page  { margin-bottom: 22px; }
+    .pa-page + .pa-page { border-top: 2px dashed #bbb; padding-top: 16px; }   /* screen only: shows where pages split */
+    .pa-head  { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+    .pa-title { font-family: Georgia, serif; font-size: 16pt; font-weight: 700; }
+    .pa-sub   { font-size: 9pt; color: #444; white-space: nowrap; }
+    .pa-table { width: 100%; border-collapse: collapse; font-size: 10pt; table-layout: fixed; }
+    .pa-table th, .pa-table td { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: middle; color: #000; overflow-wrap: anywhere; }
+    .pa-table th { background: #e8e8e8; font-weight: 700; text-transform: uppercase; font-size: 8.5pt; letter-spacing: 0.04em; }
+    .pa-table tbody tr { height: 22mm; page-break-inside: avoid; break-inside: avoid; }
     .pa-table tfoot td { background: #f4f4f4; }
     .pa-table tbody tr:nth-child(even) td { background: #eef2f7; }
-    .pa-table th.pa-paid { font-size: 10pt; }
-    .pa-num  { text-align: right; white-space: nowrap; }
-    .pa-paid { text-align: center; width: 48px; font-size: 13pt; }
-    .pa-notes { min-width: 300px; height: 60px; }
+    .pa-item  { font-size: 9pt; line-height: 1.25; }
+    .pa-name  { font-size: 12pt; font-weight: 700; }
+    .pa-num   { text-align: center !important; white-space: nowrap; font-weight: 700; }
+    .pa-ctr   { text-align: center !important; }
+    .pa-table th.pa-num { white-space: normal; }
+    .pa-table th { text-align: center !important; }
+    .pa-method { font-size: 8.5pt; line-height: 1.55; white-space: nowrap; }
+    .pa-method span { font-size: 11pt; vertical-align: -1px; margin-right: 3px; }
+    .pa-table tfoot td { font-size: 9.5pt; }
+    .pa-table tfoot tr.pa-grand td { background: #d9d9d9; font-size: 11pt; border-top: 2px solid #000; }
+    .pa-paid  { text-align: center; font-size: 15pt; }
+    .pa-table th.pa-paid { font-size: 8.5pt; }
     .pa-miss  { color: #b00000; font-weight: 700; }
+    .pa-email { font-size: 8.5pt; }
 
     @media print {
       @page {
         size: A4 landscape;
         margin: 12mm 12mm 16mm 12mm;
-        @bottom-left  { content: "Marymount Ball 2026: auction winners for payment"; font-size: 8pt; color: #444; }
+        @bottom-left  { content: "Marymount Auction 2026 Winners"; font-size: 8pt; color: #444; }
         @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #444; }
       }
       .pa-table tbody tr:nth-child(even) td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -350,6 +361,9 @@
       #accountantModal .modal-body { overflow: visible !important; padding: 0 !important; }
       #accountantModal .no-print { display: none !important; }
       #printArea { padding: 0; }
+      .pa-page { margin: 0; break-after: page; page-break-after: always; }
+      .pa-page:last-child { break-after: auto; page-break-after: auto; }
+      .pa-page + .pa-page { border-top: none; padding-top: 0; }
       .pa-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
     .ctrl-title {
@@ -775,7 +789,7 @@
         <div class="modal-sub" id="accountantSub">&nbsp;</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button class="btn btn-gold" style="flex:0 0 auto;padding:7px 16px;" onclick="window.print()">Print</button>
+        <button class="btn btn-gold" style="flex:0 0 auto;padding:7px 16px;" onclick="printAccountant()">Print</button>
         <button class="modal-x" onclick="closeModal('accountantModal')">&times;</button>
       </div>
     </div>
@@ -2054,54 +2068,90 @@ function toggleExpandLabel() {
     }
   }
 
+  const PA_TITLE    = "Marymount Auction 2026 Winners";
+  const PA_PER_PAGE = 7;   // room for the accountant's notes
+
+  // The browser prints document.title in its page header, so swap it
+  // for the print and put it back afterwards.
+  function printAccountant() {
+    const old = document.title;
+    document.title = PA_TITLE;
+    const restore = () => { document.title = old; window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  }
+
   function renderAccountant() {
     const rows    = accountantRows;
     const total   = rows.reduce((s, r) => s + (Number(r.price) || 0), 0);
     const missing = rows.filter(r => !r.name || !r.mobile).length;
+    const pages   = Math.max(1, Math.ceil(rows.length / PA_PER_PAGE));
+    const now     = new Date();
+    const printed = escHtml(now.toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) +
+                    " at " + now.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", hour12: false }));
 
     document.getElementById("accountantSub").textContent =
       rows.length + " items · " + euro(total) + " total · " +
-      missing + (missing === 1 ? " item" : " items") + " missing winner name or mobile";
+      missing + (missing === 1 ? " item" : " items") + " missing winner name or mobile · " +
+      pages + (pages === 1 ? " page" : " pages");
 
-    document.getElementById("accountantBody").innerHTML = `
-      <div id="printArea">
-        <div class="pa-title">Marymount Ball 2026: auction winners for payment</div>
-        <div class="pa-sub">Printed ${escHtml(new Date().toLocaleString("en-IE"))}</div>
-        <table class="pa-table">
-          <thead>
-            <tr>
-              <th>Auction item</th>
-              <th class="pa-num">Winning price</th>
-              <th>Winner name</th>
-              <th>Mobile</th>
-              <th>Table</th>
-              <th>Email</th>
-              <th class="pa-paid">Paid</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(r => `
+    // Widths: item narrower, winner name wider, notes keeps the most room.
+    const cols = `
+      <colgroup>
+        <col style="width:14%"><col style="width:8%"><col style="width:16%"><col style="width:9.5%">
+        <col style="width:4.5%"><col style="width:11%"><col style="width:4%"><col style="width:9.5%">
+        <col style="width:23.5%">
+      </colgroup>`;
+    const head = `
+      <thead><tr>
+        <th>Auction item</th><th class="pa-num">Winning price</th><th>Winner name</th><th class="pa-ctr">Mobile</th>
+        <th class="pa-ctr">Table</th><th>Email</th><th class="pa-paid">Paid</th><th>Payment method</th><th>Notes</th>
+      </tr></thead>`;
+
+    const box = "&#9744;";
+    const rowHtml = r => `
+      <tr>
+        <td class="pa-item">${escHtml(String(r.item || "").replace(/\s*\*{3}SOLD\*{3}\s*/gi, " ").trim())}</td>
+        <td class="pa-num">${euro(r.price)}</td>
+        <td class="pa-name ${r.name ? "" : "pa-miss"}">${escHtml(r.name) || "missing"}</td>
+        <td class="pa-ctr ${r.mobile ? "" : "pa-miss"}">${escHtml(r.mobile) || "missing"}</td>
+        <td class="pa-ctr">${escHtml(r.table) || "—"}</td>
+        <td class="pa-email">${escHtml(r.email)}</td>
+        <td class="pa-paid">${box}</td>
+        <td class="pa-method"><span>${box}</span>Cash<br><span>${box}</span>Card<br><span>${box}</span>Bank transfer</td>
+        <td></td>
+      </tr>`;
+
+    let html = "";
+    for (let p = 0; p < pages; p++) {
+      const first = p * PA_PER_PAGE;
+      const chunk = rows.slice(first, first + PA_PER_PAGE);
+      const last  = p === pages - 1;
+      const pageTotal = chunk.reduce((s, r) => s + (Number(r.price) || 0), 0);
+      html += `
+        <div class="pa-page">
+          <div class="pa-head">
+            <div class="pa-title">${PA_TITLE}</div>
+            <div class="pa-sub">Page ${p + 1} of ${pages} · Printed ${printed}</div>
+          </div>
+          <table class="pa-table">${cols}${head}
+            <tbody>${chunk.map(rowHtml).join("")}</tbody>
+            <tfoot>
               <tr>
-                <td>${escHtml(r.item)}</td>
-                <td class="pa-num">${euro(r.price)}</td>
-                <td class="${r.name ? "" : "pa-miss"}">${escHtml(r.name) || "missing"}</td>
-                <td class="${r.mobile ? "" : "pa-miss"}">${escHtml(r.mobile) || "missing"}</td>
-                <td>${escHtml(r.table) || "—"}</td>
-                <td>${escHtml(r.email)}</td>
-                <td class="pa-paid">&#9744;</td>
-                <td class="pa-notes"></td>
-              </tr>`).join("")}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td><b>Total</b></td>
-              <td class="pa-num"><b>${euro(total)}</b></td>
-              <td colspan="6"></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>`;
+                <td><b>PAGE ${p + 1} SUBTOTAL</b></td>
+                <td class="pa-num"><b>${euro(pageTotal)}</b></td>
+                <td colspan="7">This page only: the ${chunk.length} item${chunk.length === 1 ? "" : "s"} listed above. Not the auction total.</td>
+              </tr>
+              ${last ? `<tr class="pa-grand">
+                <td><b>GRAND TOTAL</b></td>
+                <td class="pa-num"><b>${euro(total)}</b></td>
+                <td colspan="7"><b>All ${rows.length} items, all ${pages} pages.</b></td>
+              </tr>` : ""}
+            </tfoot>
+          </table>
+        </div>`;
+    }
+    document.getElementById("accountantBody").innerHTML = `<div id="printArea">${html}</div>`;
   }
 
   /* ══════════════════════════════════════════════════════════
