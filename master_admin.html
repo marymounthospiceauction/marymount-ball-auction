@@ -86,7 +86,7 @@
       content: "⌕"; position: absolute; top: 3px; right: 5px;
       font-size: 0.62rem; color: var(--muted); opacity: 0.55;
     }
-    .stat-cell.clickable:hover::after { opacity: 1; color: var(--gold-lt); }
+    .stat-cell.clickable:hover::after { opacity: 1; color: #fff; }
     .stat-num { font-size: clamp(1.25rem, 2.1vw, 2rem); font-weight: 800; color: var(--white); line-height: 1.05; font-variant-numeric: tabular-nums; transition: color 0.4s; }
     .stat-cell.total .stat-num { color: var(--green); font-size: clamp(1.45rem, 2.5vw, 2.4rem); }
     .stat-num.bumped { color: var(--green); }
@@ -104,14 +104,14 @@
     @keyframes pulseFail { 0%,100%{background:var(--red-bg)} 50%{background:#521f1f} }
     /* Stats: one accent, not a colour per tile. Tiles lift off a dark
        strip with a gold edge; total and health keep their meaning colours. */
-    .stats-strip { background: #0f1830; gap: 6px; padding: 7px; border-bottom: 2px solid var(--gold); }
-    .stat-cell { border: 1px solid #3f5a8c !important; border-top: 3px solid var(--gold) !important; border-radius: 8px;
+    .stats-strip { background: #0f1830; gap: 6px; padding: 7px; border-bottom: 2px solid var(--border); }
+    .stat-cell { border: 1px solid #3f5a8c !important; border-top: 1px solid #5a78ad !important; border-radius: 8px;
                  background: linear-gradient(180deg, #2f4777, #22365e);
                  box-shadow: 0 3px 10px rgba(0,0,0,0.35); }
     .stat-cell .stat-num { color: #fff; }
-    .stat-cell .stat-lbl { color: var(--gold-lt); font-weight: 700; }
+    .stat-cell .stat-lbl { color: #c7d6ee; font-weight: 700; }
     .stat-cell.clickable:hover { background: linear-gradient(180deg, #38538a, #2a416e); }
-    .stat-cell.total { border-color: #22c55e !important; border-top-color: #4ade80 !important;
+    .stat-cell.total { border-color: #22c55e !important; border-top-color: #22c55e !important;
                        background: linear-gradient(180deg, #166534, #0d3a20); }
     .stat-cell.total.clickable:hover { background: linear-gradient(180deg, #1a7a40, #104527); }
     .stat-cell.total .stat-num { color: #4ade80; }
